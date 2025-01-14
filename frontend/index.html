@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Bootstrap Link -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+      defer
+    ></script>
+
+    <!-- JQuery Link -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- Font Awesome -->
+    <script
+      src="https://kit.fontawesome.com/4f6d96e165.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Page Name -->
+    <title>FallSafe</title>
+
+    <!-- Linking CSS -->
+    <link rel="stylesheet" href="./css/normalize.css" />
+    <link rel="stylesheet" href="./css/style.css" />
+
+    <!-- ######################################## INSERT PAGE'S CSS HERE \/ ########################################################### -->
+    <!-- <link rel="stylesheet" href="./css/" /> -->
+    <!-- ######################################## END OF PAGE'S CSS ########################################################### -->
+
+    <!-- Linking JS -->
+    <script src="./js/script.js" defer></script>
+
+    <!-- ######################################## INSERT PAGE'S JS HERE \/ ########################################################### -->
+    <script src="./js/index.js" defer></script>
+    <!-- ######################################## END OF PAGE'S JS ########################################################### -->
+
+    <!-- Add a favicon to the tab bar -->
+    <link rel="icon" type="image/x-icon" href="./img/FallSafe-Small.png" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <!-- Navbar -->
+      <div id="navbar-container"></div>
+    </header>
+
+    <!-- Transparent Row with Small Height at the Top -->
+    <div
+      class="row"
+      style="width: 10vw; height: 50px; background-color: transparent"
+    ></div>
+
+    <!-- Main Content Container -->
+    <div class="container text-center">
+      <div class="row justify-content-center">
+        <div class="col-12 mt-5">
+          <!-- Load customAlert.html dynamically -->
+          <div id="customAlertContainer"></div>
+
+          <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
+          <!-- Main Section -->
+          <h1>Welcome to FallSafe</h1>
+          <p class="lead text-muted">
+            Empowering seniors to assess and manage fall risk with cutting-edge
+            technology.
+          </p>
+          <p id="servedBy" class="text-muted mt-3"></p>
+
+          <!-- Lion Befrienders Section -->
+          <section class="my-5">
+            <h2>About Lion Befrienders</h2>
+            <img
+              src="./img/LionBefrienders.png"
+              alt="Lion Befrienders Logo"
+              class="img-fluid p-3"
+            />
+            <div class="row align-items-center">
+              <p class="text-secondary">
+                Established in <strong>1995</strong>,
+                <strong
+                  >Lions Befrienders Service Association (Singapore)
+                  [LBSA]</strong
+                >
+                is a voluntary welfare organisation dedicated to providing
+                <strong>holistic care and support</strong> to help seniors
+                <strong>age healthily</strong> in place with community
+                participation, enabling them to enjoy
+                <strong>purposeful and meaningful lives</strong>.
+              </p>
+              <p class="text-secondary">
+                Through the active involvement of about
+                <strong>1,000 regular volunteers</strong>, LBSA engages close to
+                <strong>10,000 seniors</strong> via a spectrum of integrated
+                eldercare services catering to their
+                <strong
+                  >social, emotional, mental, physical and spiritual
+                  needs</strong
+                >.
+              </p>
+            </div>
+          </section>
+
+          <!-- Problem Statement -->
+          <section class="my-5">
+            <h2>Problem Statement</h2>
+            <p class="text-secondary">
+              Many seniors are susceptible to <strong>falls</strong> due to
+              illnesses such as <strong>weakness in legs</strong>,
+              <strong>sarcopenia</strong>, deterioration in eyesight, etc.
+              Currently, assessment for <strong>fall risk</strong> is usually
+              carried out by <strong>healthcare professionals</strong> and may
+              remain undiscovered till seniors decide to seek healthcare
+              assistance.
+            </p>
+            <p class="text-secondary">
+              How might we use <strong>Technology</strong> to offer an
+              <strong>easy and user-friendly way</strong> for seniors to perform
+              preliminary <strong>self-assessment</strong> in the comfort of
+              their own homes, with <strong>vulnerable cases</strong> being
+              highlighted for further clinical assessment by
+              <strong>doctors</strong>?
+            </p>
+          </section>
+
+          <main class="container my-5">
+            <h2>Our Solution</h2>
+            <div class="row">
+              <div class="col-md-4">
+                <img
+                  src="./img/art.jpg"
+                  alt="FallSafe Illustration"
+                  class="img-fluid"
+                />
+              </div>
+              <div class="col-md-8 d-flex flex-column justify-content-center">
+                <p class="text-secondary">
+                  <strong>FallSafe</strong> provides seniors with an
+                  <strong>easy-to-use platform</strong> for preliminary
+                  <strong>fall risk assessments</strong> from the comfort of
+                  their homes. Our <strong>IoT-integrated tests</strong> and
+                  <strong>data-driven insights</strong> empower seniors and
+                  healthcare providers to act <strong>proactively</strong>,
+                  reducing risks and improving <strong>quality of life</strong>.
+                </p>
+                <a href="./login.html" class="btn btn-primary-outline mt-3">
+                  <i class="fas fa-heartbeat"></i> Get Started
+                </a>
+              </div>
+            </div>
+          </main>
+          <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bd-footer">
+      <div
+        id="footer-container"
+        class="container py-4 py-md-5 px-4 px-md-3 text-body-secondary"
+      ></div>
+    </footer>
+  </body>
+</html>

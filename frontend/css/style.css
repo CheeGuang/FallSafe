@@ -1,0 +1,90 @@
+:root {
+  --dark-blue: rgb(0, 51, 153);
+  --dark-blue-hover: rgb(0, 41, 123);
+  --white: #ffffff;
+  --shadow-colour: rgba(0, 0, 0, 0.1);
+}
+
+body {
+  font-family: Arial, sans-serif !important;
+}
+
+.navbar {
+  background-color: var(--white) !important; /* White background for navbar */
+  box-shadow: 0 4px 6px var(--shadow-colour) !important; /* Subtle shadow at the bottom */
+}
+
+/* Primary buttons with dark blue colour scheme and bold text */
+.btn-primary {
+  background-color: var(--dark-blue) !important; /* Dark blue background */
+  color: var(--white) !important; /* White text */
+  font-weight: bold !important; /* Bold text */
+  border: none !important; /* Remove borders */
+  padding: 10px 20px !important; /* Add padding */
+  border-radius: 5px !important; /* Rounded corners */
+  cursor: pointer !important; /* Pointer cursor on hover */
+}
+
+.btn-primary:hover {
+  background-color: var(
+    --dark-blue-hover
+  ) !important; /* Slightly darker dark blue on hover */
+}
+
+/* Outline version of primary button with dark blue scheme */
+.btn-primary-outline {
+  background-color: transparent !important; /* Transparent background */
+  color: var(--dark-blue) !important; /* Dark blue text */
+  font-weight: bold !important; /* Bold text */
+  border: 1px solid var(--dark-blue) !important; /* Dark blue border */
+  padding: 8px 18px !important; /* Add padding */
+  border-radius: 5px !important; /* Rounded corners */
+  cursor: pointer !important; /* Pointer cursor on hover */
+}
+
+.btn-primary-outline:hover {
+  background-color: var(
+    --dark-blue
+  ) !important; /* Dark blue background on hover */
+  color: var(--white) !important; /* White text on hover */
+  border-color: var(
+    --dark-blue-hover
+  ) !important; /* Slightly darker dark blue border on hover */
+}
+
+/* Text primary with dark blue scheme */
+.text-primary {
+  color: var(--dark-blue) !important; /* Dark blue text */
+  font-weight: bold !important; /* Bold text */
+}
+
+.text-primary:hover {
+  color: var(
+    --dark-blue-hover
+  ) !important; /* Slightly darker dark blue on hover */
+}
+
+/* Headings (h1, h2, h3) with dark blue colour scheme and bold text */
+h1,
+h2,
+h3 {
+  color: var(--dark-blue) !important; /* Dark blue text colour */
+  font-weight: bold !important; /* Bold text */
+}
+
+h2 {
+  font-size: 1.4rem !important;
+}
+/* Links (a) with dark blue colour scheme and bold text */
+a {
+  color: var(--dark-blue) !important; /* Dark blue text */
+  font-weight: bold !important; /* Bold text */
+  text-decoration: none !important; /* Remove underline */
+}
+
+a:hover {
+  color: var(
+    --dark-blue-hover
+  ) !important; /* Slightly darker dark blue on hover */
+  text-decoration: underline !important; /* Add underline on hover */
+}

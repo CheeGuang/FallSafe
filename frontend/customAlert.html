@@ -1,0 +1,87 @@
+<!-- Custom Alert Notification -->
+<div id="customAlert" class="alert alert-secondary custom-alert" role="alert">
+  <button
+    type="button"
+    aria-label="Close"
+    id="closeAlert"
+    style="
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    "
+  >
+    <i class="fas fa-times" style="color: black; font-size: 1.2rem"></i>
+  </button>
+  <span class="alert-message">This is a custom notification message!</span>
+</div>
+
+<!-- Custom CSS for the Alert -->
+<style>
+  /* Notification Styling */
+  .custom-alert {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1050;
+    display: none;
+    width: 90%; /* Responsive width */
+    max-width: 600px; /* Fixed maximum width */
+    padding: 20px;
+    background-color: #e0e0e0; /* Grey background */
+    color: #333; /* Dark grey text color */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  /* FontAwesome Close Button Styling */
+  .fas.fa-times {
+    font-size: 1.2rem;
+    color: black;
+  }
+
+  .alert-message {
+    display: block;
+    text-align: center;
+    font-size: 1.1rem;
+  }
+</style>
+
+<!-- Custom JS for the Alert -->
+<script>
+  $(document).ready(function () {
+    // Function to show the custom notification
+    window.showCustomAlert = function (message, redirectUrl = null) {
+      var $alert = $("#customAlert");
+      $alert.find(".alert-message").text(message); // Update alert message
+      $alert.fadeIn(); // Show the alert
+
+      // Automatically hide after 5 seconds (5000ms) or 1 second if redirecting
+      var displayDuration = redirectUrl ? 1000 : 5000;
+
+      // Hide the alert after the specified duration
+      setTimeout(function () {
+        $alert.fadeOut(function () {
+          // If a redirect URL is provided, navigate to it after fade-out
+          if (redirectUrl) {
+            console.log("Redirecting to:", redirectUrl); // Debugging
+            window.location.href = redirectUrl;
+          }
+        });
+      }, displayDuration);
+    };
+
+    // Show the notification when button is clicked (for testing purposes)
+    $("#showAlert").click(function () {
+      showCustomAlert("This is a custom notification message!", "login.html");
+    });
+
+    // Close the alert when the close button is clicked
+    $("#closeAlert").click(function () {
+      $("#customAlert").fadeOut(); // Hide the alert when "x" is clicked
+    });
+  });
+</script>
