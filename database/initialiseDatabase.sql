@@ -13,7 +13,7 @@ USE FallSafe_AuthenticationDB;
 CREATE TABLE User (
     user_id SMALLINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,  -- Unique ID for the user
     email VARCHAR(100) NOT NULL UNIQUE,                              -- Email address
-    password VARCHAR(255) DEFAULT NULL,                              -- Password (hashed)
+    password VARCHAR(500) DEFAULT NULL,                              -- Password (hashed)
     verification_code VARCHAR(6) DEFAULT NULL,                       -- Verification code for email verification
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                   -- Account creation timestamp
     INDEX idx_email (email)                                          -- Index for email lookups
@@ -24,7 +24,7 @@ CREATE TABLE User (
 CREATE TABLE Admin (
     admin_id SMALLINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,  -- Unique ID for the admin
     email VARCHAR(100) NOT NULL UNIQUE,                              -- Email address
-    password VARCHAR(255) DEFAULT NULL,                              -- Password (hashed)
+    password VARCHAR(500) DEFAULT NULL,                              -- Password (hashed)
     verification_code VARCHAR(6) DEFAULT NULL,                       -- Verification code for email verification
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                   -- Account creation timestamp
     INDEX idx_email (email)                                          -- Index for email lookups
@@ -192,12 +192,12 @@ USE FallSafe_AuthenticationDB;
 -- Insert dummy data into the User table
 INSERT INTO User (email, password, verification_code)
 VALUES
-    ('user1@example.com', 'hashedpassword1', '123456');
+    ('user1@example.com', '$2a$10$.kXKDW80biUED2npeuui7uZf3wgj0uyVOzC/7XshKWJbtH/jzQnpi', '123456');
 
 -- Insert dummy data into the Admin table
 INSERT INTO Admin (email, password, verification_code)
 VALUES
-    ('admin1@example.com', 'hashedpassword1', '111222');
+    ('admin1@example.com', '$2a$10$.kXKDW80biUED2npeuui7uZf3wgj0uyVOzC/7XshKWJbtH/jzQnpi', '111222');
 
 -- Insert dummy data into the UserAuthentication table
 INSERT INTO UserAuthentication (user_id, auth_token, token_expiry)
