@@ -22,9 +22,9 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Update the member name in the HTML
-    const memberNameSpan = document.getElementById("memberName");
-    memberNameSpan.textContent = decodedToken.name;
+    // Update the user name in the HTML
+    const userNameSpan = document.getElementById("userName");
+    userNameSpan.textContent = decodedToken.name;
   } catch (error) {
     console.error("Error decoding token:", error);
     showCustomAlert("An error occurred. Please log in again.");

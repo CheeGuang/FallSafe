@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Check for token in localStorage and load the appropriate navbar
   const token = localStorage.getItem("token");
-  const navbarUrl = token ? "./memberNavbar.html" : "./navbar.html";
+  const navbarUrl = token ? "./userNavbar.html" : "./navbar.html";
   loadComponent(navbarUrl, "navbar-container");
 
   // Load Footer

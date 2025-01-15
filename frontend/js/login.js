@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (response.ok) {
         // If login is successful, store the JWT token
         localStorage.setItem("token", data.token);
-        showCustomAlert("Login successful!", "./memberHome.html");
+        showCustomAlert("Login successful!", "./userHome.html");
       } else {
         // If login fails, show an error message
         showCustomAlert(

@@ -3,6 +3,8 @@ package authentication
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -56,7 +58,6 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
-// AuthenticateUser handles user login by verifying credentials and returning a JWT token
 func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	log.Println("Handling /login request...")
 
@@ -71,10 +72,10 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Parsed login request: %+v", loginRequest)
 
 	// Fetch user details from the `User` table
-	var hashedPassword, name, email, contactNumber, address string
+	var hashedPassword string
 	var userID int
 	log.Println("Fetching user details from the User table...")
-	err = db.QueryRow("SELECT user_id, password, name, email, contact_number, address FROM User WHERE email = ?", loginRequest.Email).Scan(&userID, &hashedPassword, &name, &email, &contactNumber, &address)
+	err = db.QueryRow("SELECT user_id, password FROM User WHERE email = ?", loginRequest.Email).Scan(&userID, &hashedPassword)
 	if err == sql.ErrNoRows {
 		log.Println("Email not found.")
 		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
@@ -82,13 +83,6 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	} else if err != nil {
 		log.Printf("Database error: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	// Verify if the password is hashed
-	if hashedPassword == "" {
-		log.Println("User password is not set in the database.")
-		http.Error(w, "Password not set for this account", http.StatusUnauthorized)
 		return
 	}
 
@@ -103,17 +97,17 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 
 	// Generate JWT token
 	log.Println("Generating JWT token...")
-	token, expiryTime, err := generateJWT(userID, name, email, contactNumber, address)
+	token, expiryTime, err := generateJWT(userID)
 	if err != nil {
 		log.Printf("Error generating JWT token: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	// Store the token in the `Authentication` table
-	log.Println("Storing token in the Authentication table...")
+	// Store the token in the `UserAuthentication` table
+	log.Println("Storing token in the UserAuthentication table...")
 	_, err = db.Exec(`
-		INSERT INTO Authentication (user_id, auth_token, token_expiry)
+		INSERT INTO UserAuthentication (user_id, auth_token, token_expiry)
 		VALUES (?, ?, ?)
 		ON DUPLICATE KEY UPDATE
 		auth_token = VALUES(auth_token), token_expiry = VALUES(token_expiry)`,
@@ -132,24 +126,57 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// generateJWT generates a JWT token for an authenticated user and returns the token and its expiry time
-func generateJWT(userID int, name, email, contactNumber, address string) (string, time.Time, error) {
-	expiryTime := time.Now().Add(24 * time.Hour) // Token expires in 24 hours
+// User structure to hold the response from the GetUserByID endpoint
+type User struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number"`
+	Address     string `json:"address"`
+	Age         string `json:"age"`
+}
 
-	claims := jwt.MapClaims{
-		"user_id":        userID,
-		"name":           name,
-		"email":          email,
-		"contact_number": contactNumber,
-		"address":        address,
-		"exp":            expiryTime.Unix(),
-		"iat":            time.Now().Unix(),
+// generateJWT now fetches user details and includes all values in the JWT
+func generateJWT(userID int) (string, time.Time, error) {
+	expiryTime := time.Now().Add(24 * time.Hour)
+
+	// Fetch user details from the API
+	url := fmt.Sprintf("http://127.0.0.1:5100/api/v1/user/getUser?userID=%d", userID)
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Printf("Error calling GetUserByID API: %v", err)
+		return "", expiryTime, err
+	}
+	defer resp.Body.Close()
+
+	// Check if the response status is OK
+	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("Failed to fetch user details: %s", body)
+		return "", expiryTime, fmt.Errorf("failed to fetch user details, status code: %d", resp.StatusCode)
 	}
 
-	// Create a new JWT token with the claims
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// Parse the response body
+	var user User
+	err = json.NewDecoder(resp.Body).Decode(&user)
+	if err != nil {
+		log.Printf("Error decoding user response: %v", err)
+		return "", expiryTime, err
+	}
 
-	// Sign the token with the JWT secret key
+	// Generate JWT claims including all user fields
+	claims := jwt.MapClaims{
+		"user_id":     user.ID,
+		"name":        user.Name,
+		"email":       user.Email,
+		"phone_number": user.PhoneNumber,
+		"address":     user.Address,
+		"age":         user.Age,
+		"exp":         expiryTime.Unix(),
+		"iat":         time.Now().Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString([]byte(jwtSecret))
 	return signedToken, expiryTime, err
 }
