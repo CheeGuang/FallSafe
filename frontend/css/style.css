@@ -7,6 +7,8 @@
 
 body {
   font-family: Arial, sans-serif !important;
+  font-size: 18px !important; /* Increase base font size */
+  line-height: 1.6 !important; /* Add better line height for readability */
 }
 
 .navbar {
@@ -14,15 +16,29 @@ body {
   box-shadow: 0 4px 6px var(--shadow-colour) !important; /* Subtle shadow at the bottom */
 }
 
+.nav-link {
+  margin-right: 20px;
+}
+
 /* Primary buttons with dark blue colour scheme and bold text */
 .btn-primary {
+  display: flex !important; /* Enable flexbox */
+  align-items: center !important; /* Center content vertically */
+  justify-content: center !important; /* Center content horizontally */
   background-color: var(--dark-blue) !important; /* Dark blue background */
   color: var(--white) !important; /* White text */
   font-weight: bold !important; /* Bold text */
   border: none !important; /* Remove borders */
-  padding: 10px 20px !important; /* Add padding */
-  border-radius: 5px !important; /* Rounded corners */
+  padding: 25px 55px !important; /* Add bigger padding */
+  font-size: 1.8rem !important; /* Increase font size */
+  border-radius: 8px !important; /* More rounded corners */
   cursor: pointer !important; /* Pointer cursor on hover */
+}
+
+.fas,
+.fab {
+  font-size: 2.8rem !important;
+  margin-right: 30px !important;
 }
 
 .btn-primary:hover {
@@ -33,12 +49,16 @@ body {
 
 /* Outline version of primary button with dark blue scheme */
 .btn-primary-outline {
+  display: flex !important; /* Enable flexbox */
+  align-items: center !important; /* Center content vertically */
+  justify-content: center !important; /* Center content horizontally */
   background-color: transparent !important; /* Transparent background */
   color: var(--dark-blue) !important; /* Dark blue text */
   font-weight: bold !important; /* Bold text */
-  border: 1px solid var(--dark-blue) !important; /* Dark blue border */
-  padding: 8px 18px !important; /* Add padding */
-  border-radius: 5px !important; /* Rounded corners */
+  border: 2px solid var(--dark-blue) !important; /* Thicker border */
+  padding: 12px 24px !important; /* Add bigger padding */
+  font-size: 1.2rem !important; /* Increase font size */
+  border-radius: 8px !important; /* More rounded corners */
   cursor: pointer !important; /* Pointer cursor on hover */
 }
 
@@ -50,12 +70,14 @@ body {
   border-color: var(
     --dark-blue-hover
   ) !important; /* Slightly darker dark blue border on hover */
+  text-decoration: none !important;
 }
 
 /* Text primary with dark blue scheme */
 .text-primary {
   color: var(--dark-blue) !important; /* Dark blue text */
   font-weight: bold !important; /* Bold text */
+  font-size: 1.2rem !important; /* Increase font size */
 }
 
 .text-primary:hover {
@@ -72,13 +94,29 @@ h3 {
   font-weight: bold !important; /* Bold text */
 }
 
-h2 {
-  font-size: 1.4rem !important;
+h1 {
+  font-size: 2.5rem !important; /* Bigger size for h1 */
 }
+
+h2 {
+  font-size: 2rem !important; /* Bigger size for h2 */
+}
+
+h3 {
+  font-size: 1.8rem !important; /* Bigger size for h3 */
+}
+
+/* Paragraphs with increased font size */
+p {
+  font-size: 1.5rem !important; /* Larger paragraph text */
+  line-height: 1.8 !important; /* More spacing between lines */
+}
+
 /* Links (a) with dark blue colour scheme and bold text */
 a {
   color: var(--dark-blue) !important; /* Dark blue text */
   font-weight: bold !important; /* Bold text */
+  font-size: 1.7rem !important; /* Increase font size */
   text-decoration: none !important; /* Remove underline */
 }
 
@@ -86,5 +124,25 @@ a:hover {
   color: var(
     --dark-blue-hover
   ) !important; /* Slightly darker dark blue on hover */
-  text-decoration: underline !important; /* Add underline on hover */
+  text-decoration: none !important; /* Remove underline */
+}
+
+/* Lists with increased font size */
+ul,
+ol {
+  font-size: 1.7rem !important; /* Larger text for list items */
+  line-height: 1.8 !important; /* Add spacing for readability */
+}
+
+/* Form inputs with larger font sizes */
+input,
+textarea,
+select {
+  font-size: 1.7rem !important; /* Increase input font size */
+  padding: 10px !important; /* Add padding for better usability */
+}
+
+label {
+  font-size: 1.7rem !important; /* Larger text for labels */
+  font-weight: bold !important; /* Make labels bold */
 }

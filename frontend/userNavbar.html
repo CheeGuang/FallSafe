@@ -1,7 +1,10 @@
 <!-- navbar.html -->
 <nav class="navbar navbar-expand-lg bg-white shadow-sm fixed-top">
   <div class="container">
-    <a class="navbar-brand text-success" href="./index.html">
+    <a
+      class="navbar-brand text-success d-flex justify-content-center align-items-center"
+      href="./userHome.html"
+    >
       <img
         src="./img/FallSafe.png"
         alt="FallSafe Logo"
@@ -20,27 +23,44 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
+      <ul
+        class="navbar-nav ms-auto d-flex justify-content-center align-items-center"
+      >
         <li class="nav-item">
-          <a class="nav-link text-dark" href="userHome.html">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-dark" href="myProfile.html">My Profile</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-dark" href="vehicleAvailability.html"
-            >View Vehicles</a
+          <a
+            class="nav-link text-dark d-flex justify-content-center align-items-center"
+            href="userHome.html"
+            >Home</a
           >
         </li>
         <li class="nav-item">
-          <a class="nav-link text-dark" href="myBookings.html">My Bookings</a>
+          <a
+            class="nav-link text-dark d-flex justify-content-center align-items-center"
+            href="myProfile.html"
+            >Quiz</a
+          >
         </li>
         <li class="nav-item">
+          <a
+            class="nav-link text-dark d-flex justify-content-center align-items-center"
+            href="vehicleAvailability.html"
+            >Self Assessment</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link text-dark d-flex justify-content-center align-items-center"
+            href="myBookings.html"
+            >Consult Doctor</a
+          >
+        </li>
+        <li class="nav-item d-flex justify-content-center align-items-center">
           <button
             class="btn btn-danger text-white ms-3"
             id="signOutButton"
             type="button"
             onclick="localStorage.clear(); window.location.href='index.html';"
+            style="font-size: 20px"
           >
             Sign Out
           </button>
