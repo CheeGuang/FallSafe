@@ -56,14 +56,14 @@ func main() {
 	// Initialize the router
 	router := mux.NewRouter()
 
-		// Speech generation endpoint
-		router.HandleFunc("/api/v1/generateSpeech", openAI.GenerateSpeech).Methods("POST")
+
 
 
 	// JWT Authentication Logic
 	authenticated := router.NewRoute().Subrouter()
 	authenticated.Use(authenticateMiddleware)
-
+	// Speech generation endpoint
+	authenticated.HandleFunc("/api/v1/generateSpeech", openAI.GenerateSpeech).Methods("POST")
 	authenticated.HandleFunc("/api/v1/generateResponse", openAI.GenerateResponse).Methods("POST")
 	authenticated.HandleFunc("/api/v1/generateTranslation", openAI.GenerateTranslation).Methods("POST")
 
