@@ -74,3 +74,49 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("User created successfully"))
 }
+
+// User represents the structure of a user record
+type User struct {
+	UserID      int    `json:"user_id"`
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number"`
+	Address     string `json:"address"`
+	Age         string `json:"age"`
+}
+
+// GetUserByID handles retrieving a user record from the database by userID
+func GetUserByID(w http.ResponseWriter, r *http.Request) {
+	// Extract userID from query parameters
+	userID := r.URL.Query().Get("userID")
+	if userID == "" {
+		http.Error(w, "userID is required", http.StatusBadRequest)
+		return
+	}
+
+	// Prepare the query to fetch user details by userID
+	var user User
+	err := db.QueryRow(`
+		SELECT user_id, name, email, phone_number, address, age
+		FROM User
+		WHERE user_id = ?`, userID).Scan(
+		&user.UserID, &user.Name, &user.Email, &user.PhoneNumber, &user.Address, &user.Age,
+	)
+	if err == sql.ErrNoRows {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		log.Printf("Error querying user record: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with the user data as JSON
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(user)
+	if err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}

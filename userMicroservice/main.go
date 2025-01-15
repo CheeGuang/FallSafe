@@ -58,6 +58,7 @@ func main() {
 
 	// Profile management endpoints
 	router.HandleFunc("/api/v1/user/create", profile.CreateUser).Methods("POST") // No auth needed
+	router.HandleFunc("/api/v1/user/getUser", profile.GetUserByID).Methods("GET")
 
 	// JWT Authentication Logic
 	authenticated := router.NewRoute().Subrouter()
