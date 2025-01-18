@@ -1,8 +1,8 @@
 package main
 
 import (
-	"authenticationMicroservice/registration"
 	"authenticationMicroservice/authentication"
+	"authenticationMicroservice/registration"
 	"log"
 	"net/http"
 
@@ -19,12 +19,12 @@ func main() {
 	router.HandleFunc("/api/v1/authentication/register-user", registration.RegisterUser).Methods("POST")
 
 	// Authentication endpoint
-	router.HandleFunc("/api/v1/authentication/login", authentication.AuthenticateUser).Methods("POST")
-
+	router.HandleFunc("/api/v1/authentication/user/login", authentication.AuthenticateUser).Methods("POST")
+	router.HandleFunc("/api/v1/authentication/admin/login", authentication.AuthenticateAdmin).Methods("POST")
 
 	// Add CORS support
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://127.0.0.1:5050"}), // Add allowed origins here
+		handlers.AllowedOrigins([]string{"http://127.0.0.1:5050"}),  // Add allowed origins here
 		handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}), // Add allowed HTTP methods
 		handlers.AllowedHeaders([]string{"Content-Type"}),           // Add allowed headers
 	)(router)

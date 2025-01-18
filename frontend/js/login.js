@@ -1,4 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
+
+  const userBadge = document.getElementById('userBadge');
+  const adminBadge = document.getElementById('adminBadge');
+  const currentRole = document.getElementById('currentRole');
+
+
   const form = document.querySelector("form");
 
   // Add a submit event listener to the login form
@@ -8,6 +14,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // Get email and password from the form inputs
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
+
+    // Get the selected role
+    const selectedRole = document.getElementById("currentRole").textContent;
 
     // Validate the inputs
     if (!validateEmail(email)) {
@@ -20,7 +29,15 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // API endpoint for login
-    const endpoint = "http://localhost:5050/api/v1/authentication/login";
+    let endpoint;
+    if (selectedRole === "User") {
+      endpoint = "http://localhost:5050/api/v1/authentication/user/login";
+    } else if (selectedRole === "Admin") {
+      endpoint = "http://localhost:5050/api/v1/authentication/admin/login";
+    } else {
+      showCustomAlert("Invalid role selected. Please try again.");
+      return;
+    }
 
     try {
       // Send a POST request to the login endpoint
@@ -37,7 +54,11 @@ document.addEventListener("DOMContentLoaded", function () {
       if (response.ok) {
         // If login is successful, store the JWT token
         localStorage.setItem("token", data.token);
-        showCustomAlert("Login successful!", "./userHome.html");
+        if (selectedRole == "User"){ //only for normal User
+          showCustomAlert("Login successful!", "./userHome.html");
+        } else if (selectedRole === "Admin") {
+          showCustomAlert("Admin login successful", "./adminDashboard.html");
+        }
       } else {
         // If login fails, show an error message
         showCustomAlert(
@@ -55,4 +76,21 @@ document.addEventListener("DOMContentLoaded", function () {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   }
+  //Function to dynamically update role when clicked the button
+  function selectRole(role) {
+    if (role === 'User') {
+      userBadge.classList.remove('d-none');
+      adminBadge.classList.add('d-none');
+    } else if (role === 'Admin') {
+      adminBadge.classList.remove('d-none');
+      userBadge.classList.add('d-none');
+    }
+
+    // Update the alert message
+    currentRole.textContent = role;
+  }
+
+  // Attach event listeners to the buttons
+   document.getElementById('userBtn').addEventListener('click', () => selectRole('User'));
+   document.getElementById('adminBtn').addEventListener('click', () => selectRole('Admin'));
 });
