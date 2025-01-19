@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Falls Efficacy Scale</title>
+
+  <!-- Bootstrap Link -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+    crossorigin="anonymous"
+  />
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+    crossorigin="anonymous"
+    defer
+  ></script>
+
+  <!-- JQuery Link -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+  <!-- Font Awesome -->
+  <script src="https://kit.fontawesome.com/4f6d96e165.js" crossorigin="anonymous"></script>
+
+  <!-- Linking CSS -->
+  <link rel="stylesheet" href="./css/normalize.css" />
+  <link rel="stylesheet" href="./css/style.css" />
+
+  <!-- JavaScript -->
+  <script src="./js/script.js" defer></script>
+
+  <script>
+    const API_BASE_URL = "http://localhost:5250/api/v1"; // Backend API URL
+
+    async function fetchQuestions() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/questions`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch questions");
+        }
+        const questions = await response.json();
+        renderQuestions(questions);
+      } catch (error) {
+        console.error(error);
+        alert("Error fetching questions. Please try again.");
+      }
+    }
+
+    function renderQuestions(questions) {
+      const container = document.getElementById("questions-container");
+      container.innerHTML = ""; // Clear previous content
+
+      questions.forEach((question) => {
+        const questionDiv = document.createElement("div");
+        questionDiv.className = "question";
+
+        questionDiv.innerHTML = `
+          <p>${question.text}</p>
+          <div class="options">
+            <label>
+              <input type="radio" name="question-${question.id}" value="1"> 1
+            </label>
+            <label>
+              <input type="radio" name="question-${question.id}" value="2"> 2
+            </label>
+            <label>
+              <input type="radio" name="question-${question.id}" value="3"> 3
+            </label>
+            <label>
+              <input type="radio" name="question-${question.id}" value="4"> 4
+            </label>
+          </div>
+        `;
+        container.appendChild(questionDiv);
+      });
+    }
+
+    async function submitResponses() {
+      const responses = [];
+      document.querySelectorAll(".question").forEach((questionDiv) => {
+        const questionId = questionDiv.querySelector(".options input").name.split("-")[1];
+        const selectedOption = questionDiv.querySelector(".options input:checked");
+
+        if (selectedOption) {
+          responses.push({
+            question_id: parseInt(questionId, 10),
+            score: parseInt(selectedOption.value, 10),
+          });
+        } else {
+          alert("Please answer all questions before submitting.");
+          throw new Error("Incomplete responses");
+        }
+      });
+
+      const payload = {
+        user_id: 1, // Update this dynamically if needed
+        responses,
+      };
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/responses`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to submit responses");
+        }
+
+        const result = await response.json();
+        alert(result.message);
+      } catch (error) {
+        console.error(error);
+        alert("Error submitting responses. Please try again.");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      fetchQuestions();
+
+      document.getElementById("submit-button").addEventListener("click", submitResponses);
+    });
+  </script>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div id="navbar-container"></div>
+  </header>
+
+  <!-- Transparent Row with Small Height at the Top -->
+  <div class="row" style="width: 10vw; height: 50px; background-color: transparent"></div>
+
+  <!-- Main Content Container -->
+  <div class="container text-center">
+    <div class="row justify-content-center">
+      <div class="col-12 mt-5">
+        <!-- Page Content -->
+        <h1>Falls Efficacy Scale</h1>
+        <p class="lead text-muted">Assessing the confidence of seniors in avoiding falls in different situations.</p>
+
+        <main class="container my-5">
+          <h2>Survey Questions</h2>
+          <div id="questions-container"></div>
+          <!-- Centered Submit Button -->
+          <div class="d-flex justify-content-center mt-3">
+            <button id="submit-button" class="btn btn-primary">Submit</button>
+          </div>
+        </main>        
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bd-footer">
+    <div id="footer-container" class="container py-4 py-md-5 px-4 px-md-3 text-body-secondary">
+      <p>&copy; 2025 FallSafe | All Rights Reserved</p>
+    </div>
+  </footer>
+</body>
+</html>
