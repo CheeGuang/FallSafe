@@ -122,7 +122,7 @@ func CallTTSModel(inputText string) ([]byte, error) {
 */
 
 func GetQuestions(w http.ResponseWriter, r *http.Request) {
-	//fetch all questions
+	// Fetch all questions
 	rows, err := db.Query(`
 		SELECT question_id, question_text 
 		FROM FallsEfficacyScale
@@ -142,9 +142,17 @@ func GetQuestions(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Failed to parse questions", http.StatusInternalServerError)
 			return
 		}
+		questions = append(questions, q) // Append each question to the slice
 	}
 
-	//respond with questions as JSON
+	// Check for any error encountered during iteration
+	if err := rows.Err(); err != nil {
+		log.Printf("Error iterating over rows: %v", err)
+		http.Error(w, "Failed to fetch questions", http.StatusInternalServerError)
+		return
+	}
+
+	// respond with questions as JSON
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(questions)
 	if err != nil {

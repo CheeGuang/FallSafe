@@ -62,6 +62,7 @@ func main() {
 
 	// Public APIs
 	authenticated.HandleFunc("/api/v1/questions", FES.GetQuestions).Methods("GET")
+	authenticated.HandleFunc("/api/v1/questions", FES.SaveResponse).Methods("GET")
 	
 
 	// Speech generation endpoint
@@ -70,7 +71,7 @@ func main() {
 
 	// Add CORS support
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://127.0.0.1:2150"}), // Update for allowed origins
+		handlers.AllowedOrigins([]string{"http://127.0.0.1:5250"}), // Update for allowed origins
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "OPTIONS"}), // Update for allowed HTTP methods
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}), // Include Authorization header
 	)(router)
