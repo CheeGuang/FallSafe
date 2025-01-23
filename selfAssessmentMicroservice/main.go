@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"adminMicroservice/admin"
+	"selfAssessmentMicroservice/selfAssessment"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/handlers"
@@ -56,23 +56,25 @@ func main() {
 	// Initialize the router
 	router := mux.NewRouter()
 
-	// Template management endpoints
-	router.HandleFunc("/api/v1/admin/getAdmin", admin.GetAdminByID).Methods("GET")
-
 	// JWT Authentication Logic
 	authenticated := router.NewRoute().Subrouter()
 	authenticated.Use(authenticateMiddleware)
 
-	// Template management endpoints
+	// Self-Assessment management endpoints
+	authenticated.HandleFunc("/api/v1/selfAssessment/startMQTT", func(w http.ResponseWriter, r *http.Request) {
+		go selfAssessment.StartMQTTConnection() // Start MQTT connection in a goroutine
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("MQTT connection started and subscribed to topic."))
+	}).Methods("GET")
 
 	// Add CORS support
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://127.0.0.1:5200"}),         // Update for allowed origins
+		handlers.AllowedOrigins([]string{"http://127.0.0.1:5250"}), // Update for allowed origins
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "OPTIONS"}), // Update for allowed HTTP methods
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}), // Include Authorization header
 	)(router)
 
 	// Start the server
-	log.Println("Admin Microservice is running on port 5200...")
-	log.Fatal(http.ListenAndServe(":5200", corsHandler))
+	log.Println("Self-Assessment Microservice is running on port 5250...")
+	log.Fatal(http.ListenAndServe(":5250", corsHandler))
 }
