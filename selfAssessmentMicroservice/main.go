@@ -65,6 +65,25 @@ func main() {
 		go selfAssessment.StartMQTTConnection() // Start MQTT connection in a goroutine
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("MQTT connection started and subscribed to topic."))
+		}).Methods("GET")
+		
+	// Authentication test endpoint
+	authenticated.HandleFunc("/api/v1/selfAssessment/test", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Starting self-assessment test...")
+
+		// Call the TestReceiveMessages function
+		testStatus := selfAssessment.TestReceiveMessages()
+
+		// Respond based on the test status
+		if testStatus {
+			log.Println("Successfully received raw data from FallSafe Device.")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Successfully received raw data from FallSafe Device."))
+		} else {
+			log.Println("Failed to receive raw data from FallSafe Device within the timeout period.")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Failed to receive raw data from FallSafe Device within the timeout period."))
+		}
 	}).Methods("GET")
 
 	// Add CORS support
