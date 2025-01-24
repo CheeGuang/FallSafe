@@ -12,44 +12,76 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Authentication middleware to validate JWT
-func authenticateMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
+// JWT Authentication Middleware with Role Check for multiple roles
+func authenticateMiddleware(allowedRoles []string) mux.MiddlewareFunc {
+    return func(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            // Get the Authorization header
+            authHeader := r.Header.Get("Authorization")
+            if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+                http.Error(w, "Unauthorized", http.StatusUnauthorized)
+                return
+            }
 
-		// Extract token
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+            // Extract token
+            tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
-		// Get the JWT secret from the environment variable
-		secretKey := os.Getenv("JWT_SECRET")
-		if secretKey == "" {
-			log.Println("JWT_SECRET is not set in the environment")
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
+            // Get the JWT secret from the environment variable
+            secretKey := os.Getenv("JWT_SECRET")
+            if secretKey == "" {
+                log.Println("JWT_SECRET is not set in the environment")
+                http.Error(w, "Internal server error", http.StatusInternalServerError)
+                return
+            }
 
-		// Parse and validate the token
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, http.ErrAbortHandler
-			}
-			return []byte(secretKey), nil
-		})
+            // Parse and validate the token
+            token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+                if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+                    return nil, http.ErrAbortHandler
+                }
+                return []byte(secretKey), nil
+            })
 
-		if err != nil || !token.Valid {
-			log.Printf("Invalid JWT token: %v", err)
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
+            if err != nil || !token.Valid {
+                log.Printf("Invalid JWT token: %v", err)
+                http.Error(w, "Unauthorized", http.StatusUnauthorized)
+                return
+            }
 
-		// Proceed to the next handler
-		next.ServeHTTP(w, r)
-	})
+            // Extract the claims from the token
+            claims, ok := token.Claims.(jwt.MapClaims)
+            if !ok {
+                http.Error(w, "Unauthorized", http.StatusUnauthorized)
+                return
+            }
+
+            // Check if the role matches any of the allowed roles
+            role, ok := claims["role"].(string)
+            if !ok {
+                http.Error(w, "Unauthorized", http.StatusUnauthorized)
+                return
+            }
+
+            // Check if the user's role is in the allowed roles
+            roleAllowed := false
+            for _, allowedRole := range allowedRoles {
+                if role == allowedRole {
+                    roleAllowed = true
+                    break
+                }
+            }
+
+            if !roleAllowed {
+                http.Error(w, "Forbidden", http.StatusForbidden)
+                return
+            }
+
+            // Proceed to the next handler if role matches
+            next.ServeHTTP(w, r)
+        })
+    }
 }
+
 
 
 func main() {
@@ -62,7 +94,10 @@ func main() {
 
 	// JWT Authentication Logic
 	authenticated := router.NewRoute().Subrouter()
-	authenticated.Use(authenticateMiddleware)
+
+	authenticated.HandleFunc("/api/v1/user/getAllUser", profile.GetAllUser).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(profile.GetAllUser)))
+	
+	//authenticated.Use(authenticateMiddleware)
 
 	// Add CORS support
 	corsHandler := handlers.CORS(
