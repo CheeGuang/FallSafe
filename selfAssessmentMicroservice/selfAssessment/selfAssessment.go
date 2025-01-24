@@ -6,11 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"sync"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 )
 
@@ -187,4 +189,166 @@ func TestReceiveMessages() bool {
 }
 
 
+// MovementData represents a movement record from MQTT messages
+type MovementData struct {
+	Timestamp       int64   `json:"timestamp"`
+	AccelX          float64 `json:"accelX"`
+	AccelY          float64 `json:"accelY"`
+	AccelZ          float64 `json:"accelZ"`
+	GyroX           float64 `json:"gyroX"`
+	GyroY           float64 `json:"gyroY"`
+	GyroZ           float64 `json:"gyroZ"`
+	AngleDifference float64 `json:"angleDifference"`
+}
 
+// WebSocketMessage represents a command sent via WebSocket
+type WebSocketMessage struct {
+	Command string `json:"command"`
+}
+
+// RiskAssessment contains the calculated risk results
+type RiskAssessment struct {
+	AbruptPercentage float64 `json:"abrupt_percentage"`
+	RiskLevel        string  `json:"risk_level"`
+}
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+func StartWebSocketServer(w http.ResponseWriter, r *http.Request) {
+	log.Println("Upgrading connection to WebSocket...")
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Printf("Failed to upgrade to WebSocket: %v", err)
+		return
+	}
+	defer conn.Close()
+
+	log.Println("WebSocket connection established")
+
+	var movementData []MovementData
+	var capturing bool
+	var abruptCount int
+	var totalCount int
+	var mutex sync.Mutex
+
+	// MQTT Client Configuration
+	endpoint := os.Getenv("AWS_IOT_ENDPOINT")
+	clientID := os.Getenv("AWS_IOT_CLIENT_ID")
+	certFile := os.Getenv("AWS_IOT_CERT_FILE")
+	keyFile := os.Getenv("AWS_IOT_KEY_FILE")
+	caFile := os.Getenv("AWS_IOT_CA_FILE")
+
+	log.Println("Setting up MQTT options...")
+	opts := mqtt.NewClientOptions()
+	opts.AddBroker(fmt.Sprintf("ssl://%s:8883", endpoint))
+	opts.SetClientID(clientID)
+	opts.SetTLSConfig(createTLSConfig(certFile, keyFile, caFile))
+
+	client := mqtt.NewClient(opts)
+
+	// Connect to AWS IoT Core
+	log.Println("Connecting to AWS IoT Core for WebSocket...")
+	if token := client.Connect(); token.Wait() && token.Error() != nil {
+		log.Fatalf("Failed to connect to AWS IoT Core: %v", token.Error())
+	}
+	defer client.Disconnect(250)
+	log.Println("Connected to AWS IoT Core for WebSocket")
+
+	// Subscribe to the MQTT topic
+	topic := "esp32s3/pub"
+	log.Printf("Subscribing to MQTT topic: %s", topic)
+	if token := client.Subscribe(topic, 1, func(client mqtt.Client, msg mqtt.Message) {
+		if capturing {
+			log.Printf("Received MQTT message. Topic: %s, Payload: %s", msg.Topic(), string(msg.Payload()))
+			var movement MovementData
+			if err := json.Unmarshal(msg.Payload(), &movement); err != nil {
+				log.Printf("Failed to parse MQTT message: %v", err)
+				return
+			}
+			mutex.Lock()
+			movementData = append(movementData, movement)
+			totalCount++
+			if movement.AngleDifference > 10 { // Example threshold for abrupt movement
+				abruptCount++
+			}
+			log.Printf("Captured movement data: %+v", movement)
+			log.Printf("Abrupt Count: %d, Total Count: %d", abruptCount, totalCount)
+			mutex.Unlock()
+		}
+	}); token.Wait() && token.Error() != nil {
+		log.Fatalf("Failed to subscribe to topic %s: %v", topic, token.Error())
+	}
+	log.Printf("Subscribed to MQTT topic: %s", topic)
+
+	// Handle WebSocket Commands
+	for {
+		var msg WebSocketMessage
+		err := conn.ReadJSON(&msg)
+		if err != nil {
+			log.Printf("WebSocket read error: %v", err)
+			break
+		}
+
+		log.Printf("Received WebSocket command: %s", msg.Command)
+		switch msg.Command {
+		case "start":
+			log.Println("Starting data capture...")
+			mutex.Lock()
+			capturing = true
+			movementData = []MovementData{}
+			abruptCount = 0
+			totalCount = 0
+			mutex.Unlock()
+			log.Println("Data capture started.")
+
+		case "stop":
+			log.Println("Stopping data capture...")
+			mutex.Lock()
+			if capturing {
+				capturing = false
+				abruptPercentage := float64(abruptCount) / float64(totalCount) * 100
+				log.Printf("Abrupt movement percentage: %f", abruptPercentage)
+				riskLevel := determineRiskLevel(abruptPercentage)
+				riskAssessment := RiskAssessment{
+					AbruptPercentage: abruptPercentage,
+					RiskLevel:        riskLevel,
+				}
+				log.Printf("Risk assessment: %+v", riskAssessment)
+				if err := conn.WriteJSON(riskAssessment); err != nil {
+					log.Printf("WebSocket write error: %v", err)
+				}
+			} else {
+				log.Println("Stop command received, but capturing was not active.")
+			}
+			mutex.Unlock()
+			log.Println("Data capture stopped.")
+			break
+
+		case "restart":
+			log.Println("Restarting data capture...")
+			mutex.Lock()
+			capturing = true
+			movementData = []MovementData{}
+			abruptCount = 0
+			totalCount = 0
+			mutex.Unlock()
+			log.Println("Data capture restarted.")
+
+		default:
+			log.Printf("Unknown command received: %s", msg.Command)
+		}
+	}
+}
+
+func determineRiskLevel(abruptPercentage float64) string {
+	if abruptPercentage > 70 {
+		return "high"
+	} else if abruptPercentage > 40 {
+		return "moderate"
+	}
+	return "low"
+}

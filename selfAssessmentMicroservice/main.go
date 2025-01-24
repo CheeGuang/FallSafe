@@ -86,6 +86,9 @@ func main() {
 		}
 	}).Methods("GET")
 
+	// Authentication test endpoint
+	authenticated.HandleFunc("/api/v1/selfAssessment/ws", selfAssessment.StartWebSocketServer)
+
 	// Add CORS support
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://127.0.0.1:5250"}), // Update for allowed origins
