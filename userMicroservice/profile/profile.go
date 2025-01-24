@@ -120,3 +120,52 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+//Struct for retriving only name and age with ID
+type UserNameAge struct {
+	UserID      int    `json:"user_id"`
+	Name        string `json:"name"`
+	Age         string `json:"age"`	
+}
+
+//This function is used by admin in getting the whole list of elderly available
+func GetAllUser(w http.ResponseWriter, r *http.Request){
+	var userList []UserNameAge
+	//Query to fetch all users (id, name, and age)
+	rows, err := db.Query(`
+		SELECT user_id, name, age
+		FROM User`)
+	if err != nil {
+		log.Printf("Error querying users: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	//Iterate over the rows and scan the values into the users slice
+	for rows.Next() {
+		var user UserNameAge
+		if err := rows.Scan(&user.UserID, &user.Name, &user.Age); err != nil {
+			log.Printf("Error scanning user row: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		userList = append(userList, user)
+	}
+	
+	// Check if there was an error while iterating the rows
+	if err := rows.Err(); err != nil {
+		log.Printf("Error iterating over rows: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	
+	// Respond with the list of users as JSON
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(userList)
+	if err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}

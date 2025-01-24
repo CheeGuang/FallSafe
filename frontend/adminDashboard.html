@@ -35,14 +35,15 @@
     <link rel="stylesheet" href="./css/style.css" />
 
     <!-- ######################################## INSERT PAGE'S CSS HERE \/ ########################################################### -->
-    <!-- <link rel="stylesheet" href="./css/" /> -->
+    <link rel="stylesheet" href="./css/adminDashboard.css" />
     <!-- ######################################## END OF PAGE'S CSS ########################################################### -->
 
     <!-- Linking JS -->
-    <script src="./js/script.js" defer></script>
+    <script src="./js/scriptForAdmin.js" defer></script>
 
     <!-- ######################################## INSERT PAGE'S JS HERE \/ ########################################################### -->
-    <!-- <script src="./js/" defer></script> -->
+    <script src="./js/adminDashboard.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!--CHART.JS SCRIPT FILE-->
     <!-- ######################################## END OF PAGE'S JS ########################################################### -->
 
     <!-- Add a favicon to the tab bar -->
@@ -69,12 +70,75 @@
           <div id="customAlertContainer"></div>
 
           <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
+          <!-- Dashboard Container -->
+          <div class="dashboard-container">
+            <!-- Dashboard Title -->
+            <h2 class="mb-4" style="text-align: left;">Falls Efficacy Scale Analysis</h2>
+  
+            <!-- Filter Controls -->
+            <div class="filter-controls mb-4">
+              <!-- Age Group Filter -->
+              <select id="ageGroupSelector" class="form-select d-inline-block me-3" style="width: auto;">
+                  <option value="all">All</option>
+                  <option value="60-70">60-70</option>
+                  <option value="70-80">70-80</option>
+                  <option value="80-90">80-90</option>
+                  <option value="90+">90+</option>
+              </select>
+              
+              <!-- Individual Search -->
+              <div class="input-group" style="width: auto; display: inline-flex;">
+                <input type="number" 
+                       id="individualSearch" 
+                       class="form-control" 
+                       placeholder="Search by User ID"
+                       min="1"
+                       style="max-width: 270px;">
+                <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
 
-          <h1>Welcome to FallSafe Admin!</h1>
-          <!-- p Subtitle -->
-          <p class="mb-3">
-            Driving towards a sustainable future with eco-friendly car rentals.
-          </p>
+            <!-- Dashboard Grid -->
+            <div class="row">
+              <!-- Average FES Score Card -->
+              <div class="col-md-6 mb-4">
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="card-title mb-0">Average FES Score</h5>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="averageScoreChart"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Score Distribution Card -->
+              <div class="col-md-6 mb-4">
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="card-title mb-0">Latest Score Distribution</h5>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="distributionChart"></canvas>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+                    <!-- Detailed Breakdown of Scores -->
+                    <div class="col-md-12 mb-4">
+                      <div class="card">
+                        <div class="card-header">
+                          <h5 class="card-title mb-0">Latest Breakdown of Individual Questions</h5>
+                        </div>
+                        <div class="card-body" style="display: flex; justify-content: center;">
+                          <canvas id="questionScoreChart" style="max-width: 400px; max-height: 400px;"></canvas>
+                        </div>
+                      </div>
+                    </div>
+          </div>
           <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
         </div>
       </div>
@@ -88,4 +152,5 @@
       ></div>
     </footer>
   </body>
+  
 </html>
