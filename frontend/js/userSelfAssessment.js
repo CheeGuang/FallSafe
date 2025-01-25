@@ -38,6 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   startTestButton.addEventListener("click", async () => {
     if (startTestButton.textContent.trim() === "Continue") {
+      startTestButton.disabled = true;
       console.log("Starting test connection...");
       showCustomAlert("Testing connection to FallSafe device...");
 
@@ -77,6 +78,7 @@ document.addEventListener("DOMContentLoaded", function () {
           ws.onopen = () => {
             console.log("WebSocket connected successfully.");
             showCustomAlert("WebSocket connected successfully.");
+            startTestButton.disabled = false;
             startTestButton.textContent = "Start Test";
           };
 
@@ -101,6 +103,8 @@ document.addEventListener("DOMContentLoaded", function () {
           showCustomAlert(
             "Failed to connect to FallSafe device. Please try again."
           );
+          startTestButton.disabled = false;
+
           console.error(
             "HTTP request failed with status:",
             testResponse.status
@@ -109,9 +113,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       } catch (error) {
         showCustomAlert("An error occurred while testing the connection.");
+        startTestButton.disabled = false;
         console.error("An error occurred:", error);
       }
     } else if (startTestButton.textContent.trim() === "Start Test") {
+      startTestButton.disabled = true;
       console.log("Starting test session...");
       const token = localStorage.getItem("token");
       try {
@@ -207,7 +213,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (step) {
         const listItem = document.createElement("li");
         listItem.className = "list-group-item";
-        listItem.textContent = step;
+        listItem.innerHTML = `<strong>Step ${i}:</strong> ${step}`; // Use innerHTML for rendering bold text
         stepsList.appendChild(listItem);
       }
     }
@@ -216,6 +222,50 @@ document.addEventListener("DOMContentLoaded", function () {
     testVideo.load();
 
     nextTestButton.textContent = "Next Test";
+  }
+
+  // Stopwatch Variables
+  let stopwatchInterval;
+  let elapsedTime = 0; // In milliseconds
+
+  // Update Stopwatch Display
+  function updateStopwatchDisplay() {
+    const stopwatchTime = document.getElementById("stopwatchTime");
+    const minutes = Math.floor(elapsedTime / (1000 * 60));
+    const seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000);
+    stopwatchTime.textContent = `${String(minutes).padStart(2, "0")}:${String(
+      seconds
+    ).padStart(2, "0")}`;
+  }
+
+  // Start Stopwatch
+  function startStopwatch() {
+    const startTime = Date.now() - elapsedTime;
+    stopwatchInterval = setInterval(() => {
+      elapsedTime = Date.now() - startTime;
+      updateStopwatchDisplay();
+    }, 10); // Update every 10ms for precision
+  }
+
+  // Stop Stopwatch
+  function stopStopwatch() {
+    clearInterval(stopwatchInterval);
+  }
+
+  // Reset Stopwatch
+  function resetStopwatch() {
+    clearInterval(stopwatchInterval);
+    elapsedTime = 0;
+    updateStopwatchDisplay();
+  }
+
+  function calculateRiskLevel(score) {
+    if (score < 40) {
+      return "High";
+    } else if (score < 70) {
+      return "Moderate";
+    }
+    return "Low";
   }
 
   function sendWebSocketCommand(command, testID) {
@@ -246,6 +296,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   startButton.addEventListener("click", () => {
     sendWebSocketCommand("start", selfAssessmentContainer.dataset.testId);
+    startStopwatch();
     testStartTime = Date.now(); // Start the timer
     startButton.disabled = true;
     stopButton.disabled = false;
@@ -255,6 +306,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   stopButton.addEventListener("click", () => {
     sendWebSocketCommand("stop", selfAssessmentContainer.dataset.testId);
+    stopStopwatch();
     startButton.disabled = true;
     stopButton.disabled = true;
     restartButton.disabled = false;
@@ -263,6 +315,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   restartButton.addEventListener("click", () => {
     // sendWebSocketCommand("restart", selfAssessmentContainer.dataset.testId);
+    resetStopwatch();
     startButton.disabled = false;
     stopButton.disabled = true;
     restartButton.disabled = true;
@@ -271,7 +324,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   nextTestButton.addEventListener("click", async () => {
     if (currentTestIndex + 1 < allTests.length) {
-      // Send the current test results to the backend before moving to the next test
+      // Save current test results before proceeding
       if (storedResults[testID]) {
         try {
           const token = localStorage.getItem("token");
@@ -279,6 +332,18 @@ document.addEventListener("DOMContentLoaded", function () {
             throw new Error("Authentication token not found. Please log in.");
           }
 
+          // Calculate score and risk level
+          const score = calculateScore(
+            storedResults[testID],
+            allTests[currentTestIndex]
+          );
+          const riskLevel = calculateRiskLevel(score);
+          storedResults[testID].riskLevel = riskLevel; // Overwrite riskLevel in stored results
+
+          // Debugging output to verify the updated storedResults object
+          console.log("Updated storedResults:", storedResults[testID]);
+
+          // Send result to saveTestResult endpoint
           const response = await fetch(
             "http://127.0.0.1:5250/api/v1/selfAssessment/saveTestResult",
             {
@@ -287,7 +352,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
               },
-              body: JSON.stringify(storedResults[testID]),
+              body: JSON.stringify(storedResults[testID]), // Include recalculated riskLevel
             }
           );
 
@@ -310,8 +375,9 @@ document.addEventListener("DOMContentLoaded", function () {
       stopButton.disabled = true;
       restartButton.disabled = true;
       nextTestButton.disabled = true; // Disable "Next Test" button
+      resetStopwatch();
     } else {
-      // Send the final test results to the backend
+      // Save final test results
       if (storedResults[testID]) {
         try {
           const token = localStorage.getItem("token");
@@ -319,6 +385,18 @@ document.addEventListener("DOMContentLoaded", function () {
             throw new Error("Authentication token not found. Please log in.");
           }
 
+          // Calculate score and risk level
+          const score = calculateScore(
+            storedResults[testID],
+            allTests[currentTestIndex]
+          );
+          const riskLevel = calculateRiskLevel(score);
+          storedResults[testID].riskLevel = riskLevel; // Overwrite riskLevel in stored results
+
+          // Debugging output to verify the updated storedResults object
+          console.log("Final updated storedResults:", storedResults[testID]);
+
+          // Send result to saveTestResult endpoint
           const response = await fetch(
             "http://127.0.0.1:5250/api/v1/selfAssessment/saveTestResult",
             {
@@ -327,7 +405,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
               },
-              body: JSON.stringify(storedResults[testID]),
+              body: JSON.stringify(storedResults[testID]), // Include recalculated riskLevel
             }
           );
 
@@ -375,13 +453,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Set test-specific tolerances for fair scoring
     const tolerances = {
-      "Timed Up and Go (TUG) Test": { timeTolerance: 12, abruptTolerance: 20 },
-      "Five Times Sit-to-Stand Test (5x Sit-To-Stand Test)": {
+      "Timed Up and Go Test": { timeTolerance: 12, abruptTolerance: 20 },
+      "Five Times Sit to Stand Test": {
         timeTolerance: 14,
         abruptTolerance: 20,
       },
       "Dynamic Gait Index (DGI)": { timeTolerance: 20, abruptTolerance: 20 },
-      "Four-Stage Balance Test": { timeTolerance: 40, abruptTolerance: 15 },
+      "4 Stage Balance Test": { timeTolerance: 40, abruptTolerance: 15 },
     };
 
     const testTolerance = tolerances[test_name] || {
@@ -393,7 +471,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Scoring logic based on test type
     switch (test_name) {
-      case "Timed Up and Go (TUG) Test":
+      case "Timed Up and Go Test":
         // Lower time is better; scale based on time tolerance
         timeScore =
           timeTaken <= timeTolerance
@@ -404,7 +482,7 @@ document.addEventListener("DOMContentLoaded", function () {
               );
         break;
 
-      case "Five Times Sit-to-Stand Test (5x Sit-To-Stand Test)":
+      case "Five Times Sit to Stand Test":
         // Lower time is better for completing 5 repetitions
         timeScore =
           timeTaken <= timeTolerance
@@ -426,7 +504,7 @@ document.addEventListener("DOMContentLoaded", function () {
               );
         break;
 
-      case "Four-Stage Balance Test":
+      case "4 Stage Balance Test":
         // Shorter time is worse; score decreases as timeTaken decreases
         timeScore =
           timeTaken <= 0
@@ -464,26 +542,6 @@ document.addEventListener("DOMContentLoaded", function () {
     return finalScore;
   }
 
-  // Determine risk level based on abrupt movements
-  function determineRiskLevel(abruptPercentage) {
-    if (abruptPercentage > 30) {
-      return "High";
-    } else if (abruptPercentage > 15) {
-      return "Moderate";
-    }
-    return "Low";
-  }
-
-  // Function to determine risk level based on abrupt movements
-  function determineRiskLevel(abruptPercentage) {
-    if (abruptPercentage > 30) {
-      return "High";
-    } else if (abruptPercentage > 15) {
-      return "Moderate";
-    }
-    return "Low";
-  }
-
   function displayResults() {
     // Remove the selfAssessmentContainer
     const selfAssessmentContainer = document.getElementById(
@@ -491,128 +549,128 @@ document.addEventListener("DOMContentLoaded", function () {
     );
     if (selfAssessmentContainer) {
       selfAssessmentContainer.style.display = "none"; // Hide the container
-      // Or use selfAssessmentContainer.remove(); to completely remove it from the DOM
     }
 
-    // Remove any existing result container
-    const existingResultContainer = document.getElementById("result-container");
-    if (existingResultContainer) existingResultContainer.remove();
+    testNameElement.textContent = "Your Results";
+    testDescriptionElement.textContent = "Feel free to consult your doctor";
+    riskMetricsElement.remove();
 
-    // Create a new result container
-    const resultContainer = document.createElement("div");
-    resultContainer.id = "result-container";
-    resultContainer.classList.add("container", "mt-5");
+    // Select the result container
+    const resultContainer = document.getElementById("result-container");
 
-    // Title
-    const resultTitle = document.createElement("h2");
-    resultTitle.textContent = "Your Test Results";
-    resultContainer.appendChild(resultTitle);
+    if (resultContainer) {
+      // Clear any existing content
+      resultContainer.innerHTML = "";
 
-    // Create table for detailed results
-    const table = document.createElement("table");
-    table.classList.add("table", "table-bordered", "mt-4");
-    const thead = `<thead>
-        <tr>
-          <th>Test Name</th>
-          <th>Time Taken (s)</th>
-          <th>Abrupt Movements (%)</th>
-          <th>Score</th>
-          <th>Risk Level</th>
-        </tr>
-      </thead>`;
-    table.innerHTML = thead;
-    const tbody = document.createElement("tbody");
+      // Make the container visible
+      resultContainer.style.display = "block";
 
-    // Variables to store data for the chart
-    const labels = [];
-    const scores = [];
-    const riskLevels = [];
+      // Create table for detailed results
+      const table = document.createElement("table");
+      table.classList.add("table", "table-bordered", "mt-4");
+      const thead = `<thead>
+          <tr>
+            <th>Test Name</th>
+            <th>Time Taken (s)</th>
+            <th>Abrupt Movements (%)</th>
+            <th>Score</th>
+            <th>Risk Level</th>
+          </tr>
+        </thead>`;
+      table.innerHTML = thead;
+      const tbody = document.createElement("tbody");
 
-    for (const [testID, result] of Object.entries(storedResults)) {
-      const test = allTests.find((t) => t.test_id === parseInt(testID));
-      const abruptPercentage =
-        JSON.parse(result.websocketData)?.abrupt_percentage || 0;
-      const score = calculateScore(result, test);
-      const riskLevel = determineRiskLevel(abruptPercentage);
+      // Variables to store data for the chart
+      const labels = [];
+      const scores = [];
+      const riskLevels = [];
 
-      // Add data to the table
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${test?.test_name || "Unknown Test"}</td>
-        <td>${result.timeTaken.toFixed(2)}</td>
-        <td>${abruptPercentage.toFixed(2)}</td>
-        <td>${score}</td>
-        <td>${riskLevel}</td>
-      `;
-      tbody.appendChild(row);
+      for (const [testID, result] of Object.entries(storedResults)) {
+        const test = allTests.find((t) => t.test_id === parseInt(testID));
+        const abruptPercentage =
+          JSON.parse(result.websocketData)?.abrupt_percentage || 0;
+        const score = calculateScore(result, test);
+        const riskLevel = calculateRiskLevel(score);
 
-      // Populate chart data
-      labels.push(test?.test_name || "Unknown Test");
-      scores.push(score);
-      riskLevels.push(riskLevel);
-    }
-    table.appendChild(tbody);
-    resultContainer.appendChild(table);
+        // Add data to the table
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${test?.test_name || "Unknown Test"}</td>
+          <td>${result.timeTaken.toFixed(2)}</td>
+          <td>${abruptPercentage.toFixed(2)}</td>
+          <td>${score}</td>
+          <td>${riskLevel}</td>
+        `;
+        tbody.appendChild(row);
 
-    // Create a canvas for the chart
-    const chartContainer = document.createElement("div");
-    chartContainer.classList.add("mt-5");
-    const chartCanvas = document.createElement("canvas");
-    chartCanvas.id = "resultsChart";
-    chartContainer.appendChild(chartCanvas);
-    resultContainer.appendChild(chartContainer);
+        // Populate chart data
+        labels.push(test?.test_name || "Unknown Test");
+        scores.push(score);
+        riskLevels.push(riskLevel);
+      }
+      table.appendChild(tbody);
+      resultContainer.appendChild(table);
 
-    document.body.appendChild(resultContainer);
+      // Create a canvas for the chart
+      const chartContainer = document.createElement("div");
+      chartContainer.classList.add("mt-5");
+      const chartCanvas = document.createElement("canvas");
+      chartCanvas.id = "resultsChart";
+      chartContainer.appendChild(chartCanvas);
+      resultContainer.appendChild(chartContainer);
 
-    // Render the chart
-    const ctx = document.getElementById("resultsChart").getContext("2d");
-    new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: "Test Scores",
-            data: scores,
-            backgroundColor: "rgba(75, 192, 192, 0.2)",
-            borderColor: "rgba(75, 192, 192, 1)",
-            borderWidth: 1,
+      // Render the chart
+      const ctx = chartCanvas.getContext("2d");
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Test Scores",
+              data: scores,
+              backgroundColor: "rgba(75, 192, 192, 0.2)",
+              borderColor: "rgba(75, 192, 192, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: true,
+              position: "top",
+            },
+            tooltip: {
+              callbacks: {
+                label: (tooltipItem) => {
+                  const index = tooltipItem.dataIndex;
+                  return `Score: ${scores[index]}, Risk Level: ${riskLevels[index]}`;
+                },
+              },
+            },
           },
-        ],
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            display: true,
-            position: "top",
-          },
-          tooltip: {
-            callbacks: {
-              label: (tooltipItem) => {
-                const index = tooltipItem.dataIndex;
-                return `Score: ${scores[index]}, Risk Level: ${riskLevels[index]}`;
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: "Scores",
+              },
+            },
+            x: {
+              title: {
+                display: true,
+                text: "Tests",
               },
             },
           },
         },
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: "Scores",
-            },
-          },
-          x: {
-            title: {
-              display: true,
-              text: "Tests",
-            },
-          },
-        },
-      },
-    });
+      });
+    } else {
+      console.error("Result container not found in the DOM.");
+    }
   }
 
   // Trigger results display when "View Results" is clicked

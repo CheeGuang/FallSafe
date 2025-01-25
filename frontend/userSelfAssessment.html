@@ -104,22 +104,33 @@
             <h4 id="testDescription" class="text-center"></h4>
             <p id="riskMetrics" class="text-center text-muted"></p>
 
-            <div class="row h-100 mt-4">
+            <div class="row h-100 mt-4 mb-4">
               <!-- Steps Column -->
               <div class="col-md-4 border-end" id="stepsColumn">
-                <h5>Steps:</h5>
-                <ul id="stepsList" class="list-group"></ul>
+                <ul id="stepsList" class="list-group text-start"></ul>
               </div>
 
               <!-- Video Column -->
               <div
-                class="col-md-8 d-flex justify-content-center align-items-center"
+                class="col-md-8 d-flex justify-content-center align-items-center flex-column"
               >
                 <video id="testVideo" class="w-100 rounded" controls></video>
               </div>
             </div>
             <!-- Start, Stop, and Restart Buttons -->
-            <div class="d-flex justify-content-center mt-4">
+            <div class="d-flex justify-content-center mt-5">
+              <!-- Add Stopwatch Div -->
+              <div
+                id="stopwatchContainer"
+                class="d-flex align-items-center justify-content-center border rounded p-2 text-center mx-2"
+              >
+                <div style="width: 200px">
+                  <h3 id="stopwatchTime" style="color: black !important">
+                    00:00
+                  </h3>
+                </div>
+              </div>
+
               <button
                 id="startButton"
                 class="btn btn-success mx-2 action-buttons"

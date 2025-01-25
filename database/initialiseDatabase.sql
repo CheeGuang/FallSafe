@@ -414,13 +414,13 @@ INSERT INTO UserResponseDetails (response_id, question_id, response_score) VALUE
 -- **************************************************
 USE FallSafe_SelfAssessmentDB;
 
--- Insert data for the Timed Up and Go (TUG) Test
+-- Insert data for the Timed Up and Go Test
 INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4, step_5) VALUES
 (
-    'Timed Up and Go (TUG) Test',
+    'Timed Up and Go Test',
     'Tests leg strength, mobility, and balance by timing how quickly you stand, walk, and sit down.',
     'Taking more than 12 seconds to complete indicates an increased risk of falls.',
-    'https://example.com/tug_test_video',
+    'https://fallsafe.s3.ap-southeast-1.amazonaws.com/Self+Assessment+Video/TUG+Video+Demo.mp4',
     'Start seated on a chair with your back straight',
     'Stand up from the chair when ready.',
     'Walk 3 meters forward, covering a short distance.',
@@ -428,13 +428,13 @@ INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2
     'Sit back down on the chair to complete the test.'
 );
 
--- Insert data for the Five Times Sit-to-Stand Test (5x Sit-To-Stand Test)
+-- Insert data for the Five Times Sit to Stand Test
 INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4) VALUES
 (
-    'Five Times Sit-to-Stand Test (5x Sit-To-Stand Test)',
+    'Five Times Sit to Stand Test',
     'Tests lower body strength and balance by timing how quickly you perform repeated sit-to-stand movements.',
     'Taking more than 14 seconds to complete indicates an increased risk of falls.',
-    'https://example.com/5x_sit_to_stand_video',
+    'https://fallsafe.s3.ap-southeast-1.amazonaws.com/Self+Assessment+Video/5+times+Stand+and+Sit+Video+Demo.mp4',
     'Start seated on a chair with your arms crossed over your chest.',
     'Stand up fully, then sit back down as quickly as possible.',
     'Repeat this movement five times without stopping.',
@@ -447,25 +447,25 @@ INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2
     'Dynamic Gait Index (DGI)',
     'Evaluates dynamic balance and coordination while walking in different conditions.',
     'Taking more than 20 seconds to complete indicates an increased risk of falls.',
-    'https://example.com/dgi_test_video',
+    'https://fallsafe.s3.ap-southeast-1.amazonaws.com/Self+Assessment+Video/Dynamic+Gait+Test+Video+Demo.mp4',
     'Walk 6 steps forward at a normal pace.',
     'Turn your head to the right and walk 6 steps slowly in the same direction.',
     'Turn around, face forward, and walk quickly back to your starting point.',
     'Stop the test after returning to your starting position'
 );
 
--- Insert data for the Four-Stage Balance Test
+-- Insert data for the 4 Stage Balance Test
 INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4, step_5) VALUES
 (
-    'Four-Stage Balance Test',
+    '4 Stage Balance Test',
     'Tests static balance and stability by holding different standing positions.',
     'Inability to balance for 10 seconds in any position indicates a higher risk of falls.',
-    'https://example.com/four_stage_balance_test_video',
-    'Stand with your feet together and hold for 10 seconds.',
-    'Stand with one foot slightly in front of the other (semi-tandem stance) and hold for 10 seconds.',
-    'Stand with one foot fully in front of the other (tandem stance) and hold for 10 seconds.',
-    'Stand on one foot and hold for 10 seconds without moving.',
-    'Stop the test after completing all positions or if balance is lost.'
+    'https://fallsafe.s3.ap-southeast-1.amazonaws.com/Self+Assessment+Video/4+Stage+Balance+Test+Video+Demo.mp4',
+    'Stand with feet together and hold for 10 seconds.',
+    'Right foot takes half a step forward, hold for 10 seconds.',
+    'Right foot directly in front of left foot, hold for 10 seconds.',
+    'Stand on one foot (your choice) for 10 seconds.',
+    'Stop if balance is lost or all steps are completed.'
 );
 
 -- Insert TestSession data for 5 users (5 sessions each, every 6 months)
