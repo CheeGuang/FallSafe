@@ -35,14 +35,14 @@
     <link rel="stylesheet" href="./css/style.css" />
 
     <!-- ######################################## INSERT PAGE'S CSS HERE \/ ########################################################### -->
-    <!-- <link rel="stylesheet" href="./css/" /> -->
+    <link rel="stylesheet" href="./css/userSelfAssessment.css" />
     <!-- ######################################## END OF PAGE'S CSS ########################################################### -->
 
     <!-- Linking JS -->
     <script src="./js/script.js" defer></script>
 
     <!-- ######################################## INSERT PAGE'S JS HERE \/ ########################################################### -->
-    <!-- <script src="./js/" defer></script> -->
+    <script src="./js/userSelfAssessment.js" defer></script>
     <!-- ######################################## END OF PAGE'S JS ########################################################### -->
 
     <!-- Add a favicon to the tab bar -->
@@ -70,11 +70,73 @@
 
           <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
 
-          <h1>Welcome to FallSafe</h1>
+          <h1 id="title">Self Assessment</h1>
           <!-- p Subtitle -->
-          <p class="mb-3">
-            Driving towards a sustainable future with eco-friendly car rentals.
+          <p id="subtitle" class="mb-3">
+            Assess your fall risk easily at home.
           </p>
+
+          <p id="subtitle2" class="mb-4">
+            You will take <strong>5 simple tests</strong>. Each test is scored
+            between <strong>0 and 100</strong>. A
+            <strong>higher score</strong> means better performance. At the end,
+            you’ll receive an evaluation of your <strong>fall risk</strong>.
+            Each test includes a <strong>video demonstration</strong> and
+            <strong>step-by-step instructions</strong> for easy follow-along.
+          </p>
+
+          <div
+            id="test-container"
+            class="d-flex align-items-center justify-content-center w-100 flex-column"
+          >
+            <button id="startTestButton" class="btn btn-primary">
+              Continue
+            </button>
+            <div id="connectionStatus" class="mt-3"></div>
+          </div>
+
+          <!-- Self-Assessment Layout -->
+          <div id="selfAssessmentContainer" style="display: none">
+            <h1 id="testName" class="text-center"></h1>
+            <h4 id="testDescription" class="text-center"></h4>
+            <p id="riskMetrics" class="text-center text-muted"></p>
+
+            <div class="row h-100 mt-4">
+              <!-- Steps Column -->
+              <div class="col-md-4 border-end" id="stepsColumn">
+                <h5>Steps:</h5>
+                <ul id="stepsList" class="list-group"></ul>
+              </div>
+
+              <!-- Video Column -->
+              <div
+                class="col-md-8 d-flex justify-content-center align-items-center"
+              >
+                <video id="testVideo" class="w-100 rounded" controls></video>
+              </div>
+            </div>
+            <!-- Start, Stop, and Restart Buttons -->
+            <div class="d-flex justify-content-center mt-4">
+              <button
+                id="startButton"
+                class="btn btn-success mx-2 action-buttons"
+              >
+                <i class="fas fa-play"></i> Start Test
+              </button>
+              <button
+                id="stopButton"
+                class="btn btn-danger mx-2 action-buttons"
+              >
+                <i class="fas fa-stop"></i> Stop Test
+              </button>
+              <button
+                id="restartButton"
+                class="btn btn-warning mx-2 action-buttons"
+              >
+                <i class="fas fa-redo"></i> Restart Test
+              </button>
+            </div>
+          </div>
           <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
         </div>
       </div>

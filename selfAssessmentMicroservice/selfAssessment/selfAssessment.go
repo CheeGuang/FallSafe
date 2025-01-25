@@ -3,6 +3,7 @@ package selfAssessment
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -12,9 +13,12 @@ import (
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	_ "github.com/go-sql-driver/mysql" // MySQL driver
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 )
+
+var db *sql.DB
 
 func init() {
 	// Load environment variables
@@ -24,6 +28,20 @@ func init() {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 	log.Println("Environment variables loaded successfully.")
+
+	// Initialize database connection
+	log.Println("Initializing database connection...")
+	db, err = sql.Open("mysql", os.Getenv("DB_CONNECTION"))
+	if err != nil {
+		log.Fatalf("Error connecting to database: %v", err)
+	}
+
+	// Test the database connection
+	err = db.Ping()
+	if err != nil {
+		log.Fatalf("Database connection test failed: %v", err)
+	}
+	log.Println("Database connection successful.")
 }
 
 // StartMQTTConnection initializes the MQTT connection and subscribes to a topic
@@ -351,4 +369,98 @@ func determineRiskLevel(abruptPercentage float64) string {
 		return "moderate"
 	}
 	return "low"
+}
+
+
+// StartTest creates a new test session for a given user ID and returns the session ID
+func StartTest(userID int) (int64, error) {
+	// Insert new test session
+	query := `
+		INSERT INTO TestSession (user_id, session_date)
+		VALUES (?, ?)
+	`
+	result, err := db.Exec(query, userID, time.Now())
+	if err != nil {
+		return 0, fmt.Errorf("failed to create new test session: %v", err)
+	}
+
+	// Get the session ID of the newly created session
+	sessionID, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("failed to retrieve session ID: %v", err)
+	}
+
+	log.Printf("New test session created for user_id=%d with session_id=%d", userID, sessionID)
+	return sessionID, nil
+}
+
+func GetAllTests() ([]map[string]interface{}, error) {
+    log.Println("Retrieving all tests...")
+
+    query := `
+        SELECT 
+            test_id,
+            test_name,
+            description,
+            risk_metric,
+            video_url,
+            step_1,
+            step_2,
+            step_3,
+            step_4,
+            step_5,
+            enabled
+        FROM Test
+    `
+
+    rows, err := db.Query(query)
+    if err != nil {
+        return nil, fmt.Errorf("failed to retrieve tests: %v", err)
+    }
+    defer rows.Close()
+
+    var tests []map[string]interface{}
+    for rows.Next() {
+        var testID int
+        var testName, description, riskMetric, videoURL, step1 string
+        var step2, step3, step4, step5 sql.NullString
+        var enabled bool
+
+        err := rows.Scan(
+            &testID, &testName, &description, &riskMetric, &videoURL,
+            &step1, &step2, &step3, &step4, &step5, &enabled,
+        )
+        if err != nil {
+            return nil, fmt.Errorf("failed to scan test row: %v", err)
+        }
+
+        test := map[string]interface{}{
+            "test_id":      testID,
+            "test_name":    testName,
+            "description":  description,
+            "risk_metric":  riskMetric,
+            "video_url":    videoURL,
+            "step_1":       step1,
+            "step_2":       nullStringToString(step2),
+            "step_3":       nullStringToString(step3),
+            "step_4":       nullStringToString(step4),
+            "step_5":       nullStringToString(step5),
+            "enabled":      enabled,
+        }
+        tests = append(tests, test)
+    }
+
+    if err := rows.Err(); err != nil {
+        return nil, fmt.Errorf("error occurred while iterating through rows: %v", err)
+    }
+
+    log.Println("All tests retrieved successfully.")
+    return tests, nil
+}
+
+func nullStringToString(ns sql.NullString) string {
+    if ns.Valid {
+        return ns.String
+    }
+    return ""
 }

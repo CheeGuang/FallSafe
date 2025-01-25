@@ -1,0 +1,49 @@
+/* Aesthetic styling for buttons */
+.btn {
+  font-size: 1.5rem; /* Larger font size for better visibility */
+  padding: 15px 30px; /* Bigger padding for larger buttons */
+  border-radius: 10px; /* Rounded edges for a modern look */
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border: none;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  transform: scale(1.1); /* Slight zoom-in effect on hover */
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  border: none;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+  transform: scale(1.1);
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  border: none;
+  color: black;
+}
+
+.btn-warning:hover {
+  background-color: #e0a800;
+  transform: scale(1.1);
+}
+
+/* Center alignment for the button container */
+.button-container {
+  margin-top: 100px;
+  margin-bottom: 100px;
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* Space between buttons */
+}

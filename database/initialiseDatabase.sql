@@ -147,7 +147,23 @@ CREATE TABLE Test (
     test_name VARCHAR(100) NOT NULL,                                  -- Name of the test
     description TEXT,                                                 -- Test description
     risk_metric VARCHAR(100),                                         -- Risk metric for the test
+    video_url VARCHAR(255),                                           -- Video URL explaining the test
+    step_1 TEXT NOT NULL,                                             -- Mandatory first step
+    step_2 TEXT NULL,                                                 -- Optional second step
+    step_3 TEXT NULL,                                                 -- Optional third step
+    step_4 TEXT NULL,                                                 -- Optional fourth step
+    step_5 TEXT NULL,                                                 -- Optional fifth step
     enabled BOOLEAN DEFAULT TRUE                                      -- Whether the test is enabled
+);
+
+-- Create the TestSession table
+-- PURPOSE: Tracks test sessions where users complete all required tests
+CREATE TABLE TestSession (
+    session_id SMALLINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,  -- Unique ID for the session
+    user_id SMALLINT UNSIGNED NOT NULL,                                -- Associated user ID
+    session_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                  -- Date and time of the session
+    session_notes TEXT NULL,                                           -- Optional notes about the session
+    INDEX idx_user_session (user_id, session_date)                    -- Composite index for user ID and session date
 );
 
 -- Create the UserTestResult table
@@ -155,12 +171,15 @@ CREATE TABLE Test (
 CREATE TABLE UserTestResult (
     result_id SMALLINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,  -- Unique ID for the result
     user_id SMALLINT UNSIGNED NOT NULL,                               -- Associated user ID
+    session_id SMALLINT UNSIGNED NOT NULL,                            -- Associated test ID
     test_id SMALLINT UNSIGNED NOT NULL,                               -- Associated test ID
-    score DECIMAL(10, 2) NOT NULL,                                    -- Test score
-    fall_risk ENUM('Low', 'Moderate', 'High') NOT NULL,               -- Fall risk determined from the score
+    score DECIMAL(5, 2) NOT NULL CHECK (score BETWEEN 0 AND 100),     -- Test score (0-100)
     test_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                    -- Date of test completion
-    INDEX idx_user_test_date (user_id, test_date)                     -- Composite index
+    INDEX idx_user_test_date (user_id, test_date),                    -- Composite index for user ID and test date
+    FOREIGN KEY (test_id) REFERENCES Test(test_id) ON DELETE CASCADE,  -- Foreign key constraint to Test table
+    FOREIGN KEY (session_id) REFERENCES TestSession(session_id) ON DELETE CASCADE -- Foreign key to TestSession
 );
+
 
 -- **************************************************
 -- DATABASE: FallSafe_AdminDB
@@ -392,14 +411,270 @@ INSERT INTO UserResponseDetails (response_id, question_id, response_score) VALUE
 -- **************************************************
 USE FallSafe_SelfAssessmentDB;
 
--- Insert dummy data into the Test table
-INSERT INTO Test (test_name, description, risk_metric, enabled) VALUES
-('Balance Test', 'Assess the balance of the user.', 'Balance Score', TRUE),
-('Strength Test', 'Evaluate the lower body strength.', 'Strength Score', TRUE);
+-- Insert data for the Timed Up and Go (TUG) Test
+INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4, step_5) VALUES
+(
+    'Timed Up and Go (TUG) Test',
+    'Checks mobility, speed, and balance by timing you as you stand, walk 6 steps, and sit back down.',
+    'Time >12 seconds means a higher risk of falling.',
+    'https://example.com/tug_test_video',
+    'Sit on a chair with your back straight and hands on the armrests.',
+    'Stand up from the chair when you are ready.',
+    'Take 6 steps forward, covering a short distance.',
+    'Turn around and take 6 steps back to the chair.',
+    'Sit back down on the chair to complete the test.'
+);
 
--- Insert dummy data into the UserTestResult table
-INSERT INTO UserTestResult (user_id, test_id, score, fall_risk, test_date) VALUES
-(1, 1, 85.5, 'Low', '2025-01-12 10:30:00');
+-- Insert data for the 30-Second Chair Stand Test
+INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4, step_5) VALUES
+(
+    '30-Second Chair Stand Test',
+    'Checks leg strength by counting how many times you can stand and sit in 30 seconds.',
+    'A lower count means higher fall risk.',
+    'https://example.com/30_second_chair_stand_video',
+    'Sit on a chair with your arms crossed over your chest.',
+    'Stand up fully so your legs are straight, then sit back down.',
+    'Repeat standing up and sitting down as many times as you can within 30 seconds.',
+    NULL,
+    NULL
+);
+
+-- Insert data for the Single-Leg Stance Test
+INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4, step_5) VALUES
+(
+    'Single-Leg Stance Test',
+    'Checks balance by timing how long you can stand on one leg, up to 20 seconds or until you fall.',
+    'Difficulty balancing or holding for less than 20 seconds shows a higher fall risk.',
+    'https://example.com/single_leg_stance_video',
+    'Stand on one leg while keeping your arms by your sides.',
+    'Hold your balance for up to 20 seconds or until you put your other foot down.',
+    'Stop the test if you lose balance, step down, or hold onto something.',
+    NULL,
+    NULL
+);
+
+-- Insert data for the Dynamic Gait Index (DGI)
+INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4, step_5) VALUES
+(
+    'Dynamic Gait Index (DGI)',
+    'Checks walking ability by testing your balance, speed, and adaptability while walking.',
+    'A score under 19 means higher fall risk.',
+    'https://example.com/dgi_test_video',
+    'Walk 6 steps forward at your normal pace.',
+    'Walk 6 steps slowly, then 6 steps quickly.',
+    'Walk 6 steps while stepping over a small obstacle.',
+    'Turn around, walk 6 steps back, and return to your normal pace.',
+    'Follow all instructions carefully to complete the test.'
+);
+
+-- Insert data for the Four-Stage Balance Test
+INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4, step_5) VALUES
+(
+    'Four-Stage Balance Test',
+    'Checks balance by having you hold different standing positions for 10 seconds each.',
+    'Trouble balancing for 10 seconds shows a higher fall risk.',
+    'https://example.com/four_stage_balance_test_video',
+    'Stand with your feet side by side, making sure they are touching, and hold for 10 seconds.',
+    'Place one foot slightly in front of the other (semi-tandem stance) and hold for 10 seconds.',
+    'Place one foot fully in front of the other (tandem stance) and hold for 10 seconds.',
+    'Stand on one foot and balance for 10 seconds without moving.',
+    NULL
+);
+
+-- Insert TestSession data for 5 users (5 sessions each, every 6 months)
+INSERT INTO TestSession (user_id, session_date, session_notes) VALUES
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), 'Routine assessment 2.5 years ago'), -- User 1
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), 'Routine assessment 2 years ago'),
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), 'Routine assessment 1.5 years ago'),
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), 'Routine assessment 1 year ago'),
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), 'Routine assessment 6 months ago'),
+
+(2, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), 'Routine assessment 2.5 years ago'), -- User 2
+(2, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), 'Routine assessment 2 years ago'),
+(2, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), 'Routine assessment 1.5 years ago'),
+(2, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), 'Routine assessment 1 year ago'),
+(2, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), 'Routine assessment 6 months ago'),
+
+(3, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), 'Routine assessment 2.5 years ago'), -- User 3
+(3, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), 'Routine assessment 2 years ago'),
+(3, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), 'Routine assessment 1.5 years ago'),
+(3, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), 'Routine assessment 1 year ago'),
+(3, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), 'Routine assessment 6 months ago'),
+
+(4, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), 'Routine assessment 2.5 years ago'), -- User 4
+(4, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), 'Routine assessment 2 years ago'),
+(4, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), 'Routine assessment 1.5 years ago'),
+(4, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), 'Routine assessment 1 year ago'),
+(4, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), 'Routine assessment 6 months ago'),
+
+(5, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), 'Routine assessment 2.5 years ago'), -- User 5
+(5, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), 'Routine assessment 2 years ago'),
+(5, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), 'Routine assessment 1.5 years ago'),
+(5, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), 'Routine assessment 1 year ago'),
+(5, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), 'Routine assessment 6 months ago');
+
+
+-- Insert UserTestResult data for all users
+
+-- User 1: Scores improve over time
+INSERT INTO UserTestResult (user_id, session_id, test_id, score, test_date) VALUES
+(1, 1, 1, 60.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 1
+(1, 1, 2, 50.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 2
+(1, 1, 3, 70.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 3 (Good performance)
+(1, 1, 4, 55.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 4
+(1, 1, 5, 40.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 5 (Weak performance)
+
+(1, 2, 1, 65.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(1, 2, 2, 55.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(1, 2, 3, 75.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(1, 2, 4, 60.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(1, 2, 5, 45.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+
+(1, 3, 1, 70.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(1, 3, 2, 60.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(1, 3, 3, 80.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(1, 3, 4, 65.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(1, 3, 5, 50.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+
+(1, 4, 1, 75.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(1, 4, 2, 65.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(1, 4, 3, 85.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(1, 4, 4, 70.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(1, 4, 5, 55.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+
+(1, 5, 1, 80.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(1, 5, 2, 70.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(1, 5, 3, 90.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(1, 5, 4, 75.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(1, 5, 5, 60.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH));
+
+-- User 2: Scores decline over time
+INSERT INTO UserTestResult (user_id, session_id, test_id, score, test_date) VALUES
+(2, 6, 1, 80.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
+(2, 6, 2, 75.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
+(2, 6, 3, 85.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 3 (Good performance)
+(2, 6, 4, 70.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
+(2, 6, 5, 60.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
+
+(2, 7, 1, 75.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(2, 7, 2, 70.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(2, 7, 3, 80.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(2, 7, 4, 65.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(2, 7, 5, 55.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+
+(2, 8, 1, 70.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(2, 8, 2, 65.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(2, 8, 3, 75.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(2, 8, 4, 60.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(2, 8, 5, 50.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+
+(2, 9, 1, 65.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(2, 9, 2, 60.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(2, 9, 3, 70.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(2, 9, 4, 55.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(2, 9, 5, 45.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+
+(2, 10, 1, 60.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(2, 10, 2, 55.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(2, 10, 3, 65.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(2, 10, 4, 50.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(2, 10, 5, 40.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH));
+
+-- User 3: Scores improve over time
+INSERT INTO UserTestResult (user_id, session_id, test_id, score, test_date) VALUES
+(3, 11, 1, 50.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
+(3, 11, 2, 55.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
+(3, 11, 3, 60.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 3 (Good performance)
+(3, 11, 4, 45.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
+(3, 11, 5, 35.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
+
+(3, 12, 1, 60.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(3, 12, 2, 65.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(3, 12, 3, 70.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(3, 12, 4, 55.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(3, 12, 5, 45.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+
+(3, 13, 1, 70.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(3, 13, 2, 75.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(3, 13, 3, 80.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(3, 13, 4, 65.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(3, 13, 5, 55.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+
+(3, 14, 1, 80.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(3, 14, 2, 85.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(3, 14, 3, 90.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(3, 14, 4, 75.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(3, 14, 5, 65.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+
+(3, 15, 1, 90.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(3, 15, 2, 95.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(3, 15, 3, 100.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(3, 15, 4, 85.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(3, 15, 5, 75.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH));
+
+-- User 4: Scores decline over time
+INSERT INTO UserTestResult (user_id, session_id, test_id, score, test_date) VALUES
+(4, 16, 1, 80.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
+(4, 16, 2, 70.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
+(4, 16, 3, 85.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 3 (Good performance)
+(4, 16, 4, 65.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
+(4, 16, 5, 55.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
+
+(4, 17, 1, 75.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(4, 17, 2, 65.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(4, 17, 3, 80.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(4, 17, 4, 60.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(4, 17, 5, 50.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+
+(4, 18, 1, 70.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(4, 18, 2, 60.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(4, 18, 3, 75.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(4, 18, 4, 55.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(4, 18, 5, 45.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+
+(4, 19, 1, 65.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(4, 19, 2, 55.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(4, 19, 3, 70.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(4, 19, 4, 50.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(4, 19, 5, 40.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+
+(4, 20, 1, 60.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(4, 20, 2, 50.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(4, 20, 3, 65.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(4, 20, 4, 45.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(4, 20, 5, 35.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH));
+
+-- User 5: Scores fluctuate
+INSERT INTO UserTestResult (user_id, session_id, test_id, score, test_date) VALUES
+(5, 21, 1, 70.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
+(5, 21, 2, 60.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
+(5, 21, 3, 80.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 3 (Good performance)
+(5, 21, 4, 50.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
+(5, 21, 5, 45.00, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
+
+(5, 22, 1, 75.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(5, 22, 2, 65.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(5, 22, 3, 85.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(5, 22, 4, 55.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(5, 22, 5, 40.00, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+
+(5, 23, 1, 68.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(5, 23, 2, 58.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(5, 23, 3, 75.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(5, 23, 4, 48.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+(5, 23, 5, 38.00, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
+
+(5, 24, 1, 80.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(5, 24, 2, 70.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(5, 24, 3, 85.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(5, 24, 4, 60.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(5, 24, 5, 50.00, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+
+(5, 25, 1, 72.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(5, 25, 2, 62.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(5, 25, 3, 78.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(5, 25, 4, 52.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(5, 25, 5, 42.00, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH));
 
 -- **************************************************
 -- DATABASE: FallSafe_AdminDB
