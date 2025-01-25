@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
-	//"fmt" -- temporary comment for testing
-	//"io/ioutil"
-	//"bytes"
+	"fmt"
+	"io"
+	"bytes"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
@@ -47,79 +47,82 @@ type Question struct {
 	ID   int `json:"id"`
 	Text string `json:"text"`
 }
-
-/*
 type TTSRequest struct {
-	Model string `json:"model"`
-	Voice string `json:"voice"`
-	Input string `json:"input"`
+	Model   string `json:"model"`
+	Voice   string `json:"voice"`
+	Input   string `json:"input"`
+	Language string `json:"language"` // Language passed from frontend
 }
 
 type TTSResponse struct {
 	AudioURL string `json:"audio_url"`
 }
 
+func ReadQuestion(w http.ResponseWriter, r *http.Request) {
+	var requestData struct {
+		QuestionText string `json:"question_text"`
+		Language     string `json:"language"`
+	}
 
-func CallTTSModel(inputText string) ([]byte, error) {
-	log.Println("Entering CallTTSModel...")
+	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
 
 	apiKey := os.Getenv("OPENAI_APIKEY")
 	if apiKey == "" {
 		log.Println("OPENAI_APIKEY is not set.")
-		return nil, fmt.Errorf("OPENAI_APIKEY environment variable is not set")
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 
-	log.Printf("Preparing request for TTS with input: %s\n", inputText)
+	// Determine voice based on language (adjust as per OpenAI's API options)
+	voice := "alloy" // Default to English
+	if requestData.Language == "es" {
+		voice = "alloy"
+	} else if requestData.Language == "fr" {
+		voice = "alloy"
+	}
+
 	ttsRequest := TTSRequest{
 		Model: "tts-1",
-		Voice: "alloy",
-		Input: inputText,
+		Voice: voice,
+		Input: requestData.QuestionText,
 	}
 
 	requestBody, err := json.Marshal(ttsRequest)
 	if err != nil {
-		log.Printf("Error marshaling request body: %v\n", err)
-		return nil, fmt.Errorf("error marshaling request body: %v", err)
+		http.Error(w, "Failed to prepare TTS request", http.StatusInternalServerError)
+		return
 	}
-	log.Printf("Request body prepared: %s\n", string(requestBody))
 
 	req, err := http.NewRequest("POST", "https://api.openai.com/v1/audio/speech", bytes.NewBuffer(requestBody))
 	if err != nil {
-		log.Printf("Error creating request: %v\n", err)
-		return nil, fmt.Errorf("error creating request: %v", err)
+		http.Error(w, "Failed to create request", http.StatusInternalServerError)
+		return
 	}
 
 	req.Header.Set("Authorization", "Bearer "+apiKey)
 	req.Header.Set("Content-Type", "application/json")
-	log.Println("Request headers set successfully.")
 
 	client := &http.Client{}
-	log.Println("Sending request to OpenAI API...")
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Printf("Error sending request: %v\n", err)
-		return nil, fmt.Errorf("error sending request: %v", err)
+		http.Error(w, "Failed to call OpenAI API", http.StatusInternalServerError)
+		return
 	}
 	defer resp.Body.Close()
 
-	log.Printf("Response received with status code: %d\n", resp.StatusCode)
 	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
-		log.Printf("API returned error: %s\n", string(bodyBytes))
-		return nil, fmt.Errorf("API returned error: %s", string(bodyBytes))
+		body, _ := io.ReadAll(resp.Body)
+		http.Error(w, fmt.Sprintf("OpenAI API error: %s", string(body)), http.StatusInternalServerError)
+		return
 	}
 
-	// Read the raw binary data from the response body
-	audioData, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Printf("Error reading audio data: %v\n", err)
-		return nil, fmt.Errorf("error reading audio data: %v", err)
-	}
-
-	log.Println("Audio data received successfully.")
-	return audioData, nil
+	// Return audio data directly
+	w.Header().Set("Content-Type", "audio/mpeg")
+	io.Copy(w, resp.Body)
 }
-*/
 
 func GetQuestions(w http.ResponseWriter, r *http.Request) {
 	// Fetch all questions
@@ -161,34 +164,6 @@ func GetQuestions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
-/*func ReadQuestion(w http.ResponseWriter, r *http.Request) {
-	//decode the request body
-	var requestData struct {
-		QuestionText string `json:"question_text"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
-		http.Error(w, "Invalid input", http.StatusBadRequest)
-		return
-	}
-
-	//call TTS model to generate audio
-	audioData, err := CallTTSModel(requestData.QuestionText)
-	if err != nil {
-		log.Printf("Error generating audio: %v", err)
-		http.Error(w, "Failed to generate speech", http.StatusInternalServerError)
-		return
-	}
-
-	//respond with audio data
-	w.Header().Set("Content-Type", "audio/mpeg")
-	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(audioData)
-	if err != nil {
-		log.Printf("Error writing audio response: %v", err)
-	}
-}
-*/
 
 func SaveResponse(w http.ResponseWriter, r *http.Request) {
 	//decode request body
