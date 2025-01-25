@@ -234,7 +234,7 @@ func generateJWT(userID int) (string, time.Time, error) {
 
 	// Generate JWT claims including all user fields
 	claims := jwt.MapClaims{
-		"user_id":      user.UserID,
+		"user_id":      user.ID,
 		"name":         user.Name,
 		"email":        user.Email,
 		"phone_number": user.PhoneNumber,
