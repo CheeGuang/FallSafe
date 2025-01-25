@@ -551,7 +551,7 @@ document.addEventListener("DOMContentLoaded", function () {
       selfAssessmentContainer.style.display = "none"; // Hide the container
     }
 
-    testNameElement.textContent = "Your Results";
+    testNameElement.textContent = "Your Self Assessment Results";
     testDescriptionElement.textContent = "Feel free to consult your doctor";
     riskMetricsElement.remove();
 
@@ -571,6 +571,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const thead = `<thead>
           <tr>
             <th>Test Name</th>
+            <th>Description</th>
             <th>Time Taken (s)</th>
             <th>Abrupt Movements (%)</th>
             <th>Score</th>
@@ -596,6 +597,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${test?.test_name || "Unknown Test"}</td>
+           <td>${test?.description || "No description available"}</td>
           <td>${result.timeTaken.toFixed(2)}</td>
           <td>${abruptPercentage.toFixed(2)}</td>
           <td>${score}</td>
@@ -641,6 +643,11 @@ document.addEventListener("DOMContentLoaded", function () {
             legend: {
               display: true,
               position: "top",
+              labels: {
+                font: {
+                  size: 16, // Legend font size
+                },
+              },
             },
             tooltip: {
               callbacks: {
@@ -657,12 +664,28 @@ document.addEventListener("DOMContentLoaded", function () {
               title: {
                 display: true,
                 text: "Scores",
+                font: {
+                  size: 18, // Y-axis title font size
+                },
+              },
+              ticks: {
+                font: {
+                  size: 14, // Y-axis tick font size
+                },
               },
             },
             x: {
               title: {
                 display: true,
                 text: "Tests",
+                font: {
+                  size: 18, // X-axis title font size
+                },
+              },
+              ticks: {
+                font: {
+                  size: 14, // X-axis tick font size
+                },
               },
             },
           },
@@ -671,6 +694,122 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       console.error("Result container not found in the DOM.");
     }
+
+    // Add a container div for centring the button
+    const buttonContainer = document.createElement("div");
+    buttonContainer.classList.add("d-flex", "justify-content-center", "mt-3");
+
+    // Create the "Download as PDF" button
+    const downloadPdfButton = document.createElement("button");
+    downloadPdfButton.id = "downloadPdfButton";
+    downloadPdfButton.classList.add("btn", "btn-primary");
+    downloadPdfButton.textContent = "Download Results as PDF";
+
+    // Append the button to the container
+    buttonContainer.appendChild(downloadPdfButton);
+
+    // Append the container to the result container
+    resultContainer.appendChild(buttonContainer);
+    downloadPdfButton.addEventListener("click", async () => {
+      const { jsPDF } = window.jspdf;
+
+      // Select the result container
+      const resultContainer = document.getElementById("result-container");
+
+      if (resultContainer) {
+        // Temporarily hide the download button to exclude it from the screenshot
+        const downloadButton = document.getElementById("downloadPdfButton");
+        if (downloadButton) {
+          downloadButton.style.visibility = "hidden"; // Use visibility instead of display
+        }
+
+        // Use html2canvas to capture the result container as an image
+        const canvas = await html2canvas(resultContainer, {
+          scale: 2, // Increase scale for better image quality
+        });
+
+        // Restore the download button visibility
+        if (downloadButton) {
+          downloadButton.style.visibility = "visible"; // Restore visibility
+        }
+
+        const imgData = canvas.toDataURL("image/png");
+
+        // Create a new jsPDF instance
+        const doc = new jsPDF();
+
+        // Add today's date
+        const today = new Date();
+        const dateString = today.toLocaleDateString();
+
+        // Get the token from localStorage and decode it
+        const token = localStorage.getItem("token");
+        const userDetails = decodeToken(token);
+
+        // Add FallSafe logo
+        const img = new Image();
+        img.src = "./img/FallSafe.png";
+
+        // Wait for the image to load before proceeding
+        img.onload = () => {
+          const logoWidth = 40; // Adjust width as needed
+          const logoHeight = (img.height / img.width) * logoWidth; // Maintain aspect ratio
+          doc.addImage(
+            img,
+            "PNG",
+            doc.internal.pageSize.getWidth() - logoWidth - 10, // Top-right corner
+            10,
+            logoWidth,
+            logoHeight
+          );
+
+          // Add user details
+          doc.setFontSize(12);
+          doc.text(`Name: ${userDetails.name}`, 10, 20); // Adjust Y-axis as needed
+          doc.text(`Email: ${userDetails.email}`, 10, 28);
+          doc.text(`Age: ${userDetails.age}`, 10, 36);
+
+          // Add today's date
+          doc.text(`Date: ${dateString}`, 10, 44);
+
+          // Get the PDF page dimensions
+          const pageWidth = doc.internal.pageSize.getWidth();
+          const pageHeight = doc.internal.pageSize.getHeight();
+
+          // Calculate scaling to fit the image slightly smaller within the PDF page
+          const imgWidth = canvas.width;
+          const imgHeight = canvas.height;
+
+          // Reduce the scaling factor to make the image slightly smaller
+          const scaleFactor = Math.min(
+            (pageWidth / imgWidth) * 0.9, // Reduce the width scaling to 90%
+            (pageHeight / imgHeight) * 0.9 // Reduce the height scaling to 90%
+          );
+
+          const scaledWidth = imgWidth * scaleFactor;
+          const scaledHeight = imgHeight * scaleFactor;
+
+          // Center the image on the page (below the header content)
+          const xOffset = (pageWidth - scaledWidth) / 2;
+          const yOffset = 60; // Adjust to position below the user details and logo
+
+          // Add the scaled image to the PDF
+          doc.addImage(
+            imgData,
+            "PNG",
+            xOffset,
+            yOffset,
+            scaledWidth,
+            scaledHeight
+          );
+
+          // Save the PDF
+          doc.save("Self_Assessment_Results.pdf");
+        };
+      } else {
+        console.error("Result container not found in the DOM.");
+      }
+    });
   }
 
   // Trigger results display when "View Results" is clicked

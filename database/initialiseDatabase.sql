@@ -418,7 +418,7 @@ USE FallSafe_SelfAssessmentDB;
 INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4, step_5) VALUES
 (
     'Timed Up and Go Test',
-    'Tests leg strength, mobility, and balance by timing how quickly you stand, walk, and sit down.',
+    'Measures mobility and balance by timing how quickly you stand, walk, and sit.',
     'Taking more than 12 seconds to complete indicates an increased risk of falls.',
     'https://fallsafe.s3.ap-southeast-1.amazonaws.com/Self+Assessment+Video/TUG+Video+Demo.mp4',
     'Start seated on a chair with your back straight',
@@ -432,7 +432,7 @@ INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2
 INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4) VALUES
 (
     'Five Times Sit to Stand Test',
-    'Tests lower body strength and balance by timing how quickly you perform repeated sit-to-stand movements.',
+    'Tests strength and balance by timing repeated sit-to-stand movements.',
     'Taking more than 14 seconds to complete indicates an increased risk of falls.',
     'https://fallsafe.s3.ap-southeast-1.amazonaws.com/Self+Assessment+Video/5+times+Stand+and+Sit+Video+Demo.mp4',
     'Start seated on a chair with your arms crossed over your chest.',
@@ -445,7 +445,7 @@ INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2
 INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4) VALUES
 (
     'Dynamic Gait Index (DGI)',
-    'Evaluates dynamic balance and coordination while walking in different conditions.',
+    'Evaluates balance and coordination during different walking tasks.',
     'Taking more than 20 seconds to complete indicates an increased risk of falls.',
     'https://fallsafe.s3.ap-southeast-1.amazonaws.com/Self+Assessment+Video/Dynamic+Gait+Test+Video+Demo.mp4',
     'Walk 6 steps forward at a normal pace.',
@@ -458,7 +458,7 @@ INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2
 INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4, step_5) VALUES
 (
     '4 Stage Balance Test',
-    'Tests static balance and stability by holding different standing positions.',
+    'Tests static balance by holding various standing positions.',
     'Inability to balance for 10 seconds in any position indicates a higher risk of falls.',
     'https://fallsafe.s3.ap-southeast-1.amazonaws.com/Self+Assessment+Video/4+Stage+Balance+Test+Video+Demo.mp4',
     'Stand with feet together and hold for 10 seconds.',
