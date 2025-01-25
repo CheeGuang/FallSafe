@@ -143,6 +143,44 @@ func main() {
 		json.NewEncoder(w).Encode(tests)
 	}).Methods("GET")
 
+	// Endpoint to save user test results
+	authenticated.HandleFunc("/api/v1/selfAssessment/saveTestResult", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Saving test result...")
+
+		// Parse the request body
+		var requestData struct {
+			TestSessionID int     `json:"testSessionID"`
+			UserID        int     `json:"userID"`
+			TestID        int     `json:"testID"`
+			TimeTaken     float64 `json:"timeTaken"`
+			WebSocketData string  `json:"websocketData"`
+		}
+
+		err := json.NewDecoder(r.Body).Decode(&requestData)
+		if err != nil {
+			log.Printf("Failed to parse request body: %v", err)
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		// Call the SaveUserTestResult function with the additional TestID parameter
+		err = selfAssessment.SaveUserTestResult(
+			requestData.TestSessionID,
+			requestData.UserID,
+			requestData.TestID,
+			requestData.TimeTaken,
+			requestData.WebSocketData,
+		)
+		if err != nil {
+			log.Printf("Failed to save test result: %v", err)
+			http.Error(w, "Failed to save test result", http.StatusInternalServerError)
+			return
+		}
+
+		// Respond with success message
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Test result saved successfully."))
+	}).Methods("POST")
 	// Add CORS support
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://127.0.0.1:5250"}), // Update for allowed origins

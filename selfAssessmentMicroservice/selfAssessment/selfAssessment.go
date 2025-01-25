@@ -337,8 +337,15 @@ func StartWebSocketServer(w http.ResponseWriter, r *http.Request) {
 					RiskLevel:        riskLevel,
 				}
 				log.Printf("Generated risk assessment: %+v", riskAssessment)
-				if err := conn.WriteJSON(riskAssessment); err != nil {
-					log.Printf("WebSocket write error: %v", err)
+		
+				// Convert riskAssessment to JSON manually and write it
+				riskAssessmentJSON, err := json.Marshal(riskAssessment)
+				if err != nil {
+					log.Printf("Error marshaling risk assessment: %v", err)
+				} else {
+					if err := conn.WriteMessage(websocket.TextMessage, riskAssessmentJSON); err != nil {
+						log.Printf("WebSocket write error: %v", err)
+					}
 				}
 			} else {
 				log.Println("Stop command received, but capturing was not active.")
@@ -346,6 +353,7 @@ func StartWebSocketServer(w http.ResponseWriter, r *http.Request) {
 			mutex.Unlock()
 			log.Println("Data capture stopped.")
 			break
+		
 
 		case "restart":
 			log.Println("Restarting data capture...")
@@ -465,4 +473,56 @@ func nullStringToString(ns sql.NullString) string {
         return ns.String
     }
     return ""
+}
+
+// SaveUserTestResult stores test result data into the UserTestResult table
+func SaveUserTestResult(testSessionID int, userID int, testID int, timeTaken float64, websocketData string) error {
+	log.Println("Starting SaveUserTestResult function...")
+
+	// Parse the WebSocket data into a structured format
+	log.Println("Parsing WebSocket data...")
+	var resultData map[string]interface{}
+	err := json.Unmarshal([]byte(websocketData), &resultData)
+	if err != nil {
+		log.Printf("Error parsing WebSocket data: %v", err)
+		return fmt.Errorf("failed to parse WebSocket data: %v", err)
+	}
+	log.Println("WebSocket data parsed successfully.")
+
+	// Extract abrupt percentage and risk level from the WebSocket data
+	log.Println("Extracting abrupt_percentage and risk_level from WebSocket data...")
+	abruptPercentage, ok := resultData["abrupt_percentage"].(float64)
+	if !ok {
+		log.Println("Error: invalid or missing abrupt_percentage in WebSocket data")
+		return fmt.Errorf("invalid or missing abrupt_percentage in WebSocket data")
+	}
+
+	riskLevel, ok := resultData["risk_level"].(string)
+	if !ok {
+		log.Println("Error: invalid or missing risk_level in WebSocket data")
+		return fmt.Errorf("invalid or missing risk_level in WebSocket data")
+	}
+	log.Printf("Extracted values - abrupt_percentage: %f, risk_level: %s", abruptPercentage, riskLevel)
+
+	// SQL query to insert data into the UserTestResult table
+	query := `
+		INSERT INTO UserTestResult (
+			user_id, session_id, test_id, time_taken, abrupt_percentage, risk_level
+		) VALUES (?, ?, ?, ?, ?, ?)
+	`
+
+	log.Printf("Executing SQL query: %s", query)
+	log.Printf("Query parameters - user_id: %d, session_id: %d, test_id: %d, time_taken: %f, abrupt_percentage: %f, risk_level: %s",
+		userID, testSessionID, testID, timeTaken, abruptPercentage, riskLevel)
+
+	// Execute the query
+	_, err = db.Exec(query, userID, testSessionID, testID, timeTaken, abruptPercentage, riskLevel)
+	if err != nil {
+		log.Printf("Error executing SQL query: %v", err)
+		return fmt.Errorf("failed to save user test result: %v", err)
+	}
+
+	log.Printf("User test result saved successfully for user_id=%d, session_id=%d, test_id=%d", userID, testSessionID, testID)
+	log.Println("SaveUserTestResult function completed.")
+	return nil
 }
