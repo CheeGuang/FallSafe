@@ -28,6 +28,7 @@
   <!-- Linking CSS -->
   <link rel="stylesheet" href="./css/normalize.css" />
   <link rel="stylesheet" href="./css/style.css" />
+  <link rel="stylesheet" href="./css/FES.css" />
 
   <!-- JavaScript -->
   <script src="./js/script.js" defer></script>
@@ -58,7 +59,11 @@
         questionDiv.className = "question mb-4";
 
         questionDiv.innerHTML = `
+
           <p>${question.text}</p>
+          <button class="btn btn-secondary play-button" data-id="${question.id}" data-text="${question.text}">
+            Play
+          </button>
           <div class="options d-flex justify-content-between">
             <div class="option" data-risk="low">
               <label>
@@ -113,7 +118,7 @@
       };
 
       try {
-        const response = await fetch(`${API_BASE_URL}/responses`, {
+        const response = await fetch(`${API_BASE_URL}/saveResponses`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -136,60 +141,40 @@
 
       document.getElementById("submit-button").addEventListener("click", submitResponses);
     });
+
+    async function playQuestionAudio(questionText) {
+      const language = document.getElementById("language-dropdown").value;
+      try {
+        const response = await fetch(`${API_BASE_URL}/readQuestion`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question_text: questionText, language }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to generate speech");
+        }
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.play();
+      } catch (error) {
+        console.error("Error in playQuestionAudio:", error.message);
+        alert("Error playing question audio. Please try again.");
+      }
+    }
+
+    document.addEventListener("click", (event) => {
+      if (event.target.classList.contains("play-button")) {
+        const questionText = event.target.getAttribute("data-text");
+        playQuestionAudio(questionText);
+      }
+    });
+
   </script>
 
   <style>
-    .indicator {
-      padding: 5px;
-      border-radius: 3px;
-      margin-top: 5px;
-      font-size: 20px;
-      text-align: center;
-      color: white;
-    }
-
-    .option {
-      width: 22%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-    }
-
-    .question {
-      padding: 10px 0; /* Increased vertical space for each question */
-      margin-bottom: 40px; 
-      font-size: 1.2rem;
-    }
-
-    .question p {
-      margin-bottom: 15px; 
-    }
-
-    input[type="radio"] {
-      width: 20px; 
-      height: 20px; 
-    }
-
-    .options {
-      display: flex;
-      justify-content: space-evenly;
-    }
-
-    .options .option {
-      padding: 10px;
-      font-size: 1.1rem;
-    }
-
-    .btn-primary {
-      padding: 10px 20px;
-      font-size: 1.2rem;
-    }
-
-    .container {
-      max-width: 900px;
-    }
-
     h2{
       margin-bottom: 2em;
       margin-top: 4em;
@@ -215,6 +200,14 @@
         <p class="lead text-muted">Assessing the confidence of seniors in avoiding falls in different situations.</p>
 
         <main class="container my-5">
+          <div class="language-selector mb-4">
+            <label for="language-dropdown">Select Language:</label>
+            <select id="language-dropdown" class="form-select">
+              <option value="en" selected>English</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+            </select>
+          </div>
           <h2>Do you feel like falling when...</h2>
           <div id="questions-container"></div>
           <!-- Centered Submit Button -->
