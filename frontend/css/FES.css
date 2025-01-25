@@ -48,3 +48,14 @@
   .container {
     max-width: 900px;
   }
+
+  .language-selector {
+    position: relative;
+    padding-bottom: 50px; /* Ensure enough space for the dropdown */
+    padding-top: 70px;
+  }
+
+  h1{
+    padding-top: 70px;
+  }
+  
