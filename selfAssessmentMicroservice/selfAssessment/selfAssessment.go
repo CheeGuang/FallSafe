@@ -287,16 +287,16 @@ func StartWebSocketServer(w http.ResponseWriter, r *http.Request) {
 				log.Printf("Failed to parse MQTT message: %v", err)
 				return
 			}
+			log.Printf("Parsed MQTT message: %+v", movement)
 			mutex.Lock()
 			movementData = append(movementData, movement)
 			totalCount++
-			if movement.AngleDifference > 10 { // Example threshold for abrupt movement
+			if movement.AngleDifference > 5 { // Example threshold for abrupt movement
 				abruptCount++
 			}
-			log.Printf("Captured movement data: %+v", movement)
-			log.Printf("Abrupt Count: %d, Total Count: %d", abruptCount, totalCount)
+			log.Printf("Updated data. Abrupt Count: %d, Total Count: %d", abruptCount, totalCount)
 			mutex.Unlock()
-		}
+		} 
 	}); token.Wait() && token.Error() != nil {
 		log.Fatalf("Failed to subscribe to topic %s: %v", topic, token.Error())
 	}
@@ -304,6 +304,7 @@ func StartWebSocketServer(w http.ResponseWriter, r *http.Request) {
 
 	// Handle WebSocket Commands
 	for {
+		log.Println("Waiting for WebSocket commands...")
 		var msg WebSocketMessage
 		err := conn.ReadJSON(&msg)
 		if err != nil {
@@ -329,13 +330,13 @@ func StartWebSocketServer(w http.ResponseWriter, r *http.Request) {
 			if capturing {
 				capturing = false
 				abruptPercentage := float64(abruptCount) / float64(totalCount) * 100
-				log.Printf("Abrupt movement percentage: %f", abruptPercentage)
+				log.Printf("Calculated abrupt percentage: %f", abruptPercentage)
 				riskLevel := determineRiskLevel(abruptPercentage)
 				riskAssessment := RiskAssessment{
 					AbruptPercentage: abruptPercentage,
 					RiskLevel:        riskLevel,
 				}
-				log.Printf("Risk assessment: %+v", riskAssessment)
+				log.Printf("Generated risk assessment: %+v", riskAssessment)
 				if err := conn.WriteJSON(riskAssessment); err != nil {
 					log.Printf("WebSocket write error: %v", err)
 				}
@@ -362,10 +363,11 @@ func StartWebSocketServer(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+
 func determineRiskLevel(abruptPercentage float64) string {
-	if abruptPercentage > 70 {
+	if abruptPercentage > 30 {
 		return "high"
-	} else if abruptPercentage > 40 {
+	} else if abruptPercentage > 15 {
 		return "moderate"
 	}
 	return "low"
