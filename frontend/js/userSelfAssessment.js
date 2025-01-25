@@ -364,4 +364,268 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     };
   }
+
+  function calculateScore(result, test) {
+    const abruptPercentage = result.websocketData
+      ? JSON.parse(result.websocketData)?.abrupt_percentage || 0
+      : 0; // Default to 0 if websocketData is missing
+    const timeTaken = result.timeTaken || 0; // Default to 0 if timeTaken is missing
+    const { test_name } = test || {}; // Ensure test is defined
+    let timeScore = 0;
+
+    // Set test-specific tolerances for fair scoring
+    const tolerances = {
+      "Timed Up and Go (TUG) Test": { timeTolerance: 12, abruptTolerance: 20 },
+      "Five Times Sit-to-Stand Test (5x Sit-To-Stand Test)": {
+        timeTolerance: 14,
+        abruptTolerance: 20,
+      },
+      "Dynamic Gait Index (DGI)": { timeTolerance: 20, abruptTolerance: 20 },
+      "Four-Stage Balance Test": { timeTolerance: 40, abruptTolerance: 15 },
+    };
+
+    const testTolerance = tolerances[test_name] || {
+      timeTolerance: 12, // Default time tolerance
+      abruptTolerance: 50, // Default abrupt tolerance
+    };
+
+    const { timeTolerance, abruptTolerance } = testTolerance;
+
+    // Scoring logic based on test type
+    switch (test_name) {
+      case "Timed Up and Go (TUG) Test":
+        // Lower time is better; scale based on time tolerance
+        timeScore =
+          timeTaken <= timeTolerance
+            ? 100
+            : Math.max(
+                0,
+                100 - ((timeTaken - timeTolerance) / timeTolerance) * 100
+              );
+        break;
+
+      case "Five Times Sit-to-Stand Test (5x Sit-To-Stand Test)":
+        // Lower time is better for completing 5 repetitions
+        timeScore =
+          timeTaken <= timeTolerance
+            ? 100
+            : Math.max(
+                0,
+                100 - ((timeTaken - timeTolerance) / timeTolerance) * 100
+              );
+        break;
+
+      case "Dynamic Gait Index (DGI)":
+        // Shorter time is better; scale fairly for higher tolerance
+        timeScore =
+          timeTaken <= timeTolerance
+            ? 100
+            : Math.max(
+                0,
+                100 - ((timeTaken - timeTolerance) / timeTolerance) * 100
+              );
+        break;
+
+      case "Four-Stage Balance Test":
+        // Shorter time is worse; score decreases as timeTaken decreases
+        timeScore =
+          timeTaken <= 0
+            ? 0 // Minimum score if no time is recorded
+            : Math.round((timeTaken / timeTolerance) * 100);
+        if (timeScore > 100) timeScore = 100; // Cap the score at 100
+        break;
+
+      default:
+        console.warn("Unknown test type:", test_name);
+        timeScore = 50; // Fallback score
+    }
+
+    // Calculate abrupt movement score
+    const abruptScore =
+      abruptPercentage <= abruptTolerance
+        ? 100
+        : Math.max(
+            0,
+            100 - ((abruptPercentage - abruptTolerance) / abruptTolerance) * 100
+          );
+
+    // Weighted average (time has more weight, e.g., 70% time, 30% abruptness)
+    const finalScore = Math.round(timeScore * 0.7 + abruptScore * 0.3);
+
+    console.log({
+      test_name,
+      timeTaken,
+      abruptPercentage,
+      timeScore,
+      abruptScore,
+      finalScore,
+    });
+
+    return finalScore;
+  }
+
+  // Determine risk level based on abrupt movements
+  function determineRiskLevel(abruptPercentage) {
+    if (abruptPercentage > 30) {
+      return "High";
+    } else if (abruptPercentage > 15) {
+      return "Moderate";
+    }
+    return "Low";
+  }
+
+  // Function to determine risk level based on abrupt movements
+  function determineRiskLevel(abruptPercentage) {
+    if (abruptPercentage > 30) {
+      return "High";
+    } else if (abruptPercentage > 15) {
+      return "Moderate";
+    }
+    return "Low";
+  }
+
+  function displayResults() {
+    // Remove the selfAssessmentContainer
+    const selfAssessmentContainer = document.getElementById(
+      "selfAssessmentContainer"
+    );
+    if (selfAssessmentContainer) {
+      selfAssessmentContainer.style.display = "none"; // Hide the container
+      // Or use selfAssessmentContainer.remove(); to completely remove it from the DOM
+    }
+
+    // Remove any existing result container
+    const existingResultContainer = document.getElementById("result-container");
+    if (existingResultContainer) existingResultContainer.remove();
+
+    // Create a new result container
+    const resultContainer = document.createElement("div");
+    resultContainer.id = "result-container";
+    resultContainer.classList.add("container", "mt-5");
+
+    // Title
+    const resultTitle = document.createElement("h2");
+    resultTitle.textContent = "Your Test Results";
+    resultContainer.appendChild(resultTitle);
+
+    // Create table for detailed results
+    const table = document.createElement("table");
+    table.classList.add("table", "table-bordered", "mt-4");
+    const thead = `<thead>
+        <tr>
+          <th>Test Name</th>
+          <th>Time Taken (s)</th>
+          <th>Abrupt Movements (%)</th>
+          <th>Score</th>
+          <th>Risk Level</th>
+        </tr>
+      </thead>`;
+    table.innerHTML = thead;
+    const tbody = document.createElement("tbody");
+
+    // Variables to store data for the chart
+    const labels = [];
+    const scores = [];
+    const riskLevels = [];
+
+    for (const [testID, result] of Object.entries(storedResults)) {
+      const test = allTests.find((t) => t.test_id === parseInt(testID));
+      const abruptPercentage =
+        JSON.parse(result.websocketData)?.abrupt_percentage || 0;
+      const score = calculateScore(result, test);
+      const riskLevel = determineRiskLevel(abruptPercentage);
+
+      // Add data to the table
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${test?.test_name || "Unknown Test"}</td>
+        <td>${result.timeTaken.toFixed(2)}</td>
+        <td>${abruptPercentage.toFixed(2)}</td>
+        <td>${score}</td>
+        <td>${riskLevel}</td>
+      `;
+      tbody.appendChild(row);
+
+      // Populate chart data
+      labels.push(test?.test_name || "Unknown Test");
+      scores.push(score);
+      riskLevels.push(riskLevel);
+    }
+    table.appendChild(tbody);
+    resultContainer.appendChild(table);
+
+    // Create a canvas for the chart
+    const chartContainer = document.createElement("div");
+    chartContainer.classList.add("mt-5");
+    const chartCanvas = document.createElement("canvas");
+    chartCanvas.id = "resultsChart";
+    chartContainer.appendChild(chartCanvas);
+    resultContainer.appendChild(chartContainer);
+
+    document.body.appendChild(resultContainer);
+
+    // Render the chart
+    const ctx = document.getElementById("resultsChart").getContext("2d");
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Test Scores",
+            data: scores,
+            backgroundColor: "rgba(75, 192, 192, 0.2)",
+            borderColor: "rgba(75, 192, 192, 1)",
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true,
+            position: "top",
+          },
+          tooltip: {
+            callbacks: {
+              label: (tooltipItem) => {
+                const index = tooltipItem.dataIndex;
+                return `Score: ${scores[index]}, Risk Level: ${riskLevels[index]}`;
+              },
+            },
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: "Scores",
+            },
+          },
+          x: {
+            title: {
+              display: true,
+              text: "Tests",
+            },
+          },
+        },
+      },
+    });
+  }
+
+  // Trigger results display when "View Results" is clicked
+  nextTestButton.addEventListener("click", () => {
+    if (nextTestButton.textContent === "View Results") {
+      displayResults();
+    }
+  });
+
+  // Trigger results display when "View Results" is clicked
+  nextTestButton.addEventListener("click", () => {
+    if (nextTestButton.textContent === "View Results") {
+      displayResults();
+    }
+  });
 });

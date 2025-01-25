@@ -418,70 +418,54 @@ USE FallSafe_SelfAssessmentDB;
 INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4, step_5) VALUES
 (
     'Timed Up and Go (TUG) Test',
-    'Checks mobility, speed, and balance by timing you as you stand, walk 6 steps, and sit back down.',
-    'Time >12 seconds means a higher risk of falling.',
+    'Tests leg strength, mobility, and balance by timing how quickly you stand, walk, and sit down.',
+    'Taking more than 12 seconds to complete indicates an increased risk of falls.',
     'https://example.com/tug_test_video',
-    'Sit on a chair with your back straight and hands on the armrests.',
-    'Stand up from the chair when you are ready.',
-    'Take 6 steps forward, covering a short distance.',
-    'Turn around and take 6 steps back to the chair.',
+    'Start seated on a chair with your back straight',
+    'Stand up from the chair when ready.',
+    'Walk 3 meters forward, covering a short distance.',
+    'Turn around and walk back to the chair.',
     'Sit back down on the chair to complete the test.'
 );
 
--- Insert data for the 30-Second Chair Stand Test
-INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4, step_5) VALUES
+-- Insert data for the Five Times Sit-to-Stand Test (5x Sit-To-Stand Test)
+INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4) VALUES
 (
-    '30-Second Chair Stand Test',
-    'Checks leg strength by counting how many times you can stand and sit in 30 seconds.',
-    'A lower count means higher fall risk.',
-    'https://example.com/30_second_chair_stand_video',
-    'Sit on a chair with your arms crossed over your chest.',
-    'Stand up fully so your legs are straight, then sit back down.',
-    'Repeat standing up and sitting down as many times as you can within 30 seconds.',
-    NULL,
-    NULL
-);
-
--- Insert data for the Single-Leg Stance Test
-INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4, step_5) VALUES
-(
-    'Single-Leg Stance Test',
-    'Checks balance by timing how long you can stand on one leg, up to 20 seconds or until you fall.',
-    'Difficulty balancing or holding for less than 20 seconds shows a higher fall risk.',
-    'https://example.com/single_leg_stance_video',
-    'Stand on one leg while keeping your arms by your sides.',
-    'Hold your balance for up to 20 seconds or until you put your other foot down.',
-    'Stop the test if you lose balance, step down, or hold onto something.',
-    NULL,
-    NULL
+    'Five Times Sit-to-Stand Test (5x Sit-To-Stand Test)',
+    'Tests lower body strength and balance by timing how quickly you perform repeated sit-to-stand movements.',
+    'Taking more than 14 seconds to complete indicates an increased risk of falls.',
+    'https://example.com/5x_sit_to_stand_video',
+    'Start seated on a chair with your arms crossed over your chest.',
+    'Stand up fully, then sit back down as quickly as possible.',
+    'Repeat this movement five times without stopping.',
+    'Stop the test after sitting down the fifth time.'
 );
 
 -- Insert data for the Dynamic Gait Index (DGI)
-INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4, step_5) VALUES
+INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4) VALUES
 (
     'Dynamic Gait Index (DGI)',
-    'Checks walking ability by testing your balance, speed, and adaptability while walking.',
-    'A score under 19 means higher fall risk.',
+    'Evaluates dynamic balance and coordination while walking in different conditions.',
+    'Taking more than 20 seconds to complete indicates an increased risk of falls.',
     'https://example.com/dgi_test_video',
-    'Walk 6 steps forward at your normal pace.',
-    'Walk 6 steps slowly, then 6 steps quickly.',
-    'Walk 6 steps while stepping over a small obstacle.',
-    'Turn around, walk 6 steps back, and return to your normal pace.',
-    'Follow all instructions carefully to complete the test.'
+    'Walk 6 steps forward at a normal pace.',
+    'Turn your head to the right and walk 6 steps slowly in the same direction.',
+    'Turn around, face forward, and walk quickly back to your starting point.',
+    'Stop the test after returning to your starting position'
 );
 
 -- Insert data for the Four-Stage Balance Test
 INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2, step_3, step_4, step_5) VALUES
 (
     'Four-Stage Balance Test',
-    'Checks balance by having you hold different standing positions for 10 seconds each.',
-    'Trouble balancing for 10 seconds shows a higher fall risk.',
+    'Tests static balance and stability by holding different standing positions.',
+    'Inability to balance for 10 seconds in any position indicates a higher risk of falls.',
     'https://example.com/four_stage_balance_test_video',
-    'Stand with your feet side by side, making sure they are touching, and hold for 10 seconds.',
-    'Place one foot slightly in front of the other (semi-tandem stance) and hold for 10 seconds.',
-    'Place one foot fully in front of the other (tandem stance) and hold for 10 seconds.',
-    'Stand on one foot and balance for 10 seconds without moving.',
-    NULL
+    'Stand with your feet together and hold for 10 seconds.',
+    'Stand with one foot slightly in front of the other (semi-tandem stance) and hold for 10 seconds.',
+    'Stand with one foot fully in front of the other (tandem stance) and hold for 10 seconds.',
+    'Stand on one foot and hold for 10 seconds without moving.',
+    'Stop the test after completing all positions or if balance is lost.'
 );
 
 -- Insert TestSession data for 5 users (5 sessions each, every 6 months)
@@ -525,31 +509,26 @@ INSERT INTO UserTestResult (user_id, session_id, test_id, time_taken, abrupt_per
 (1, 1, 2, 20.000, 40, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 2
 (1, 1, 3, 15.000, 20, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),    -- Test 3 (Good performance)
 (1, 1, 4, 30.000, 50, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 4
-(1, 1, 5, 35.000, 70, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),   -- Test 5 (Weak performance)
 
 (1, 2, 1, 23.000, 25, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 (1, 2, 2, 18.500, 35, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 (1, 2, 3, 13.000, 15, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 (1, 2, 4, 27.500, 45, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
-(1, 2, 5, 32.000, 65, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 
 (1, 3, 1, 20.000, 20, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (1, 3, 2, 17.000, 30, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (1, 3, 3, 12.000, 10, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (1, 3, 4, 25.000, 40, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
-(1, 3, 5, 28.000, 60, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 
 (1, 4, 1, 18.000, 15, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (1, 4, 2, 15.000, 25, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (1, 4, 3, 10.000, 5, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (1, 4, 4, 22.500, 35, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
-(1, 4, 5, 25.000, 55, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 
 (1, 5, 1, 15.000, 10, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
 (1, 5, 2, 12.500, 20, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
 (1, 5, 3, 9.000, 5, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
-(1, 5, 4, 20.000, 30, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
-(1, 5, 5, 22.000, 50, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH));
+(1, 5, 4, 20.000, 30, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH));
 
 -- User 2: Gradual decline in performance
 INSERT INTO UserTestResult (user_id, session_id, test_id, time_taken, abrupt_percentage, risk_level, test_date) VALUES
@@ -557,31 +536,26 @@ INSERT INTO UserTestResult (user_id, session_id, test_id, time_taken, abrupt_per
 (2, 6, 2, 18.000, 25, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 2
 (2, 6, 3, 12.000, 15, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 3 (Good performance)
 (2, 6, 4, 25.000, 40, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
-(2, 6, 5, 28.000, 50, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
 
 (2, 7, 1, 22.000, 30, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 (2, 7, 2, 20.000, 35, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 (2, 7, 3, 14.000, 20, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 (2, 7, 4, 28.000, 50, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
-(2, 7, 5, 32.000, 60, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 
 (2, 8, 1, 25.000, 40, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (2, 8, 2, 22.000, 45, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (2, 8, 3, 16.000, 25, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (2, 8, 4, 30.000, 55, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
-(2, 8, 5, 35.000, 70, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 
 (2, 9, 1, 28.000, 50, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (2, 9, 2, 25.000, 55, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (2, 9, 3, 18.000, 30, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (2, 9, 4, 35.000, 60, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
-(2, 9, 5, 40.000, 75, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 
 (2, 10, 1, 30.000, 60, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
 (2, 10, 2, 28.000, 65, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
 (2, 10, 3, 20.000, 35, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
-(2, 10, 4, 38.000, 70, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
-(2, 10, 5, 45.000, 80, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH));
+(2, 10, 4, 38.000, 70, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH));
 
 -- User 3: Strong improvement over time
 INSERT INTO UserTestResult (user_id, session_id, test_id, time_taken, abrupt_percentage, risk_level, test_date) VALUES
@@ -589,31 +563,26 @@ INSERT INTO UserTestResult (user_id, session_id, test_id, time_taken, abrupt_per
 (3, 11, 2, 25.000, 55, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 2
 (3, 11, 3, 18.000, 35, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 3 (Good performance)
 (3, 11, 4, 32.000, 60, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
-(3, 11, 5, 40.000, 75, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
 
 (3, 12, 1, 25.000, 40, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 (3, 12, 2, 22.000, 45, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 (3, 12, 3, 15.000, 25, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 (3, 12, 4, 30.000, 55, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
-(3, 12, 5, 35.000, 65, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 
 (3, 13, 1, 22.000, 30, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (3, 13, 2, 20.000, 35, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (3, 13, 3, 12.000, 15, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (3, 13, 4, 28.000, 50, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
-(3, 13, 5, 30.000, 55, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 
 (3, 14, 1, 18.000, 20, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (3, 14, 2, 16.000, 25, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (3, 14, 3, 10.000, 10, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (3, 14, 4, 25.000, 35, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
-(3, 14, 5, 25.000, 45, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 
 (3, 15, 1, 15.000, 10, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
 (3, 15, 2, 12.000, 15, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
 (3, 15, 3, 8.000, 5, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
-(3, 15, 4, 20.000, 25, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
-(3, 15, 5, 20.000, 35, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH));
+(3, 15, 4, 20.000, 25, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH));
 
 -- User 4: Gradual decline in performance
 INSERT INTO UserTestResult (user_id, session_id, test_id, time_taken, abrupt_percentage, risk_level, test_date) VALUES
@@ -621,31 +590,26 @@ INSERT INTO UserTestResult (user_id, session_id, test_id, time_taken, abrupt_per
 (4, 16, 2, 15.000, 25, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 2
 (4, 16, 3, 12.000, 10, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 3 (Good performance)
 (4, 16, 4, 22.000, 30, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
-(4, 16, 5, 28.000, 50, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
 
 (4, 17, 1, 20.000, 25, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 (4, 17, 2, 18.000, 30, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 (4, 17, 3, 14.000, 15, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 (4, 17, 4, 25.000, 35, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
-(4, 17, 5, 32.000, 55, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 
 (4, 18, 1, 22.000, 35, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (4, 18, 2, 20.000, 40, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (4, 18, 3, 16.000, 20, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (4, 18, 4, 28.000, 45, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
-(4, 18, 5, 35.000, 65, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 
 (4, 19, 1, 25.000, 50, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (4, 19, 2, 23.000, 55, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (4, 19, 3, 18.000, 25, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (4, 19, 4, 32.000, 60, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
-(4, 19, 5, 40.000, 70, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 
 (4, 20, 1, 30.000, 60, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
 (4, 20, 2, 28.000, 65, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
 (4, 20, 3, 20.000, 30, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
-(4, 20, 4, 35.000, 70, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
-(4, 20, 5, 45.000, 75, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH));
+(4, 20, 4, 35.000, 70, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH));
 
 -- User 5: Fluctuates over time
 INSERT INTO UserTestResult (user_id, session_id, test_id, time_taken, abrupt_percentage, risk_level, test_date) VALUES
@@ -653,31 +617,26 @@ INSERT INTO UserTestResult (user_id, session_id, test_id, time_taken, abrupt_per
 (5, 21, 2, 22.000, 45, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 2
 (5, 21, 3, 15.000, 25, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 3 (Good performance)
 (5, 21, 4, 30.000, 55, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
-(5, 21, 5, 32.000, 60, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),
 
 (5, 22, 1, 20.000, 30, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 (5, 22, 2, 18.000, 35, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 (5, 22, 3, 12.000, 15, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 (5, 22, 4, 25.000, 40, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
-(5, 22, 5, 28.000, 50, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 
 (5, 23, 1, 28.000, 55, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (5, 23, 2, 25.000, 60, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (5, 23, 3, 18.000, 35, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (5, 23, 4, 32.000, 65, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
-(5, 23, 5, 35.000, 70, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 
 (5, 24, 1, 22.000, 30, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (5, 24, 2, 20.000, 35, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (5, 24, 3, 13.000, 20, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (5, 24, 4, 28.000, 45, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
-(5, 24, 5, 30.000, 55, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 
 (5, 25, 1, 24.000, 35, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
 (5, 25, 2, 21.000, 40, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
 (5, 25, 3, 14.000, 15, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
-(5, 25, 4, 29.000, 50, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
-(5, 25, 5, 31.000, 60, 'high', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH));
+(5, 25, 4, 29.000, 50, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH));
 
 -- **************************************************
 -- DATABASE: FallSafe_AdminDB
