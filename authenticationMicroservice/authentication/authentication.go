@@ -196,7 +196,7 @@ func AuthenticateAdmin(w http.ResponseWriter, r *http.Request) {
 
 // User structure to hold the response from the GetUserByID endpoint
 type User struct {
-	ID          int    `json:"id"`
+	UserID      int    `json:"user_id"`
 	Name        string `json:"name"`
 	Email       string `json:"email"`
 	PhoneNumber string `json:"phone_number"`
@@ -234,7 +234,7 @@ func generateJWT(userID int) (string, time.Time, error) {
 
 	// Generate JWT claims including all user fields
 	claims := jwt.MapClaims{
-		"user_id":      user.ID,
+		"user_id":      user.UserID,
 		"name":         user.Name,
 		"email":        user.Email,
 		"phone_number": user.PhoneNumber,
