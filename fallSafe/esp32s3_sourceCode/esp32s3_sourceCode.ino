@@ -189,5 +189,5 @@ void loop()
 
   // Keep the MQTT connection alive
   client.loop();
-  delay(200); // Increased delay for less frequent readings
+  delay(700); // Increased delay for less frequent readings
 }

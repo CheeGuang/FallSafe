@@ -8,6 +8,18 @@ document.addEventListener("DOMContentLoaded", function () {
   const riskMetricsElement = document.getElementById("subtitle2");
   const stepsList = document.getElementById("stepsList");
   const testVideo = document.getElementById("testVideo");
+  const nextTestButton = document.getElementById("nextTestButton");
+  const startButton = document.getElementById("startButton");
+  const stopButton = document.getElementById("stopButton");
+  const restartButton = document.getElementById("restartButton");
+  const userID = decodeToken(localStorage.getItem("token")).user_id;
+  let testSessionID;
+  let currentTestIndex = 0;
+  let allTests = [];
+  let ws;
+  let storedResults = {}; // Object to store results with test ID
+  let testID;
+  let testStartTime; // Variable to track the start time of the test
 
   function decodeToken(token) {
     try {
@@ -15,10 +27,8 @@ document.addEventListener("DOMContentLoaded", function () {
       if (parts.length !== 3) {
         throw new Error("Invalid token format");
       }
-
       const payload = JSON.parse(atob(parts[1]));
       console.log("Decoded payload:", payload);
-
       return payload;
     } catch (error) {
       console.error("Failed to decode token:", error);
@@ -26,7 +36,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  let ws;
   startTestButton.addEventListener("click", async () => {
     if (startTestButton.textContent.trim() === "Continue") {
       console.log("Starting test connection...");
@@ -68,12 +77,15 @@ document.addEventListener("DOMContentLoaded", function () {
           ws.onopen = () => {
             console.log("WebSocket connected successfully.");
             showCustomAlert("WebSocket connected successfully.");
-
             startTestButton.textContent = "Start Test";
           };
 
           ws.onmessage = (message) => {
             console.log("WebSocket message received:", message.data);
+
+            if (!storedResults[testID]) storedResults[testID] = {};
+            storedResults[testID].websocketData = message.data;
+            console.log("Result stored:", storedResults);
           };
 
           ws.onerror = (error) => {
@@ -101,19 +113,8 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     } else if (startTestButton.textContent.trim() === "Start Test") {
       console.log("Starting test session...");
-
+      const token = localStorage.getItem("token");
       try {
-        const token = localStorage.getItem("token");
-        const decodedPayload = decodeToken(token);
-        console.log("Extracted userID:", decodedPayload.user_id);
-        const userID = decodedPayload.user_id;
-
-        if (decodedPayload && decodedPayload.user_id) {
-          console.log("Extracted userID:", userID);
-        } else {
-          console.error("userID not found in token payload");
-        }
-
         if (!token || !userID) {
           showCustomAlert(
             "Authentication token or user ID not found. Please log in."
@@ -132,21 +133,21 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
         if (response.ok) {
-          const result = await response.json();
+          const result = await response.json(); // Parse the JSON response
           console.log("Test session started:", result);
           showCustomAlert("Test session started successfully!");
 
-          try {
-            const tests = await fetchTests();
-            if (tests && tests.length > 0) {
-              displayTest(tests[0]);
-            }
+          testSessionID = result.sessionID; // Set testSessionID from the result
 
-            document.getElementById("test-container").style.display = "none";
-            selfAssessmentContainer.style.display = "block";
-          } catch (error) {
-            console.error("Error starting the test session:", error);
+          const tests = await fetchTests();
+          if (tests && tests.length > 0) {
+            allTests = tests;
+            currentTestIndex = 0;
+            displayTest(allTests[currentTestIndex]);
           }
+
+          document.getElementById("test-container").style.display = "none";
+          selfAssessmentContainer.style.display = "block";
         } else {
           console.error("Failed to start test session:", await response.text());
           showCustomAlert("Failed to start test session. Please try again.");
@@ -191,10 +192,14 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function displayTest(test) {
-    testNameElement.textContent = test.test_name;
+    startTestButton.remove();
+    testNameElement.textContent = `Test ${test.test_id}: ` + test.test_name;
     testDescriptionElement.textContent = test.description;
     riskMetricsElement.textContent = test.risk_metric;
-    startTestButton.remove();
+
+    // Assign testID properly here
+    testID = test.test_id;
+    selfAssessmentContainer.dataset.testId = test.test_id;
 
     stepsList.innerHTML = "";
     for (let i = 1; i <= 5; i++) {
@@ -209,5 +214,154 @@ document.addEventListener("DOMContentLoaded", function () {
 
     testVideo.src = test.video_url;
     testVideo.load();
+
+    nextTestButton.textContent = "Next Test";
+  }
+
+  function sendWebSocketCommand(command, testID) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      console.error("WebSocket is not connected. Unable to send command.");
+      showCustomAlert("WebSocket is not connected. Please try again.");
+      return;
+    }
+
+    const commandMessage = { command: command };
+    ws.send(JSON.stringify(commandMessage));
+    console.log(`Command sent: ${command}`);
+
+    if (command === "stop") {
+      const testEndTime = Date.now(); // Stop the timer
+      const timeTaken = (testEndTime - testStartTime) / 1000; // Time in seconds
+      console.log(`Test completed in ${timeTaken} seconds.`);
+      if (!storedResults[testID]) storedResults[testID] = {};
+      storedResults[testID].testID = parseInt(testID, 10); // Ensure it's an integer
+      storedResults[testID].testSessionID = testSessionID;
+      storedResults[testID].userID = userID;
+      storedResults[testID].timeTaken = timeTaken;
+    } else if (command === "restart") {
+      testStartTime = Date.now(); // Restart the timer
+      console.log("Test timer restarted.");
+    }
+  }
+
+  startButton.addEventListener("click", () => {
+    sendWebSocketCommand("start", selfAssessmentContainer.dataset.testId);
+    testStartTime = Date.now(); // Start the timer
+    startButton.disabled = true;
+    stopButton.disabled = false;
+    restartButton.disabled = true;
+    nextTestButton.disabled = true; // Disable "Next Test" button
+  });
+
+  stopButton.addEventListener("click", () => {
+    sendWebSocketCommand("stop", selfAssessmentContainer.dataset.testId);
+    startButton.disabled = true;
+    stopButton.disabled = true;
+    restartButton.disabled = false;
+    nextTestButton.disabled = false; // Enable "Next Test" button
+  });
+
+  restartButton.addEventListener("click", () => {
+    // sendWebSocketCommand("restart", selfAssessmentContainer.dataset.testId);
+    startButton.disabled = false;
+    stopButton.disabled = true;
+    restartButton.disabled = true;
+    nextTestButton.disabled = true; // Disable "Next Test" button
+  });
+
+  nextTestButton.addEventListener("click", async () => {
+    if (currentTestIndex + 1 < allTests.length) {
+      // Send the current test results to the backend before moving to the next test
+      if (storedResults[testID]) {
+        try {
+          const token = localStorage.getItem("token");
+          if (!token) {
+            throw new Error("Authentication token not found. Please log in.");
+          }
+
+          const response = await fetch(
+            "http://127.0.0.1:5250/api/v1/selfAssessment/saveTestResult",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(storedResults[testID]),
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to save test results to the server.");
+          }
+
+          console.log("Results saved successfully for test ID:", testID);
+          showCustomAlert("Results saved successfully!");
+        } catch (error) {
+          console.error("Error saving test results:", error);
+          showCustomAlert("Failed to save results. Please try again.");
+        }
+      }
+
+      // Proceed to the next test
+      currentTestIndex++;
+      displayTest(allTests[currentTestIndex]);
+      startButton.disabled = false;
+      stopButton.disabled = true;
+      restartButton.disabled = true;
+      nextTestButton.disabled = true; // Disable "Next Test" button
+    } else {
+      // Send the final test results to the backend
+      if (storedResults[testID]) {
+        try {
+          const token = localStorage.getItem("token");
+          if (!token) {
+            throw new Error("Authentication token not found. Please log in.");
+          }
+
+          const response = await fetch(
+            "http://127.0.0.1:5250/api/v1/selfAssessment/saveTestResult",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(storedResults[testID]),
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to save final test results to the server.");
+          }
+
+          console.log("Final results saved successfully for test ID:", testID);
+          showCustomAlert("Final results saved successfully!");
+        } catch (error) {
+          console.error("Error saving final test results:", error);
+          showCustomAlert("Failed to save final results. Please try again.");
+        }
+      }
+
+      nextTestButton.textContent = "View Results";
+      startButton.disabled = true;
+      stopButton.disabled = true;
+      restartButton.disabled = true;
+      nextTestButton.disabled = false;
+      console.log("All results:", storedResults);
+    }
+  });
+
+  if (ws) {
+    ws.onmessage = (message) => {
+      try {
+        const data = JSON.parse(message.data);
+        if (!storedResults[testID]) storedResults[testID] = {};
+        storedResults[testID].websocketData = data.trim(); // Add WebSocket data to results
+        console.log("WebSocket response:", data);
+      } catch (error) {
+        console.error("Error parsing WebSocket message:", message.data, error);
+      }
+    };
   }
 });
