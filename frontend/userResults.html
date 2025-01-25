@@ -73,11 +73,18 @@
 
           <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
 
-          <!-- TODO: make it dynamic to user name for h1 title and update chart design/make it link back to a user -->
-          <h1>User Results</h1>
+          <h1>Your Results</h1>
           <p class="mb-3">
             Visualizing your Falls Efficacy Scale (FES) scores to better understand your progress and risk areas.
           </p>
+          <u><p id="userResultsTitle">Here are your results</p></u>
+
+          <div id="disclaimer" class="mt-3 text-muted">
+            <small><strong>Disclaimer:</strong> The displayed results are averages calculated from multiple test entries.</small>
+          </div>
+
+          <!-- Display Fall Risk -->
+          <div id="fallRisk" class="mb-4"></div>
 
           <!-- Chart Containers -->
           <div class="row justify-content-center mb-5">
@@ -89,6 +96,29 @@
             <div class="col-md-6 mb-4">
               <canvas id="radarChart"></canvas>
             </div>
+          </div>
+
+          <!-- Title for History Section -->
+          <h2 id="historyTitle" class="mt-3">Test History</h2>
+
+          <!-- Button to toggle detailed data view -->
+          <button id="toggleDataView" class="btn btn-info mt-3">Show All Data</button>
+          
+          <!-- Container for detailed table view of results -->
+          <div id="dataTableContainer" class="mt-5" style="display: none;">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>Test Name</th>
+                  <th>Score</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="detailedData">
+                <!-- Detailed data will be inserted here dynamically -->
+              </tbody>
+            </table>
           </div>
 
           <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->

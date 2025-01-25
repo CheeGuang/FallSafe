@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -51,6 +52,30 @@ func authenticateMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// Handler to get user test results
+func GetUserTestResultsHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("userID")
+	if userID == "" {
+		http.Error(w, "userID is required", http.StatusBadRequest)
+		return
+	}
+
+	// Fetch test results
+	results, err := profile.GetUserTestResults(userID)
+	if err != nil {
+		log.Printf("Error fetching user test results: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with JSON
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(results)
+	if err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}
 
 func main() {
 	// Initialize the router
@@ -59,6 +84,7 @@ func main() {
 	// Profile management endpoints
 	router.HandleFunc("/api/v1/user/create", profile.CreateUser).Methods("POST") // No auth needed
 	router.HandleFunc("/api/v1/user/getUser", profile.GetUserByID).Methods("GET")
+	router.HandleFunc("/api/v1/user/getUserResults", GetUserTestResultsHandler).Methods("GET")
 
 	// JWT Authentication Logic
 	authenticated := router.NewRoute().Subrouter()
@@ -66,7 +92,7 @@ func main() {
 
 	// Add CORS support
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://127.0.0.1:5100"}), // Update for allowed origins
+		handlers.AllowedOrigins([]string{"http://127.0.0.1:5100"}),         // Update for allowed origins
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "OPTIONS"}), // Update for allowed HTTP methods
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}), // Include Authorization header
 	)(router)

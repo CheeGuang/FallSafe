@@ -77,12 +77,23 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 // User represents the structure of a user record
 type User struct {
-	UserID      int    `json:"user_id"`
-	Name        string `json:"name"`
-	Email       string `json:"email"`
-	PhoneNumber string `json:"phone_number"`
-	Address     string `json:"address"`
-	Age         string `json:"age"`
+	UserID      int              `json:"user_id"`
+	Name        string           `json:"name"`
+	Email       string           `json:"email"`
+	PhoneNumber string           `json:"phone_number"`
+	Address     string           `json:"address"`
+	Age         string           `json:"age"`
+	TestResults []UserTestResult `json:"test_results,omitempty"`
+}
+
+// UserTestResult represents the test results of a user
+type UserTestResult struct {
+	ResultID int     `json:"result_id"`
+	UserID   string  `json:"user_id"`
+	TestID   string  `json:"test_id"`
+	TestName string  `json:"test_name"`
+	Score    float64 `json:"score"`
+	TestDate string  `json:"test_date"`
 }
 
 // GetUserByID handles retrieving a user record from the database by userID
@@ -111,6 +122,14 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Fetch test results for the user
+	user.TestResults, err = GetUserTestResults(userID)
+	if err != nil {
+		log.Printf("Error fetching test results: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	// Respond with the user data as JSON
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(user)
@@ -119,4 +138,27 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+}
+
+// GetUserTestResults retrieves test results for a given userID
+func GetUserTestResults(userID string) ([]UserTestResult, error) {
+	rows, err := db.Query(`
+		SELECT utr.result_id, utr.user_id, utr.test_id, t.test_name, utr.score, utr.test_date
+		FROM FallSafe_SelfAssessmentDB.UserTestResult utr
+		JOIN FallSafe_SelfAssessmentDB.Test t ON utr.test_id = t.test_id
+		WHERE utr.user_id = ?`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []UserTestResult
+	for rows.Next() {
+		var result UserTestResult
+		if err := rows.Scan(&result.ResultID, &result.UserID, &result.TestID, &result.TestName, &result.Score, &result.TestDate); err != nil {
+			return nil, err
+		}
+		results = append(results, result)
+	}
+	return results, nil
 }
