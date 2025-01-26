@@ -46,7 +46,7 @@ type Question struct {
 }
 
 func GetQuestions(w http.ResponseWriter, r *http.Request) {
-	// Fetch all questions
+	//fetch qns from db
 	rows, err := db.Query(`
 		SELECT question_id, question_text 
 		FROM FallsEfficacyScale
@@ -68,15 +68,13 @@ func GetQuestions(w http.ResponseWriter, r *http.Request) {
 		}
 		questions = append(questions, q) // Append each question to the slice
 	}
-
-	// Check for any error encountered during iteration
 	if err := rows.Err(); err != nil {
 		log.Printf("Error iterating over rows: %v", err)
 		http.Error(w, "Failed to fetch questions", http.StatusInternalServerError)
 		return
 	}
 
-	// respond with questions as JSON
+	//respond with questions as JSON
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(questions)
 	if err != nil {
@@ -125,7 +123,7 @@ func SaveResponse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Insert details into UserResponseDetails table
+	//insert details into UserResponseDetails table
 	responseID, _ := result.LastInsertId()
 	for _, response := range requestData.Responses {
 		_, err := tx.Exec(`
@@ -147,7 +145,7 @@ func SaveResponse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Respond with success message
+	//success message
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write([]byte(`{"message":"Response saved successfully"}`))

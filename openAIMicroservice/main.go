@@ -4,16 +4,17 @@ import (
 	"log"
 	"net/http"
 	"openAIMicroservice/openAI"
-	//"os"
-	//"strings"
 
-	//"github.com/golang-jwt/jwt/v4"
+	"os"
+	"strings"
+
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
 // Authentication middleware to validate JWT
-/*func authenticateMiddleware(next http.Handler) http.Handler {
+func authenticateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
@@ -49,7 +50,7 @@ import (
 		// Proceed to the next handler
 		next.ServeHTTP(w, r)
 	})
-}*/
+}
 
 
 func main() {
@@ -57,13 +58,13 @@ func main() {
 	router := mux.NewRouter()
 
 	// JWT Authentication Logic
-	//authenticated := router.NewRoute().Subrouter()
-	//authenticated.Use(authenticateMiddleware)
-	
+	authenticated := router.NewRoute().Subrouter()
+	authenticated.Use(authenticateMiddleware)
+
 	// Speech generation endpoint
-	router.HandleFunc("/api/v1/generateSpeech", openAI.GenerateSpeech).Methods("POST")
-	router.HandleFunc("/api/v1/generateResponse", openAI.GenerateResponse).Methods("POST")
-	router.HandleFunc("/api/v1/generateTranslation", openAI.GenerateTranslation).Methods("POST")
+	authenticated.HandleFunc("/api/v1/generateSpeech", openAI.GenerateSpeech).Methods("POST")
+	authenticated.HandleFunc("/api/v1/generateResponse", openAI.GenerateResponse).Methods("POST")
+	authenticated.HandleFunc("/api/v1/generateTranslation", openAI.GenerateTranslation).Methods("POST")
 
 
 	// Add CORS support
