@@ -18,6 +18,18 @@
       defer
     ></script>
 
+    <!-- Chart JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- JS PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+
+    <!-- JS PDF Auto Table -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- HTML 2 Canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <!-- JQuery Link -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
@@ -101,22 +113,33 @@
             <h4 id="testDescription" class="text-center"></h4>
             <p id="riskMetrics" class="text-center text-muted"></p>
 
-            <div class="row h-100 mt-4">
+            <div class="row h-100 mt-4 mb-4">
               <!-- Steps Column -->
               <div class="col-md-4 border-end" id="stepsColumn">
-                <h5>Steps:</h5>
-                <ul id="stepsList" class="list-group"></ul>
+                <ul id="stepsList" class="list-group text-start"></ul>
               </div>
 
               <!-- Video Column -->
               <div
-                class="col-md-8 d-flex justify-content-center align-items-center"
+                class="col-md-8 d-flex justify-content-center align-items-center flex-column"
               >
                 <video id="testVideo" class="w-100 rounded" controls></video>
               </div>
             </div>
             <!-- Start, Stop, and Restart Buttons -->
-            <div class="d-flex justify-content-center mt-4">
+            <div class="d-flex justify-content-center mt-5">
+              <!-- Add Stopwatch Div -->
+              <div
+                id="stopwatchContainer"
+                class="d-flex align-items-center justify-content-center border rounded p-2 text-center mx-2"
+              >
+                <div style="width: 200px">
+                  <h3 id="stopwatchTime" style="color: black !important">
+                    00:00
+                  </h3>
+                </div>
+              </div>
+
               <button
                 id="startButton"
                 class="btn btn-success mx-2 action-buttons"
@@ -146,6 +169,9 @@
               </button>
             </div>
           </div>
+
+          <div id="result-container" style="display: none"></div>
+
           <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
         </div>
       </div>

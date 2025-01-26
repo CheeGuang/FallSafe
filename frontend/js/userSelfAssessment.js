@@ -38,6 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   startTestButton.addEventListener("click", async () => {
     if (startTestButton.textContent.trim() === "Continue") {
+      startTestButton.disabled = true;
       console.log("Starting test connection...");
       showCustomAlert("Testing connection to FallSafe device...");
 
@@ -77,6 +78,7 @@ document.addEventListener("DOMContentLoaded", function () {
           ws.onopen = () => {
             console.log("WebSocket connected successfully.");
             showCustomAlert("WebSocket connected successfully.");
+            startTestButton.disabled = false;
             startTestButton.textContent = "Start Test";
           };
 
@@ -101,6 +103,8 @@ document.addEventListener("DOMContentLoaded", function () {
           showCustomAlert(
             "Failed to connect to FallSafe device. Please try again."
           );
+          startTestButton.disabled = false;
+
           console.error(
             "HTTP request failed with status:",
             testResponse.status
@@ -109,9 +113,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       } catch (error) {
         showCustomAlert("An error occurred while testing the connection.");
+        startTestButton.disabled = false;
         console.error("An error occurred:", error);
       }
     } else if (startTestButton.textContent.trim() === "Start Test") {
+      startTestButton.disabled = true;
       console.log("Starting test session...");
       const token = localStorage.getItem("token");
       try {
@@ -207,7 +213,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (step) {
         const listItem = document.createElement("li");
         listItem.className = "list-group-item";
-        listItem.textContent = step;
+        listItem.innerHTML = `<strong>Step ${i}:</strong> ${step}`; // Use innerHTML for rendering bold text
         stepsList.appendChild(listItem);
       }
     }
@@ -216,6 +222,50 @@ document.addEventListener("DOMContentLoaded", function () {
     testVideo.load();
 
     nextTestButton.textContent = "Next Test";
+  }
+
+  // Stopwatch Variables
+  let stopwatchInterval;
+  let elapsedTime = 0; // In milliseconds
+
+  // Update Stopwatch Display
+  function updateStopwatchDisplay() {
+    const stopwatchTime = document.getElementById("stopwatchTime");
+    const minutes = Math.floor(elapsedTime / (1000 * 60));
+    const seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000);
+    stopwatchTime.textContent = `${String(minutes).padStart(2, "0")}:${String(
+      seconds
+    ).padStart(2, "0")}`;
+  }
+
+  // Start Stopwatch
+  function startStopwatch() {
+    const startTime = Date.now() - elapsedTime;
+    stopwatchInterval = setInterval(() => {
+      elapsedTime = Date.now() - startTime;
+      updateStopwatchDisplay();
+    }, 10); // Update every 10ms for precision
+  }
+
+  // Stop Stopwatch
+  function stopStopwatch() {
+    clearInterval(stopwatchInterval);
+  }
+
+  // Reset Stopwatch
+  function resetStopwatch() {
+    clearInterval(stopwatchInterval);
+    elapsedTime = 0;
+    updateStopwatchDisplay();
+  }
+
+  function calculateRiskLevel(score) {
+    if (score < 40) {
+      return "High";
+    } else if (score < 70) {
+      return "Moderate";
+    }
+    return "Low";
   }
 
   function sendWebSocketCommand(command, testID) {
@@ -246,6 +296,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   startButton.addEventListener("click", () => {
     sendWebSocketCommand("start", selfAssessmentContainer.dataset.testId);
+    startStopwatch();
     testStartTime = Date.now(); // Start the timer
     startButton.disabled = true;
     stopButton.disabled = false;
@@ -255,6 +306,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   stopButton.addEventListener("click", () => {
     sendWebSocketCommand("stop", selfAssessmentContainer.dataset.testId);
+    stopStopwatch();
     startButton.disabled = true;
     stopButton.disabled = true;
     restartButton.disabled = false;
@@ -263,6 +315,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   restartButton.addEventListener("click", () => {
     // sendWebSocketCommand("restart", selfAssessmentContainer.dataset.testId);
+    resetStopwatch();
     startButton.disabled = false;
     stopButton.disabled = true;
     restartButton.disabled = true;
@@ -271,7 +324,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   nextTestButton.addEventListener("click", async () => {
     if (currentTestIndex + 1 < allTests.length) {
-      // Send the current test results to the backend before moving to the next test
+      // Save current test results before proceeding
       if (storedResults[testID]) {
         try {
           const token = localStorage.getItem("token");
@@ -279,6 +332,18 @@ document.addEventListener("DOMContentLoaded", function () {
             throw new Error("Authentication token not found. Please log in.");
           }
 
+          // Calculate score and risk level
+          const score = calculateScore(
+            storedResults[testID],
+            allTests[currentTestIndex]
+          );
+          const riskLevel = calculateRiskLevel(score);
+          storedResults[testID].riskLevel = riskLevel; // Overwrite riskLevel in stored results
+
+          // Debugging output to verify the updated storedResults object
+          console.log("Updated storedResults:", storedResults[testID]);
+
+          // Send result to saveTestResult endpoint
           const response = await fetch(
             "http://127.0.0.1:5250/api/v1/selfAssessment/saveTestResult",
             {
@@ -287,7 +352,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
               },
-              body: JSON.stringify(storedResults[testID]),
+              body: JSON.stringify(storedResults[testID]), // Include recalculated riskLevel
             }
           );
 
@@ -310,8 +375,9 @@ document.addEventListener("DOMContentLoaded", function () {
       stopButton.disabled = true;
       restartButton.disabled = true;
       nextTestButton.disabled = true; // Disable "Next Test" button
+      resetStopwatch();
     } else {
-      // Send the final test results to the backend
+      // Save final test results
       if (storedResults[testID]) {
         try {
           const token = localStorage.getItem("token");
@@ -319,6 +385,18 @@ document.addEventListener("DOMContentLoaded", function () {
             throw new Error("Authentication token not found. Please log in.");
           }
 
+          // Calculate score and risk level
+          const score = calculateScore(
+            storedResults[testID],
+            allTests[currentTestIndex]
+          );
+          const riskLevel = calculateRiskLevel(score);
+          storedResults[testID].riskLevel = riskLevel; // Overwrite riskLevel in stored results
+
+          // Debugging output to verify the updated storedResults object
+          console.log("Final updated storedResults:", storedResults[testID]);
+
+          // Send result to saveTestResult endpoint
           const response = await fetch(
             "http://127.0.0.1:5250/api/v1/selfAssessment/saveTestResult",
             {
@@ -327,7 +405,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
               },
-              body: JSON.stringify(storedResults[testID]),
+              body: JSON.stringify(storedResults[testID]), // Include recalculated riskLevel
             }
           );
 
@@ -364,4 +442,387 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     };
   }
+
+  function calculateScore(result, test) {
+    const abruptPercentage = result.websocketData
+      ? JSON.parse(result.websocketData)?.abrupt_percentage || 0
+      : 0; // Default to 0 if websocketData is missing
+    const timeTaken = result.timeTaken || 0; // Default to 0 if timeTaken is missing
+    const { test_name } = test || {}; // Ensure test is defined
+    let timeScore = 0;
+
+    // Set test-specific tolerances for fair scoring
+    const tolerances = {
+      "Timed Up and Go Test": { timeTolerance: 12, abruptTolerance: 20 },
+      "Five Times Sit to Stand Test": {
+        timeTolerance: 14,
+        abruptTolerance: 20,
+      },
+      "Dynamic Gait Index (DGI)": { timeTolerance: 20, abruptTolerance: 20 },
+      "4 Stage Balance Test": { timeTolerance: 40, abruptTolerance: 15 },
+    };
+
+    const testTolerance = tolerances[test_name] || {
+      timeTolerance: 12, // Default time tolerance
+      abruptTolerance: 50, // Default abrupt tolerance
+    };
+
+    const { timeTolerance, abruptTolerance } = testTolerance;
+
+    // Scoring logic based on test type
+    switch (test_name) {
+      case "Timed Up and Go Test":
+        // Lower time is better; scale based on time tolerance
+        timeScore =
+          timeTaken <= timeTolerance
+            ? 100
+            : Math.max(
+                0,
+                100 - ((timeTaken - timeTolerance) / timeTolerance) * 100
+              );
+        break;
+
+      case "Five Times Sit to Stand Test":
+        // Lower time is better for completing 5 repetitions
+        timeScore =
+          timeTaken <= timeTolerance
+            ? 100
+            : Math.max(
+                0,
+                100 - ((timeTaken - timeTolerance) / timeTolerance) * 100
+              );
+        break;
+
+      case "Dynamic Gait Index (DGI)":
+        // Shorter time is better; scale fairly for higher tolerance
+        timeScore =
+          timeTaken <= timeTolerance
+            ? 100
+            : Math.max(
+                0,
+                100 - ((timeTaken - timeTolerance) / timeTolerance) * 100
+              );
+        break;
+
+      case "4 Stage Balance Test":
+        // Shorter time is worse; score decreases as timeTaken decreases
+        timeScore =
+          timeTaken <= 0
+            ? 0 // Minimum score if no time is recorded
+            : Math.round((timeTaken / timeTolerance) * 100);
+        if (timeScore > 100) timeScore = 100; // Cap the score at 100
+        break;
+
+      default:
+        console.warn("Unknown test type:", test_name);
+        timeScore = 50; // Fallback score
+    }
+
+    // Calculate abrupt movement score
+    const abruptScore =
+      abruptPercentage <= abruptTolerance
+        ? 100
+        : Math.max(
+            0,
+            100 - ((abruptPercentage - abruptTolerance) / abruptTolerance) * 100
+          );
+
+    // Weighted average (time has more weight, e.g., 70% time, 30% abruptness)
+    const finalScore = Math.round(timeScore * 0.7 + abruptScore * 0.3);
+
+    console.log({
+      test_name,
+      timeTaken,
+      abruptPercentage,
+      timeScore,
+      abruptScore,
+      finalScore,
+    });
+
+    return finalScore;
+  }
+
+  function displayResults() {
+    // Remove the selfAssessmentContainer
+    const selfAssessmentContainer = document.getElementById(
+      "selfAssessmentContainer"
+    );
+    if (selfAssessmentContainer) {
+      selfAssessmentContainer.style.display = "none"; // Hide the container
+    }
+
+    testNameElement.textContent = "Your Self Assessment Results";
+    testDescriptionElement.textContent = "Feel free to consult your doctor";
+    riskMetricsElement.remove();
+
+    // Select the result container
+    const resultContainer = document.getElementById("result-container");
+
+    if (resultContainer) {
+      // Clear any existing content
+      resultContainer.innerHTML = "";
+
+      // Make the container visible
+      resultContainer.style.display = "block";
+
+      // Create table for detailed results
+      const table = document.createElement("table");
+      table.classList.add("table", "table-bordered", "mt-4");
+      const thead = `<thead>
+          <tr>
+            <th>Test Name</th>
+            <th>Description</th>
+            <th>Time Taken (s)</th>
+            <th>Abrupt Movements (%)</th>
+            <th>Score</th>
+            <th>Risk Level</th>
+          </tr>
+        </thead>`;
+      table.innerHTML = thead;
+      const tbody = document.createElement("tbody");
+
+      // Variables to store data for the chart
+      const labels = [];
+      const scores = [];
+      const riskLevels = [];
+
+      for (const [testID, result] of Object.entries(storedResults)) {
+        const test = allTests.find((t) => t.test_id === parseInt(testID));
+        const abruptPercentage =
+          JSON.parse(result.websocketData)?.abrupt_percentage || 0;
+        const score = calculateScore(result, test);
+        const riskLevel = calculateRiskLevel(score);
+
+        // Add data to the table
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${test?.test_name || "Unknown Test"}</td>
+           <td>${test?.description || "No description available"}</td>
+          <td>${result.timeTaken.toFixed(2)}</td>
+          <td>${abruptPercentage.toFixed(2)}</td>
+          <td>${score}</td>
+          <td>${riskLevel}</td>
+        `;
+        tbody.appendChild(row);
+
+        // Populate chart data
+        labels.push(test?.test_name || "Unknown Test");
+        scores.push(score);
+        riskLevels.push(riskLevel);
+      }
+      table.appendChild(tbody);
+      resultContainer.appendChild(table);
+
+      // Create a canvas for the chart
+      const chartContainer = document.createElement("div");
+      chartContainer.classList.add("mt-5");
+      const chartCanvas = document.createElement("canvas");
+      chartCanvas.id = "resultsChart";
+      chartContainer.appendChild(chartCanvas);
+      resultContainer.appendChild(chartContainer);
+
+      // Render the chart
+      const ctx = chartCanvas.getContext("2d");
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Test Scores",
+              data: scores,
+              backgroundColor: "rgba(75, 192, 192, 0.2)",
+              borderColor: "rgba(75, 192, 192, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: true,
+              position: "top",
+              labels: {
+                font: {
+                  size: 16, // Legend font size
+                },
+              },
+            },
+            tooltip: {
+              callbacks: {
+                label: (tooltipItem) => {
+                  const index = tooltipItem.dataIndex;
+                  return `Score: ${scores[index]}, Risk Level: ${riskLevels[index]}`;
+                },
+              },
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: "Scores",
+                font: {
+                  size: 18, // Y-axis title font size
+                },
+              },
+              ticks: {
+                font: {
+                  size: 14, // Y-axis tick font size
+                },
+              },
+            },
+            x: {
+              title: {
+                display: true,
+                text: "Tests",
+                font: {
+                  size: 18, // X-axis title font size
+                },
+              },
+              ticks: {
+                font: {
+                  size: 14, // X-axis tick font size
+                },
+              },
+            },
+          },
+        },
+      });
+    } else {
+      console.error("Result container not found in the DOM.");
+    }
+
+    // Add a container div for centring the button
+    const buttonContainer = document.createElement("div");
+    buttonContainer.classList.add("d-flex", "justify-content-center", "mt-3");
+
+    // Create the "Download as PDF" button
+    const downloadPdfButton = document.createElement("button");
+    downloadPdfButton.id = "downloadPdfButton";
+    downloadPdfButton.classList.add("btn", "btn-primary");
+    downloadPdfButton.textContent = "Download Results as PDF";
+
+    // Append the button to the container
+    buttonContainer.appendChild(downloadPdfButton);
+
+    // Append the container to the result container
+    resultContainer.appendChild(buttonContainer);
+    downloadPdfButton.addEventListener("click", async () => {
+      const { jsPDF } = window.jspdf;
+
+      // Select the result container
+      const resultContainer = document.getElementById("result-container");
+
+      if (resultContainer) {
+        // Temporarily hide the download button to exclude it from the screenshot
+        const downloadButton = document.getElementById("downloadPdfButton");
+        if (downloadButton) {
+          downloadButton.style.visibility = "hidden"; // Use visibility instead of display
+        }
+
+        // Use html2canvas to capture the result container as an image
+        const canvas = await html2canvas(resultContainer, {
+          scale: 2, // Increase scale for better image quality
+        });
+
+        // Restore the download button visibility
+        if (downloadButton) {
+          downloadButton.style.visibility = "visible"; // Restore visibility
+        }
+
+        const imgData = canvas.toDataURL("image/png");
+
+        // Create a new jsPDF instance
+        const doc = new jsPDF();
+
+        // Add today's date
+        const today = new Date();
+        const dateString = today.toLocaleDateString();
+
+        // Get the token from localStorage and decode it
+        const token = localStorage.getItem("token");
+        const userDetails = decodeToken(token);
+
+        // Add FallSafe logo
+        const img = new Image();
+        img.src = "./img/FallSafe.png";
+
+        // Wait for the image to load before proceeding
+        img.onload = () => {
+          const logoWidth = 40; // Adjust width as needed
+          const logoHeight = (img.height / img.width) * logoWidth; // Maintain aspect ratio
+          doc.addImage(
+            img,
+            "PNG",
+            doc.internal.pageSize.getWidth() - logoWidth - 10, // Top-right corner
+            10,
+            logoWidth,
+            logoHeight
+          );
+
+          // Add user details
+          doc.setFontSize(12);
+          doc.text(`Name: ${userDetails.name}`, 10, 20); // Adjust Y-axis as needed
+          doc.text(`Email: ${userDetails.email}`, 10, 28);
+          doc.text(`Age: ${userDetails.age}`, 10, 36);
+
+          // Add today's date
+          doc.text(`Date: ${dateString}`, 10, 44);
+
+          // Get the PDF page dimensions
+          const pageWidth = doc.internal.pageSize.getWidth();
+          const pageHeight = doc.internal.pageSize.getHeight();
+
+          // Calculate scaling to fit the image slightly smaller within the PDF page
+          const imgWidth = canvas.width;
+          const imgHeight = canvas.height;
+
+          // Reduce the scaling factor to make the image slightly smaller
+          const scaleFactor = Math.min(
+            (pageWidth / imgWidth) * 0.9, // Reduce the width scaling to 90%
+            (pageHeight / imgHeight) * 0.9 // Reduce the height scaling to 90%
+          );
+
+          const scaledWidth = imgWidth * scaleFactor;
+          const scaledHeight = imgHeight * scaleFactor;
+
+          // Center the image on the page (below the header content)
+          const xOffset = (pageWidth - scaledWidth) / 2;
+          const yOffset = 60; // Adjust to position below the user details and logo
+
+          // Add the scaled image to the PDF
+          doc.addImage(
+            imgData,
+            "PNG",
+            xOffset,
+            yOffset,
+            scaledWidth,
+            scaledHeight
+          );
+
+          // Save the PDF
+          doc.save("Self_Assessment_Results.pdf");
+        };
+      } else {
+        console.error("Result container not found in the DOM.");
+      }
+    });
+  }
+
+  // Trigger results display when "View Results" is clicked
+  nextTestButton.addEventListener("click", () => {
+    if (nextTestButton.textContent === "View Results") {
+      displayResults();
+    }
+  });
+
+  // Trigger results display when "View Results" is clicked
+  nextTestButton.addEventListener("click", () => {
+    if (nextTestButton.textContent === "View Results") {
+      displayResults();
+    }
+  });
 });
