@@ -62,10 +62,8 @@ func main() {
 
 	// Public APIs
 	router.HandleFunc("/api/v1/questions", FES.GetQuestions).Methods("GET")
-	router.HandleFunc("/api/v1/saveResponses", FES.SaveResponse).Methods("Post")
-	router.HandleFunc("/api/v1/readQuestion", FES.ReadQuestion).Methods("POST")
+	router.HandleFunc("/api/v1/saveResponses", FES.SaveResponse).Methods("POST")
 
-	
 
 	// Speech generation endpoint
 	//authenticated.HandleFunc("/api/v1/readQuestion", openAI.ReadQuestion).Methods("POST")	
