@@ -6,9 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"fmt"
-	"io"
-	"bytes"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
@@ -46,82 +43,6 @@ func init() {
 type Question struct {
 	ID   int `json:"id"`
 	Text string `json:"text"`
-}
-type TTSRequest struct {
-	Model   string `json:"model"`
-	Voice   string `json:"voice"`
-	Input   string `json:"input"`
-	Language string `json:"language"` // Language passed from frontend
-}
-
-type TTSResponse struct {
-	AudioURL string `json:"audio_url"`
-}
-
-func ReadQuestion(w http.ResponseWriter, r *http.Request) {
-	var requestData struct {
-		QuestionText string `json:"question_text"`
-		Language     string `json:"language"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
-		http.Error(w, "Invalid input", http.StatusBadRequest)
-		return
-	}
-
-	apiKey := os.Getenv("OPENAI_APIKEY")
-	if apiKey == "" {
-		log.Println("OPENAI_APIKEY is not set.")
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	// Determine voice based on language (adjust as per OpenAI's API options)
-	voice := "alloy" // Default to English
-	if requestData.Language == "es" {
-		voice = "alloy"
-	} else if requestData.Language == "fr" {
-		voice = "alloy"
-	}
-
-	ttsRequest := TTSRequest{
-		Model: "tts-1",
-		Voice: voice,
-		Input: requestData.QuestionText,
-	}
-
-	requestBody, err := json.Marshal(ttsRequest)
-	if err != nil {
-		http.Error(w, "Failed to prepare TTS request", http.StatusInternalServerError)
-		return
-	}
-
-	req, err := http.NewRequest("POST", "https://api.openai.com/v1/audio/speech", bytes.NewBuffer(requestBody))
-	if err != nil {
-		http.Error(w, "Failed to create request", http.StatusInternalServerError)
-		return
-	}
-
-	req.Header.Set("Authorization", "Bearer "+apiKey)
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		http.Error(w, "Failed to call OpenAI API", http.StatusInternalServerError)
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		http.Error(w, fmt.Sprintf("OpenAI API error: %s", string(body)), http.StatusInternalServerError)
-		return
-	}
-
-	// Return audio data directly
-	w.Header().Set("Content-Type", "audio/mpeg")
-	io.Copy(w, resp.Body)
 }
 
 func GetQuestions(w http.ResponseWriter, r *http.Request) {
