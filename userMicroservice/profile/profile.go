@@ -3,9 +3,11 @@ package profile
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
@@ -88,12 +90,15 @@ type User struct {
 
 // UserTestResult represents the test results of a user
 type UserTestResult struct {
-	ResultID int     `json:"result_id"`
-	UserID   string  `json:"user_id"`
-	TestID   string  `json:"test_id"`
-	TestName string  `json:"test_name"`
-	Score    float64 `json:"score"`
-	TestDate string  `json:"test_date"`
+	ResultID         int       `json:"result_id"`
+	UserID           int       `json:"user_id"`
+	SessionID        int       `json:"session_id"`
+	TestID           int       `json:"test_id"`
+	TestName         string    `json:"test_name"`
+	TimeTaken        float64   `json:"time_taken"`
+	AbruptPercentage int       `json:"abrupt_percentage"`
+	RiskLevel        string    `json:"risk_level"`
+	TestDate         time.Time `json:"test_date"`
 }
 
 // GetUserByID handles retrieving a user record from the database by userID
@@ -143,10 +148,20 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 // GetUserTestResults retrieves test results for a given userID
 func GetUserTestResults(userID string) ([]UserTestResult, error) {
 	rows, err := db.Query(`
-		SELECT utr.result_id, utr.user_id, utr.test_id, t.test_name, utr.score, utr.test_date
+		SELECT 
+			utr.result_id, 
+			utr.user_id, 
+			utr.session_id, 
+			utr.test_id, 
+			t.test_name,
+			utr.time_taken, 
+			utr.abrupt_percentage, 
+			utr.risk_level, 
+			CAST(utr.test_date AS CHAR) -- Convert test_date to string
 		FROM FallSafe_SelfAssessmentDB.UserTestResult utr
 		JOIN FallSafe_SelfAssessmentDB.Test t ON utr.test_id = t.test_id
 		WHERE utr.user_id = ?`, userID)
+
 	if err != nil {
 		return nil, err
 	}
@@ -155,9 +170,23 @@ func GetUserTestResults(userID string) ([]UserTestResult, error) {
 	var results []UserTestResult
 	for rows.Next() {
 		var result UserTestResult
-		if err := rows.Scan(&result.ResultID, &result.UserID, &result.TestID, &result.TestName, &result.Score, &result.TestDate); err != nil {
+		var testDateStr string // Store date as string before parsing
+
+		if err := rows.Scan(
+			&result.ResultID, &result.UserID, &result.SessionID,
+			&result.TestID, &result.TestName,
+			&result.TimeTaken, &result.AbruptPercentage,
+			&result.RiskLevel, &testDateStr); err != nil {
 			return nil, err
 		}
+
+		// Parse the string to time.Time
+		parsedDate, err := time.Parse("2006-01-02 15:04:05", testDateStr) // Adjust format if needed
+		if err != nil {
+			return nil, fmt.Errorf("error parsing test_date: %v", err)
+		}
+		result.TestDate = parsedDate
+
 		results = append(results, result)
 	}
 	return results, nil

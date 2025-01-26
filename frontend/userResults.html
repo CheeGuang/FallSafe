@@ -36,6 +36,7 @@
     <!-- Linking CSS -->
     <link rel="stylesheet" href="./css/normalize.css" />
     <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/userResults.css" />
 
     <!-- ######################################## INSERT PAGE'S CSS HERE \/ ########################################################### -->
     <!-- <link rel="stylesheet" href="./css/" /> -->
@@ -75,12 +76,12 @@
 
           <h1>Your Results</h1>
           <p class="mb-3">
-            Visualizing your Falls Efficacy Scale (FES) scores to better understand your progress and risk areas.
+            Visualizing your test results to assess reaction time, movement abruptness, and fall risk.
           </p>
-          <u><p id="userResultsTitle">Here are your results</p></u>
+          <i><p id="userResultsTitle">Here are your results</p></i>
 
           <div id="disclaimer" class="mt-3 text-muted">
-            <small><strong>Disclaimer:</strong> The displayed results are averages calculated from multiple test entries.</small>
+            <strong>Disclaimer:</strong> The displayed results are averages calculated from multiple test entries.
           </div>
 
           <!-- Display Fall Risk -->
@@ -90,17 +91,32 @@
           <div class="row justify-content-center mb-5">
             <!-- Bar Chart -->
             <div class="col-md-6 mb-4">
+              <h3 id="barChartTitle"></h3>
               <canvas id="barChart"></canvas>
             </div>
             <!-- Radar Chart -->
             <div class="col-md-6 mb-4">
+              <h3 id="radarChartTitle"></h3>
               <canvas id="radarChart"></canvas>
+            </div>
+            <!-- Line Chart -->
+            <div class="col-md-6 mb-4">
+              <h3 id="lineChartTitle"></h3>
+              <canvas id="lineChart"></canvas>
+            </div>
+            <!-- Distribution Chart -->
+            <div class="col-md-6 mb-4">
+              <h3 id="distributionChartTitle"></h3>
+              <canvas id="distributionChart"></canvas>
             </div>
           </div>
 
           <!-- Title for History Section -->
           <h2 id="historyTitle" class="mt-3">Test History</h2>
 
+          <!-- Description for the History Section -->
+          <p id="historyDescription" class="mt-2">The data below shows your test history, listed from the most recent to the oldest.</p>
+          
           <!-- Button to toggle detailed data view -->
           <button id="toggleDataView" class="btn btn-info mt-3">Show All Data</button>
           
@@ -111,8 +127,10 @@
                 <tr>
                   <th>No.</th>
                   <th>Test Name</th>
-                  <th>Score</th>
-                  <th>Date</th>
+                  <th>Time Taken (sec)</th>
+                  <th>Abrupt Percentage (%)</th>
+                  <th>Risk Level</th>
+                  <th>Date & Time</th>
                 </tr>
               </thead>
               <tbody id="detailedData">
