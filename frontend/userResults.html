@@ -80,6 +80,8 @@
           </p>
           <i><p id="userResultsTitle">Here are your results</p></i>
 
+          <h2>Fall Risk Data Visualisations</h2>
+
           <div id="disclaimer" class="mt-3 text-muted">
             <strong>Disclaimer:</strong> The displayed results are averages calculated from multiple test entries.
           </div>
@@ -111,6 +113,18 @@
             </div>
           </div>
 
+          <br>
+          <!-- FES Results Section -->
+          <h2>Falls Efficacy Scale (FES) Results</h2>
+          <div id="fesRiskLevel"></div>
+
+          <!-- Chart for FES Scores -->
+          <div id="fesChartContainer">
+            <h3 id="fesChartTitle"></h3>
+            <canvas id="fesChart" width="400" height="200"></canvas>
+          </div>
+
+          <br>
           <!-- Title for History Section -->
           <h2 id="historyTitle" class="mt-3">Test History</h2>
 
@@ -122,6 +136,7 @@
           
           <!-- Container for detailed table view of results -->
           <div id="dataTableContainer" class="mt-5" style="display: none;">
+            <h2>Detailed Test Results</h2>
             <table class="table table-bordered">
               <thead>
                 <tr>
@@ -137,6 +152,26 @@
                 <!-- Detailed data will be inserted here dynamically -->
               </tbody>
             </table>
+
+            <br>
+
+            <h2 id="fesTableTitle">Falls Efficacy Scale (FES) Results</h2>
+              <div id="fesTableContainer">
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th>No.</th>
+                      <th>Test Name</th>
+                      <th>Score</th>
+                      <th>Risk Level</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody id="fesTableBody">
+                    <!-- FES Data will be inserted here -->
+                  </tbody>
+                </table>
+              </div>
           </div>
 
           <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->

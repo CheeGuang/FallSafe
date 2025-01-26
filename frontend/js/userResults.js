@@ -24,8 +24,9 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Fetch user test results using the extracted userID
+    // Fetch user test results and FES results using the extracted userID
     fetchTestResults(decodedToken.user_id);
+    fetchFESResults(decodedToken.user_id);
   } catch (error) {
     console.error("Error decoding token:", error);
     showCustomAlert("An error occurred. Please log in again.");
@@ -46,7 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return JSON.parse(jsonPayload);
   }
 
-  // Function to fetch user test results
+  // Function to fetch user test results for self assessment
   function fetchTestResults(userID) {
     fetch(`http://127.0.0.1:5100/api/v1/user/getUserResults?userID=${userID}`, {
       method: "GET",
@@ -120,8 +121,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const risk = result.risk_level.toLowerCase();
       return riskLevelMapping[risk];  // Map to numeric value
     });
-  
-    console.log("Mapped valid risk levels:", validResults);  // Debugging the mapped risk levels
   
     if (validResults.length === 0) {
       document.getElementById("fallRisk").innerHTML = "<p>No valid data to calculate fall risk.</p>";
@@ -365,6 +364,96 @@ document.addEventListener("DOMContentLoaded", function () {
     // Set title for Distribution Chart
     document.getElementById("distributionChartTitle").innerText = "Test Abrupt Percentage Distribution";
   }
+
+  // FES data
+  function fetchFESResults(userID) {
+    fetch(`http://127.0.0.1:5100/api/v1/user/getFESResults?userID=${userID}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch FES results");
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.length > 0) {
+          processFESResults(data);
+          populateFESTable(data);  // Populate the FES table
+        } else {
+          document.getElementById("fesChartContainer").innerHTML = "<p>No FES data available.</p>";
+        }
+      })
+      .catch(error => console.error("Error fetching FES results:", error));
+  }
+
+  function processFESResults(fesResults) {
+    fesResults.sort((a, b) => new Date(a.response_date) - new Date(b.response_date));
+
+    const labels = fesResults.map(result => {
+      const dateObj = new Date(result.response_date);
+      return dateObj.toLocaleDateString('en-GB');  // 'en-GB' uses DD/MM/YYYY format
+    });
+    const scores = fesResults.map(result => result.total_score);
+    
+    // Calculate risk level from total_score
+    const riskLevels = scores.map(score => {
+      if (score <= 20) return "High Risk";
+      if (score <= 40) return "Moderate Risk";
+      return "Low Risk";
+    });
+
+    document.getElementById("fesRiskLevel").innerHTML = `
+      <p><strong>Latest Fall Risk Level:</strong> ${riskLevels[riskLevels.length - 1]} (Score: ${scores[scores.length - 1]})</p>
+    `;
+
+    renderFESChart(labels, scores);
+  }
+
+  function renderFESChart(labels, scores) {
+    const ctx = document.getElementById("fesChart").getContext("2d");
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "FES Total Score",
+          data: scores,
+          borderColor: "rgba(255, 99, 132, 1)",
+          backgroundColor: "rgba(255, 99, 132, 0.2)",
+          borderWidth: 2,
+          fill: false,
+          tension: 0.3,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { font: { size: 18 } } },
+          tooltip: { bodyFont: { size: 16 } },
+        },
+        scales: {
+          x: { ticks: { font: { size: 16 } } },
+          y: { 
+            ticks: { font: { size: 16 } },
+            title: { display: true, text: "FES Score", font: { size: 16 } },
+            beginAtZero: true,
+            suggestedMax: 100,
+          }
+        },
+        elements: {
+          point: { radius: 5, hoverRadius: 7 }
+        }
+      }
+    });
+
+    document.getElementById("fesChartTitle").innerText = "Falls Efficacy Scale (FES) Score Over Time";
+  }
   
   function formatDateWithTimeZone(date) {
     // Convert the input date to a Date object if it is a string
@@ -421,7 +510,36 @@ document.addEventListener("DOMContentLoaded", function () {
         </tr>
       `;
     }).join("");
-  }  
+  }
+
+  function populateFESTable(fesResults) {
+    const tableBody = document.getElementById("fesTableBody");
+    tableBody.innerHTML = ""; // Clear existing data
+  
+    // Sort results by date (latest first)
+    fesResults.sort((a, b) => new Date(b.response_date) - new Date(a.response_date));
+  
+    fesResults.forEach((result, index) => {
+      const formattedDate = formatDateWithTimeZone(result.response_date);
+      const riskLevel =
+        result.total_score <= 20
+          ? "High Risk"
+          : result.total_score <= 40
+          ? "Moderate Risk"
+          : "Low Risk";
+  
+      const row = `
+        <tr>
+          <td>${index + 1}</td>
+          <td>Falls Efficacy Scale (FES)</td>
+          <td>${result.total_score}</td>
+          <td>${riskLevel}</td>
+          <td>${formattedDate}</td>
+        </tr>
+      `;
+      tableBody.innerHTML += row;
+    });
+  }
 
   document.getElementById("toggleDataView").addEventListener("click", function () {
     const dataTableContainer = document.getElementById("dataTableContainer");

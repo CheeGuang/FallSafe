@@ -77,6 +77,31 @@ func GetUserTestResultsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Handler to get Falls Efficacy Scale test results
+func GetUserFESResultsHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("userID")
+	if userID == "" {
+		http.Error(w, "userID is required", http.StatusBadRequest)
+		return
+	}
+
+	// Fetch FES test results
+	results, err := profile.GetUserFESResults(userID)
+	if err != nil {
+		log.Printf("Error fetching FES test results: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with JSON
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(results)
+	if err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}
+
 func main() {
 	// Initialize the router
 	router := mux.NewRouter()
@@ -85,6 +110,7 @@ func main() {
 	router.HandleFunc("/api/v1/user/create", profile.CreateUser).Methods("POST") // No auth needed
 	router.HandleFunc("/api/v1/user/getUser", profile.GetUserByID).Methods("GET")
 	router.HandleFunc("/api/v1/user/getUserResults", GetUserTestResultsHandler).Methods("GET")
+	router.HandleFunc("/api/v1/user/getFESResults", GetUserFESResultsHandler).Methods("GET")
 
 	// JWT Authentication Logic
 	authenticated := router.NewRoute().Subrouter()

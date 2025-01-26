@@ -191,3 +191,45 @@ func GetUserTestResults(userID string) ([]UserTestResult, error) {
 	}
 	return results, nil
 }
+
+// UserFESResponse represents the structure for a Falls Efficacy Scale response
+type UserFESResponse struct {
+	ResponseID   int       `json:"response_id"`
+	UserID       int       `json:"user_id"`
+	TotalScore   int       `json:"total_score"`
+	ResponseDate time.Time `json:"response_date"`
+}
+
+// GetUserFESResults retrieves Falls Efficacy Scale test results for a given userID
+func GetUserFESResults(userID string) ([]UserFESResponse, error) {
+	rows, err := db.Query(
+		`SELECT response_id, user_id, total_score, response_date 
+		 FROM FallSafe_FallsEfficacyScaleDB.UserResponse 
+		 WHERE user_id = ?`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []UserFESResponse
+	for rows.Next() {
+		var result UserFESResponse
+		var responseDateStr string // Store date as string before parsing
+
+		if err := rows.Scan(
+			&result.ResponseID, &result.UserID,
+			&result.TotalScore, &responseDateStr); err != nil {
+			return nil, err
+		}
+
+		// Parse the string to time.Time
+		parsedDate, err := time.Parse("2006-01-02 15:04:05", responseDateStr)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing response_date: %v", err)
+		}
+		result.ResponseDate = parsedDate
+
+		results = append(results, result)
+	}
+	return results, nil
+}
