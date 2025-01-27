@@ -1,5 +1,9 @@
 const token = localStorage.getItem("token");
 console.log(token);
+if (!token) {
+    // Redirect to the login page if no token is found
+    window.location.href = "./login.html";
+}
 
 // Store the fetched data globally for use in filtering and rendering
 let dashboardData = {
@@ -215,7 +219,7 @@ function updateRadarChart(filteredResponses) { //FilteredResponses, gives the fi
 
     // Filter UserIndividualResponse to only include responses that have a matching response_id
     const filteredUserResponses = dashboardData.userResponseDetails.filter(response => latestResponseIds.includes(response.response_id));
-    console.log(filteredUserResponses);
+    //console.log(filteredUserResponses); //test
 
     // Iterate through the filtered responses to accumulate the scores
     filteredUserResponses.forEach(response => {
