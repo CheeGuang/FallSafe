@@ -95,6 +95,7 @@ func main() {
 	authenticated.HandleFunc("/api/v1/saveResponses", FES.SaveResponse).Methods("POST").Handler(authenticateMiddleware([]string{"User"})(http.HandlerFunc(FES.SaveResponse)))
 	authenticated.HandleFunc("/api/v1/fes/getAllResponses", FES.GetAllUserResponse).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(FES.GetAllUserResponse)))
 	authenticated.HandleFunc("/api/v1/fes/getAllIndividualRes", FES.GetAllFESIndividualRes).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(FES.GetAllFESIndividualRes)))
+	authenticated.HandleFunc("/api/v1/fes/getFESResults", FES.GetUserFESResults).Methods("GET").Handler(authenticateMiddleware([]string{"User"})(http.HandlerFunc(FES.GetUserFESResults)))
 
 	// Speech generation endpoint
 	//authenticated.HandleFunc("/api/v1/readQuestion", openAI.ReadQuestion).Methods("POST")

@@ -3,7 +3,6 @@
 
 start cmd /k "cd /d adminMicroservice && go run main.go"
 start cmd /k "cd /d authenticationMicroservice && go run main.go"
-start cmd /k "cd /d authenticationMicroservice && go run main.go"
 start cmd /k "cd /d fallsEfficacyScaleMicroservice && go run main.go"
 start cmd /k "cd /d openAIMicroservice && go run main.go"
 start cmd /k "cd /d selfAssessmentMicroservice && go run main.go"

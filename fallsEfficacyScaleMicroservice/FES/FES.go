@@ -3,9 +3,11 @@ package FES
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	//"fmt" -- temporary comment for testing
 	//"io/ioutil"
@@ -212,6 +214,68 @@ func GetAllUserResponse(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Error encoding response: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+// GetUserFESResults retrieves Falls Efficacy Scale test results for a given userID
+func GetUserFESResults(w http.ResponseWriter, r *http.Request) {
+	// Extract userID from query parameters
+	userIDStr := r.URL.Query().Get("user_id")
+	if userIDStr == "" {
+		http.Error(w, "user_id is required", http.StatusBadRequest)
+		return
+	}
+
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
+
+	// Query the database
+	rows, err := db.Query(
+		`SELECT response_id, user_id, total_score, response_date 
+		 FROM UserResponse  
+		 WHERE user_id = ?`, userID)
+	if err != nil {
+		log.Printf("Database query error: %v", err)
+		http.Error(w, "Failed to fetch user FES results", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var results []UserResponse
+	for rows.Next() {
+		var result UserResponse
+		var responseDateStr string // Store date as string before parsing
+
+		if err := rows.Scan(
+			&result.ResponseID, &result.UserID,
+			&result.TotalScore, &responseDateStr); err != nil {
+			log.Printf("Error scanning row: %v", err)
+			http.Error(w, "Failed to parse user FES results", http.StatusInternalServerError)
+			return
+		}
+
+		// Parse the string to time.Time using RFC3339 format
+		parsedDate, err := time.Parse(time.RFC3339, responseDateStr)
+		if err != nil {
+			log.Printf("Error parsing response_date: %v", err)
+			http.Error(w, fmt.Sprintf("Error parsing response_date: %v", err), http.StatusInternalServerError)
+			return
+		}
+		result.ResponseDate = parsedDate
+
+		results = append(results, result)
+	}
+
+	// Send response as JSON
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(results)
+	if err != nil {
+		log.Printf("Error encoding JSON response: %v", err)
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
 }

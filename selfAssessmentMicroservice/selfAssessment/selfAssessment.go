@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -206,7 +207,6 @@ func TestReceiveMessages() bool {
 	}
 }
 
-
 // MovementData represents a movement record from MQTT messages
 type MovementData struct {
 	Timestamp       int64   `json:"timestamp"`
@@ -296,7 +296,7 @@ func StartWebSocketServer(w http.ResponseWriter, r *http.Request) {
 			}
 			log.Printf("Updated data. Abrupt Count: %d, Total Count: %d", abruptCount, totalCount)
 			mutex.Unlock()
-		} 
+		}
 	}); token.Wait() && token.Error() != nil {
 		log.Fatalf("Failed to subscribe to topic %s: %v", topic, token.Error())
 	}
@@ -337,7 +337,7 @@ func StartWebSocketServer(w http.ResponseWriter, r *http.Request) {
 					RiskLevel:        riskLevel,
 				}
 				log.Printf("Generated risk assessment: %+v", riskAssessment)
-		
+
 				// Convert riskAssessment to JSON manually and write it
 				riskAssessmentJSON, err := json.Marshal(riskAssessment)
 				if err != nil {
@@ -353,7 +353,6 @@ func StartWebSocketServer(w http.ResponseWriter, r *http.Request) {
 			mutex.Unlock()
 			log.Println("Data capture stopped.")
 			break
-		
 
 		case "restart":
 			log.Println("Restarting data capture...")
@@ -371,7 +370,6 @@ func StartWebSocketServer(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
 func determineRiskLevel(abruptPercentage float64) string {
 	if abruptPercentage > 30 {
 		return "high"
@@ -380,7 +378,6 @@ func determineRiskLevel(abruptPercentage float64) string {
 	}
 	return "low"
 }
-
 
 // StartTest creates a new test session for a given user ID and returns the session ID
 func StartTest(userID int) (int64, error) {
@@ -405,9 +402,9 @@ func StartTest(userID int) (int64, error) {
 }
 
 func GetAllTests() ([]map[string]interface{}, error) {
-    log.Println("Retrieving all tests...")
+	log.Println("Retrieving all tests...")
 
-    query := `
+	query := `
         SELECT 
             test_id,
             test_name,
@@ -423,56 +420,56 @@ func GetAllTests() ([]map[string]interface{}, error) {
         FROM Test
     `
 
-    rows, err := db.Query(query)
-    if err != nil {
-        return nil, fmt.Errorf("failed to retrieve tests: %v", err)
-    }
-    defer rows.Close()
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve tests: %v", err)
+	}
+	defer rows.Close()
 
-    var tests []map[string]interface{}
-    for rows.Next() {
-        var testID int
-        var testName, description, riskMetric, videoURL, step1 string
-        var step2, step3, step4, step5 sql.NullString
-        var enabled bool
+	var tests []map[string]interface{}
+	for rows.Next() {
+		var testID int
+		var testName, description, riskMetric, videoURL, step1 string
+		var step2, step3, step4, step5 sql.NullString
+		var enabled bool
 
-        err := rows.Scan(
-            &testID, &testName, &description, &riskMetric, &videoURL,
-            &step1, &step2, &step3, &step4, &step5, &enabled,
-        )
-        if err != nil {
-            return nil, fmt.Errorf("failed to scan test row: %v", err)
-        }
+		err := rows.Scan(
+			&testID, &testName, &description, &riskMetric, &videoURL,
+			&step1, &step2, &step3, &step4, &step5, &enabled,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan test row: %v", err)
+		}
 
-        test := map[string]interface{}{
-            "test_id":      testID,
-            "test_name":    testName,
-            "description":  description,
-            "risk_metric":  riskMetric,
-            "video_url":    videoURL,
-            "step_1":       step1,
-            "step_2":       nullStringToString(step2),
-            "step_3":       nullStringToString(step3),
-            "step_4":       nullStringToString(step4),
-            "step_5":       nullStringToString(step5),
-            "enabled":      enabled,
-        }
-        tests = append(tests, test)
-    }
+		test := map[string]interface{}{
+			"test_id":     testID,
+			"test_name":   testName,
+			"description": description,
+			"risk_metric": riskMetric,
+			"video_url":   videoURL,
+			"step_1":      step1,
+			"step_2":      nullStringToString(step2),
+			"step_3":      nullStringToString(step3),
+			"step_4":      nullStringToString(step4),
+			"step_5":      nullStringToString(step5),
+			"enabled":     enabled,
+		}
+		tests = append(tests, test)
+	}
 
-    if err := rows.Err(); err != nil {
-        return nil, fmt.Errorf("error occurred while iterating through rows: %v", err)
-    }
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error occurred while iterating through rows: %v", err)
+	}
 
-    log.Println("All tests retrieved successfully.")
-    return tests, nil
+	log.Println("All tests retrieved successfully.")
+	return tests, nil
 }
 
 func nullStringToString(ns sql.NullString) string {
-    if ns.Valid {
-        return ns.String
-    }
-    return ""
+	if ns.Valid {
+		return ns.String
+	}
+	return ""
 }
 
 // SaveUserTestResult stores test result data into the UserTestResult table
@@ -525,4 +522,86 @@ func SaveUserTestResult(testSessionID int, userID int, testID int, timeTaken flo
 	log.Printf("User test result saved successfully for user_id=%d, session_id=%d, test_id=%d", userID, testSessionID, testID)
 	log.Println("SaveUserTestResult function completed.")
 	return nil
+}
+
+// UserTestResult represents the test results of a user
+type UserTestResult struct {
+	ResultID         int       `json:"result_id"`
+	UserID           int       `json:"user_id"`
+	SessionID        int       `json:"session_id"`
+	TestID           int       `json:"test_id"`
+	TestName         string    `json:"test_name"`
+	TimeTaken        float64   `json:"time_taken"`
+	AbruptPercentage int       `json:"abrupt_percentage"`
+	RiskLevel        string    `json:"risk_level"`
+	TestDate         time.Time `json:"test_date"`
+}
+
+// GetUserTestResults retrieves test results for a given userID
+func GetUserTestResults(w http.ResponseWriter, r *http.Request) {
+	// Extract userID from query parameters
+	userIDStr := r.URL.Query().Get("user_id")
+	if userIDStr == "" {
+		http.Error(w, "user_id is required", http.StatusBadRequest)
+		return
+	}
+
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
+
+	// Query the database
+	rows, err := db.Query(`
+		SELECT 
+			utr.result_id, 
+			utr.user_id, 
+			utr.session_id, 
+			utr.test_id, 
+			t.test_name,
+			utr.time_taken, 
+			utr.abrupt_percentage, 
+			utr.risk_level, 
+			CAST(utr.test_date AS CHAR) -- Convert test_date to string
+		FROM UserTestResult utr
+		JOIN Test t ON utr.test_id = t.test_id
+		WHERE utr.user_id = ?`, userID)
+
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Database query failed: %v", err), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var results []UserTestResult
+	for rows.Next() {
+		var result UserTestResult
+		var testDateStr string // Store date as string before parsing
+
+		if err := rows.Scan(
+			&result.ResultID, &result.UserID, &result.SessionID,
+			&result.TestID, &result.TestName,
+			&result.TimeTaken, &result.AbruptPercentage,
+			&result.RiskLevel, &testDateStr); err != nil {
+			http.Error(w, fmt.Sprintf("Error scanning row: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		// Parse the string to time.Time
+		parsedDate, err := time.Parse("2006-01-02 15:04:05", testDateStr) // Adjust format if needed
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error parsing test_date: %v", err), http.StatusInternalServerError)
+			return
+		}
+		result.TestDate = parsedDate
+
+		results = append(results, result)
+	}
+
+	// Encode results as JSON and send response
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(results); err != nil {
+		http.Error(w, "Failed to encode JSON", http.StatusInternalServerError)
+	}
 }
