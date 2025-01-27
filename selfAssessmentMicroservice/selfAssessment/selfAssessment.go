@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"strconv"
@@ -472,7 +473,7 @@ func nullStringToString(ns sql.NullString) string {
 	return ""
 }
 
-// SaveUserTestResult stores test result data into the UserTestResult table
+// SaveUserTestResult stores test result data into the UserTestResult table and updates the average score in TestSession
 func SaveUserTestResult(testSessionID int, userID int, testID int, timeTaken float64, websocketData string) error {
 	log.Println("Starting SaveUserTestResult function...")
 
@@ -501,28 +502,117 @@ func SaveUserTestResult(testSessionID int, userID int, testID int, timeTaken flo
 	}
 	log.Printf("Extracted values - abrupt_percentage: %f, risk_level: %s", abruptPercentage, riskLevel)
 
-	// SQL query to insert data into the UserTestResult table
+	// Save the test result into the UserTestResult table
 	query := `
 		INSERT INTO UserTestResult (
 			user_id, session_id, test_id, time_taken, abrupt_percentage, risk_level
 		) VALUES (?, ?, ?, ?, ?, ?)
 	`
-
 	log.Printf("Executing SQL query: %s", query)
-	log.Printf("Query parameters - user_id: %d, session_id: %d, test_id: %d, time_taken: %f, abrupt_percentage: %f, risk_level: %s",
-		userID, testSessionID, testID, timeTaken, abruptPercentage, riskLevel)
-
-	// Execute the query
 	_, err = db.Exec(query, userID, testSessionID, testID, timeTaken, abruptPercentage, riskLevel)
 	if err != nil {
 		log.Printf("Error executing SQL query: %v", err)
 		return fmt.Errorf("failed to save user test result: %v", err)
 	}
-
 	log.Printf("User test result saved successfully for user_id=%d, session_id=%d, test_id=%d", userID, testSessionID, testID)
+
+	// Recalculate the average score for the session
+	log.Println("Recalculating average score for the session...")
+	rows, err := db.Query(`
+		SELECT utr.time_taken, utr.abrupt_percentage, t.test_name 
+		FROM UserTestResult utr
+		JOIN Test t ON utr.test_id = t.test_id
+		WHERE utr.session_id = ?`, testSessionID)
+	if err != nil {
+		log.Printf("Error querying test results for session: %v", err)
+		return fmt.Errorf("failed to query test results: %v", err)
+	}
+	defer rows.Close()
+
+	var totalScore, count float64
+	for rows.Next() {
+		var timeTaken float64
+		var abruptPercentage float64
+		var testName string
+
+		if err := rows.Scan(&timeTaken, &abruptPercentage, &testName); err != nil {
+			log.Printf("Error scanning test result row: %v", err)
+			return fmt.Errorf("failed to scan test result row: %v", err)
+		}
+
+		// Calculate the score using the provided logic
+		score := calculateScore(timeTaken, abruptPercentage, testName)
+		totalScore += float64(score)
+		count++
+	}
+
+	if count == 0 {
+		log.Printf("No test results found for session_id=%d", testSessionID)
+		return nil
+	}
+
+	avgScore := totalScore / count
+	log.Printf("Calculated average score for session_id=%d: %f", testSessionID, avgScore)
+
+	// Update the TestSession with the calculated average score
+	updateQuery := `UPDATE TestSession SET avg_score = ? WHERE session_id = ?`
+	_, err = db.Exec(updateQuery, avgScore, testSessionID)
+	if err != nil {
+		log.Printf("Error updating average score in TestSession: %v", err)
+		return fmt.Errorf("failed to update average score: %v", err)
+	}
+
+	log.Printf("Average score updated successfully for session_id=%d", testSessionID)
 	log.Println("SaveUserTestResult function completed.")
 	return nil
 }
+
+// calculateScore calculates the final score based on time taken and abrupt percentage
+func calculateScore(timeTaken, abruptPercentage float64, testName string) int {
+	tolerances := map[string]struct {
+		TimeTolerance   float64
+		AbruptTolerance float64
+	}{
+		"Timed Up and Go Test":        {TimeTolerance: 12, AbruptTolerance: 20},
+		"Five Times Sit to Stand Test": {TimeTolerance: 14, AbruptTolerance: 20},
+		"Dynamic Gait Index (DGI)":    {TimeTolerance: 20, AbruptTolerance: 20},
+		"4 Stage Balance Test":        {TimeTolerance: 40, AbruptTolerance: 15},
+	}
+
+	// Default tolerances
+	tolerance := tolerances[testName]
+	if tolerance == (struct {
+		TimeTolerance   float64
+		AbruptTolerance float64
+	}{}) {
+		tolerance = struct {
+			TimeTolerance   float64
+			AbruptTolerance float64
+		}{TimeTolerance: 12, AbruptTolerance: 50}
+	}
+
+	// Calculate time score
+	timeScore := 0
+	if timeTaken <= tolerance.TimeTolerance {
+		timeScore = 100
+	} else {
+		timeScore = int(math.Max(0, 100-((timeTaken-tolerance.TimeTolerance)/tolerance.TimeTolerance)*100))
+	}
+
+	// Calculate abrupt score
+	abruptScore := 0
+	if abruptPercentage <= tolerance.AbruptTolerance {
+		abruptScore = 100
+	} else {
+		abruptScore = int(math.Max(0, 100-((abruptPercentage-tolerance.AbruptTolerance)/tolerance.AbruptTolerance)*100))
+	}
+
+	// Weighted average
+	finalScore := int(math.Round(float64(timeScore)*0.7 + float64(abruptScore)*0.3))
+	return finalScore
+}
+
+
 
 // UserTestResult represents the test results of a user
 type UserTestResult struct {

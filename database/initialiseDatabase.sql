@@ -162,6 +162,7 @@ CREATE TABLE TestSession (
     session_id SMALLINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,  -- Unique ID for the session
     user_id SMALLINT UNSIGNED NOT NULL,                                -- Associated user ID
     session_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                  -- Date and time of the session
+    avg_score SMALLINT UNSIGNED NULL,
     session_notes TEXT NULL,                                           -- Optional notes about the session
     INDEX idx_user_session (user_id, session_date)                    -- Composite index for user ID and session date
 );
@@ -549,36 +550,37 @@ INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2
 );
 
 -- Insert TestSession data for 5 users (5 sessions each, every 6 months)
-INSERT INTO TestSession (user_id, session_date, session_notes) VALUES
-(1, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), 'Routine assessment 2.5 years ago'), -- User 1
-(1, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), 'Routine assessment 2 years ago'),
-(1, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), 'Routine assessment 1.5 years ago'),
-(1, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), 'Routine assessment 1 year ago'),
-(1, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), 'Routine assessment 6 months ago'),
+INSERT INTO TestSession (user_id, session_date, avg_score, session_notes) VALUES
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '22.125', 'Routine assessment 2.5 years ago'),
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '20.000', 'Routine assessment 2 years ago'),
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '18.500', 'Routine assessment 1.5 years ago'),
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '16.375', 'Routine assessment 1 year ago'),
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '14.625', 'Routine assessment 6 months ago'),
 
-(2, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), 'Routine assessment 2.5 years ago'), -- User 2
-(2, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), 'Routine assessment 2 years ago'),
-(2, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), 'Routine assessment 1.5 years ago'),
-(2, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), 'Routine assessment 1 year ago'),
-(2, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), 'Routine assessment 6 months ago'),
+(2, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '18.750', 'Routine assessment 2.5 years ago'),
+(2, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '21.000', 'Routine assessment 2 years ago'),
+(2, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '23.250', 'Routine assessment 1.5 years ago'),
+(2, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '26.500', 'Routine assessment 1 year ago'),
+(2, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '29.000', 'Routine assessment 6 months ago'),
 
-(3, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), 'Routine assessment 2.5 years ago'), -- User 3
-(3, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), 'Routine assessment 2 years ago'),
-(3, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), 'Routine assessment 1.5 years ago'),
-(3, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), 'Routine assessment 1 year ago'),
-(3, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), 'Routine assessment 6 months ago'),
+(3, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '25.750', 'Routine assessment 2.5 years ago'),
+(3, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '23.000', 'Routine assessment 2 years ago'),
+(3, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '20.500', 'Routine assessment 1.5 years ago'),
+(3, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '17.250', 'Routine assessment 1 year ago'),
+(3, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '13.750', 'Routine assessment 6 months ago'),
 
-(4, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), 'Routine assessment 2.5 years ago'), -- User 4
-(4, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), 'Routine assessment 2 years ago'),
-(4, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), 'Routine assessment 1.5 years ago'),
-(4, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), 'Routine assessment 1 year ago'),
-(4, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), 'Routine assessment 6 months ago'),
+(4, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '16.750', 'Routine assessment 2.5 years ago'),
+(4, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '19.250', 'Routine assessment 2 years ago'),
+(4, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '21.500', 'Routine assessment 1.5 years ago'),
+(4, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '24.500', 'Routine assessment 1 year ago'),
+(4, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '28.250', 'Routine assessment 6 months ago'),
 
-(5, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), 'Routine assessment 2.5 years ago'), -- User 5
-(5, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), 'Routine assessment 2 years ago'),
-(5, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), 'Routine assessment 1.5 years ago'),
-(5, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), 'Routine assessment 1 year ago'),
-(5, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), 'Routine assessment 6 months ago');
+(5, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '23.000', 'Routine assessment 2.5 years ago'),
+(5, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '18.750', 'Routine assessment 2 years ago'),
+(5, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '25.750', 'Routine assessment 1.5 years ago'),
+(5, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '20.750', 'Routine assessment 1 year ago'),
+(5, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '22.000', 'Routine assessment 6 months ago');
+
 
 
 -- Insert UserTestResult data for all users
