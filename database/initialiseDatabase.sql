@@ -301,7 +301,7 @@ USE FallSafe_FallsEfficacyScaleDB;
 
 -- Insert dummy data into FallsEfficacyScale table
 INSERT INTO FallsEfficacyScale (question_text) VALUES
-('Cleaning the house (e.g. sweep, vacuum, dust)'),
+('Cleaning the house (example: sweeping, vacuuming, dusting)'),
 ('Getting dressed or undressed'),
 ('Preparing simple meals'),
 ('Taking a bath or shower'),

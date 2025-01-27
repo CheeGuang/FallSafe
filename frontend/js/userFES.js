@@ -1,6 +1,10 @@
 const API_FES_URL = "http://localhost:5300/api/v1"; // FES API URL
 const API_OpenAI_URL = "http://localhost:5150/api/v1"; // openAI API URL
 
+let questions = [];
+let currentPage = 1;
+const questionsPerPage = 4;
+
 async function fetchQuestions() {
   try {
     const response = await fetch(`${API_FES_URL}/questions`, {
@@ -13,70 +17,106 @@ async function fetchQuestions() {
     if (!response.ok) {
       throw new Error("Failed to fetch questions");
     }
-    const questions = await response.json();
-    renderQuestions(questions);
+
+    questions = await response.json();
+    renderQuestions();
   } catch (error) {
     console.error(error);
     showCustomAlert("Error fetching questions. Please try again.");
   }
 }
 
-function renderQuestions(questions) {
+function renderQuestions() {
   const container = document.getElementById("questions-container");
   container.innerHTML = "";
 
-  questions.forEach((question) => {
+  const startIndex = (currentPage - 1) * questionsPerPage;
+  const endIndex = Math.min(startIndex + questionsPerPage, questions.length);
+  const questionsToDisplay = questions.slice(startIndex, endIndex);
+
+  questionsToDisplay.forEach((question) => {
     const questionDiv = document.createElement("div");
     questionDiv.className = "question mb-4";
 
     questionDiv.innerHTML = `
-            <p>${question.text}</p>
-            <button class="play-button" data-id="${question.id}" data-text="${question.text}" aria-label="Play text" style="background: none; border: none; cursor: pointer;">
-              <span role="img" aria-label="Speaker" style="font-size: 2.5em;">🔊</span>
-            </button>
-            <div class="options d-flex justify-content-between mt-3">
-              <div class="option" data-risk="low">
-                <label>
-                  <input type="radio" name="question-${question.id}" value="1">
-                  <span role="img" aria-label="Low risk" style="font-size: 2em;">🙂</span>
-                </label>
-              </div>
-              <div class="option" data-risk="moderate">
-                <label>
-                  <input type="radio" name="question-${question.id}" value="2">
-                  <span role="img" aria-label="Moderate risk" style="font-size: 2em;">😐</span>
-                </label>
-              </div>
-              <div class="option" data-risk="high">
-                <label>
-                  <input type="radio" name="question-${question.id}" value="3">
-                  <span role="img" aria-label="High risk" style="font-size: 2em;">😟</span>
-                </label>
-              </div>
-              <div class="option" data-risk="very-high">
-                <label>
-                  <input type="radio" name="question-${question.id}" value="4">
-                  <span role="img" aria-label="Very high risk" style="font-size: 2em;">😱</span>
-                </label>
-              </div>
-            </div>
-          `;
+    <div style="display: flex; justify-content: center; align-items: center">
+      <p style="margin: 0;" class="question-title">Q${question.id}: ${question.text}</p>
+      <button class="play-button" data-id="${question.id}" data-text="${question.text}" aria-label="Play text" style="background: none; border: none; cursor: pointer;">
+        <span role="img" aria-label="Speaker" style="font-size: 2.5em; cursor: pointer;">🔊</span>
+      </button>
+    </div>
+    <div class="options d-flex justify-content-between mt-3">
+      <div class="option" data-risk="low">
+        <label>
+          <input type="radio" name="question-${question.id}" value="1">
+          <span role="img" aria-label="Low risk" style="font-size: 2em;">🙂</span>
+          <p style="margin: 0; text-align: center; font-size: 0.9em;">Highly Confident</p>
+        </label>
+      </div>
+      <div class="option" data-risk="moderate">
+        <label>
+          <input type="radio" name="question-${question.id}" value="2">
+          <span role="img" aria-label="Moderate risk" style="font-size: 2em;">😐</span>
+          <p style="margin: 0; text-align: center; font-size: 0.9em;">Moderately Confident</p>
+        </label>
+      </div>
+      <div class="option" data-risk="high">
+        <label>
+          <input type="radio" name="question-${question.id}" value="3">
+          <span role="img" aria-label="High risk" style="font-size: 2em;">😟</span>
+          <p style="margin: 0; text-align: center; font-size: 0.9em;">Somewhat Confident</p>
+        </label>
+      </div>
+      <div class="option" data-risk="very-high">
+        <label>
+          <input type="radio" name="question-${question.id}" value="4">
+          <span role="img" aria-label="Very high risk" style="font-size: 2em;">😱</span>
+          <p style="margin: 0; text-align: center; font-size: 0.9em;">Not Confident</p>
+        </label>
+      </div>
+    </div>
+  `;
+
     container.appendChild(questionDiv);
   });
 
-  // Add event listener to the speaker buttons
+  updatePaginationButtons();
+
   document.querySelectorAll(".play-button").forEach((button) => {
     button.addEventListener("click", async (event) => {
       const text = event.target.closest("button").getAttribute("data-text");
+      // Disable all play buttons
+      const playButtons = document.querySelectorAll(".play-button");
+      playButtons.forEach((button) => (button.disabled = true));
       await playTextToSpeech(text);
     });
   });
 }
 
-//play tts with TargetLanguage
+function updatePaginationButtons() {
+  const backButton = document.getElementById("back-button");
+  const nextButton = document.getElementById("next-button");
+
+  backButton.disabled = currentPage === 1;
+  nextButton.disabled = currentPage * questionsPerPage >= questions.length;
+}
+
+function handlePageChange(direction) {
+  if (
+    direction === "next" &&
+    currentPage * questionsPerPage < questions.length
+  ) {
+    currentPage++;
+  } else if (direction === "back" && currentPage > 1) {
+    currentPage--;
+  }
+  renderQuestions();
+}
+
 async function playTextToSpeech(text) {
   const dropdown = document.getElementById("language-dropdown");
   const targetLanguage = dropdown.value;
+  const playButtons = document.querySelectorAll(".play-button");
 
   try {
     let translatedText = text;
@@ -87,7 +127,7 @@ async function playTextToSpeech(text) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // Retrieve token from localStorage
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           body: JSON.stringify({
             input_text: text,
@@ -109,7 +149,7 @@ async function playTextToSpeech(text) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`, // Retrieve token from localStorage
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
       body: JSON.stringify({
         input_text: translatedText,
@@ -124,56 +164,37 @@ async function playTextToSpeech(text) {
     const audioBlob = await ttsResponse.blob();
     const audioUrl = URL.createObjectURL(audioBlob);
     const audio = new Audio(audioUrl);
+
     audio.play();
+    audio.addEventListener("ended", () => {
+      // Re-enable all play buttons after audio is done
+      playButtons.forEach((button) => (button.disabled = false));
+    });
   } catch (error) {
     console.error("Error during TTS process:", error);
+    // Re-enable all play buttons in case of an error
+    playButtons.forEach((button) => (button.disabled = false));
   }
 }
 
-//generate response from openAI endpoint
-async function generateResponse(prompt) {
-  try {
-    const response = await fetch(`${API_OpenAI_URL}/generateResponse`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`, // Retrieve token from localStorage
-      },
-      body: JSON.stringify({ prompt: prompt }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to generate response");
-    }
-
-    const data = await response.json();
-    console.log("Generated response:", data.response);
-  } catch (error) {
-    console.error("Error generating response:", error);
-  }
-}
-
-//generate translation from openAI endpoind
-
-//submit responses to db
 async function submitResponses() {
   const responses = [];
-  document.querySelectorAll(".question").forEach((questionDiv) => {
-    const questionId = questionDiv
-      .querySelector(".options input")
-      .name.split("-")[1];
-    const selectedOption = questionDiv.querySelector(".options input:checked");
-
+  questions.forEach((question) => {
+    const selectedOption = document.querySelector(
+      `input[name="question-${question.id}"]:checked`
+    );
     if (selectedOption) {
       responses.push({
-        question_id: parseInt(questionId, 10),
+        question_id: question.id,
         score: parseInt(selectedOption.value, 10),
       });
-    } else {
-      showCustomAlert("Please answer all questions before submitting.");
-      throw new Error("Incomplete responses");
     }
   });
+
+  if (responses.length !== questions.length) {
+    showCustomAlert("Please answer all questions before submitting.");
+    return;
+  }
 
   const payload = {
     user_id: 1,
@@ -185,7 +206,7 @@ async function submitResponses() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`, // Retrieve token from localStorage
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
       body: JSON.stringify(payload),
     });
@@ -202,8 +223,38 @@ async function submitResponses() {
   }
 }
 
+async function generateResponse(prompt) {
+  try {
+    const response = await fetch(`${API_OpenAI_URL}/generateResponse`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({ prompt: prompt }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to generate response");
+    }
+
+    const data = await response.json();
+    console.log("Generated response:", data.response);
+  } catch (error) {
+    console.error("Error generating response:", error);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   fetchQuestions();
+
+  document.getElementById("next-button").addEventListener("click", () => {
+    handlePageChange("next");
+  });
+
+  document.getElementById("back-button").addEventListener("click", () => {
+    handlePageChange("back");
+  });
 
   document
     .getElementById("submit-button")

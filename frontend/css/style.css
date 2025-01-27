@@ -30,14 +30,14 @@ body {
   font-weight: bold !important; /* Bold text */
   border: none !important; /* Remove borders */
   padding: 25px 55px !important; /* Add bigger padding */
-  font-size: 1.8rem !important; /* Increase font size */
+  font-size: 1.3rem !important; /* Increase font size */
   border-radius: 8px !important; /* More rounded corners */
   cursor: pointer !important; /* Pointer cursor on hover */
 }
 
 .fas,
 .fab {
-  font-size: 2.8rem !important;
+  font-size: 2rem !important;
   margin-right: 30px !important;
 }
 

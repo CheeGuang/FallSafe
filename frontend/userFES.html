@@ -72,8 +72,9 @@
           <!-- Page Content -->
           <h1>Falls Efficacy Scale</h1>
           <p class="lead text-muted" style="padding-bottom: 4em">
-            Assessing the confidence of seniors in avoiding falls in different
-            situations.
+            Please rate your confidence in completing each of the 16 tasks
+            listed below. These tasks assess your confidence in avoiding falls
+            in various situations.
           </p>
           <!--supported languages from openAI-->
           <div class="mb-4">
@@ -148,12 +149,27 @@
           </div>
 
           <h2 style="padding-top: 4em; padding-bottom: 1em">
-            Do you feel like falling when...
+            How Confident are you in the following:
           </h2>
           <div id="questions-container"></div>
+          <div class="d-flex justify-content-between mt-4">
+            <button id="back-button" class="btn btn-secondary" disabled>
+              Back
+            </button>
+            <button id="next-button" class="btn btn-secondary">Next</button>
+          </div>
           <div class="d-flex justify-content-center mt-3">
             <button id="submit-button" class="btn btn-primary">Submit</button>
           </div>
+          <div
+            id="loading-spinner"
+            class="spinner-border text-primary"
+            role="status"
+            style="display: none"
+          >
+            <span class="visually-hidden">Loading...</span>
+          </div>
+
           <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
         </div>
       </div>
