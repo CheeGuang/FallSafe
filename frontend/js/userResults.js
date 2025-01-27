@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Function to fetch user test results for self assessment
   function fetchTestResults(userID) {
-    fetch(`http://127.0.0.1:5250/api/v1/user/getUserResults?user_id=${userID}`, {
+    fetch(`http://127.0.0.1:5100/api/v1/user/getAUserTestResults?user_id=${userID}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -367,7 +367,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // FES data
   function fetchFESResults(userID) {
-    fetch(`http://127.0.0.1:5300/api/v1/user/getFESResults?user_id=${userID}`, {
+    fetch(`http://127.0.0.1:5100/api/v1/user/getAUserFESResults?user_id=${userID}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

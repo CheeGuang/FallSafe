@@ -63,8 +63,8 @@ func main() {
 	// Authentication test endpoint
 	router.HandleFunc("/api/v1/selfAssessment/ws", selfAssessment.StartWebSocketServer)
 
-	// Unauthenticated endpoint
-	router.HandleFunc("/api/v1/user/getUserResults", selfAssessment.GetUserTestResults).Methods("GET")
+	// Unauthenticated endpoint - TBC
+	router.HandleFunc("/api/v1/selfAssessment/getUserResults", selfAssessment.GetUserTestResults).Methods("GET")
 
 	// JWT Authentication Logic
 	authenticated := router.NewRoute().Subrouter()
