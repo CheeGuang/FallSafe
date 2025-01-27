@@ -3,9 +3,11 @@ package profile
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
@@ -77,12 +79,26 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 // User represents the structure of a user record
 type User struct {
-	UserID      int    `json:"user_id"`
-	Name        string `json:"name"`
-	Email       string `json:"email"`
-	PhoneNumber string `json:"phone_number"`
-	Address     string `json:"address"`
-	Age         string `json:"age"`
+	UserID      int              `json:"user_id"`
+	Name        string           `json:"name"`
+	Email       string           `json:"email"`
+	PhoneNumber string           `json:"phone_number"`
+	Address     string           `json:"address"`
+	Age         string           `json:"age"`
+	TestResults []UserTestResult `json:"test_results,omitempty"`
+}
+
+// UserTestResult represents the test results of a user
+type UserTestResult struct {
+	ResultID         int       `json:"result_id"`
+	UserID           int       `json:"user_id"`
+	SessionID        int       `json:"session_id"`
+	TestID           int       `json:"test_id"`
+	TestName         string    `json:"test_name"`
+	TimeTaken        float64   `json:"time_taken"`
+	AbruptPercentage int       `json:"abrupt_percentage"`
+	RiskLevel        string    `json:"risk_level"`
+	TestDate         time.Time `json:"test_date"`
 }
 
 // GetUserByID handles retrieving a user record from the database by userID
@@ -107,6 +123,14 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if err != nil {
 		log.Printf("Error querying user record: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Fetch test results for the user
+	user.TestResults, err = GetUserTestResults(userID)
+	if err != nil {
+		log.Printf("Error fetching test results: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}

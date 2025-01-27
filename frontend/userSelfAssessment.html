@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Bootstrap Link -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+      defer
+    ></script>
+
+    <!-- Chart JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- JS PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+
+    <!-- JS PDF Auto Table -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- HTML 2 Canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- JQuery Link -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- Font Awesome -->
+    <script
+      src="https://kit.fontawesome.com/4f6d96e165.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Page Name -->
+    <title>FallSafe</title>
+
+    <!-- Linking CSS -->
+    <link rel="stylesheet" href="./css/normalize.css" />
+    <link rel="stylesheet" href="./css/style.css" />
+
+    <!-- ######################################## INSERT PAGE'S CSS HERE \/ ########################################################### -->
+    <link rel="stylesheet" href="./css/userSelfAssessment.css" />
+    <!-- ######################################## END OF PAGE'S CSS ########################################################### -->
+
+    <!-- Linking JS -->
+    <script src="./js/script.js" defer></script>
+
+    <!-- ######################################## INSERT PAGE'S JS HERE \/ ########################################################### -->
+    <script src="./js/userSelfAssessment.js" defer></script>
+    <!-- ######################################## END OF PAGE'S JS ########################################################### -->
+
+    <!-- Add a favicon to the tab bar -->
+    <link rel="icon" type="image/x-icon" href="./img/FallSafe-Small.png" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <!-- Navbar -->
+      <div id="navbar-container"></div>
+    </header>
+
+    <!-- Transparent Row with Small Height at the Top -->
+    <div
+      class="row"
+      style="width: 10vw; height: 50px; background-color: transparent"
+    ></div>
+
+    <!-- Main Content Container -->
+    <div class="container text-center">
+      <div class="row justify-content-center">
+        <div class="col-12 mt-5">
+          <!-- Load customAlert.html dynamically -->
+          <div id="customAlertContainer"></div>
+
+          <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
+
+          <h1 id="title">Self Assessment</h1>
+          <!-- p Subtitle -->
+          <p id="subtitle" class="mb-3">
+            Assess your fall risk easily at home.
+          </p>
+
+          <p id="subtitle2" class="mb-4">
+            You will take <strong>5 simple tests</strong>. Each test is scored
+            between <strong>0 and 100</strong>. A
+            <strong>higher score</strong> means better performance. At the end,
+            you’ll receive an evaluation of your <strong>fall risk</strong>.
+            Each test includes a <strong>video demonstration</strong> and
+            <strong>step-by-step instructions</strong> for easy follow-along.
+          </p>
+
+          <div
+            id="test-container"
+            class="d-flex align-items-center justify-content-center w-100 flex-column"
+          >
+            <button id="startTestButton" class="btn btn-primary">
+              Continue
+            </button>
+            <div id="connectionStatus" class="mt-3"></div>
+          </div>
+
+          <!-- Self-Assessment Layout -->
+          <div id="selfAssessmentContainer" style="display: none">
+            <h1 id="testName" class="text-center"></h1>
+            <h4 id="testDescription" class="text-center"></h4>
+            <p id="riskMetrics" class="text-center text-muted"></p>
+
+            <div class="row h-100 mt-4 mb-4">
+              <!-- Steps Column -->
+              <div class="col-md-4 border-end" id="stepsColumn">
+                <ul id="stepsList" class="list-group text-start"></ul>
+              </div>
+
+              <!-- Video Column -->
+              <div
+                class="col-md-8 d-flex justify-content-center align-items-center flex-column"
+              >
+                <video id="testVideo" class="w-100 rounded" controls></video>
+              </div>
+            </div>
+            <!-- Start, Stop, and Restart Buttons -->
+            <div class="d-flex justify-content-center mt-5">
+              <!-- Add Stopwatch Div -->
+              <div
+                id="stopwatchContainer"
+                class="d-flex align-items-center justify-content-center border rounded p-2 text-center mx-2"
+              >
+                <div style="width: 200px">
+                  <h3 id="stopwatchTime" style="color: black !important">
+                    00:00
+                  </h3>
+                </div>
+              </div>
+
+              <button
+                id="startButton"
+                class="btn btn-success mx-2 action-buttons"
+              >
+                <i class="fas fa-play"></i> Start Test
+              </button>
+              <button
+                id="stopButton"
+                class="btn btn-danger mx-2 action-buttons"
+                disabled
+              >
+                <i class="fas fa-stop"></i> Stop Test
+              </button>
+              <button
+                id="restartButton"
+                class="btn btn-warning mx-2 action-buttons"
+                disabled
+              >
+                <i class="fas fa-redo"></i> Restart Test
+              </button>
+              <button
+                id="nextTestButton"
+                class="btn btn-secondary mx-2 action-buttons"
+                disabled
+              >
+                <i class="fas fa-arrow-right"></i> Next Test
+              </button>
+            </div>
+          </div>
+
+          <div id="result-container" style="display: none"></div>
+
+          <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bd-footer">
+      <div
+        id="footer-container"
+        class="container py-4 py-md-5 px-4 px-md-3 text-body-secondary"
+      ></div>
+    </footer>
+  </body>
+</html>
