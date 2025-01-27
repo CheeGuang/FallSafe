@@ -1,0 +1,10 @@
+canvas {
+    max-width: 100%;
+    height: 400px !important; /* Increase height */
+  }
+  
+@media (min-width: 768px) {
+    canvas {
+      height: 500px !important; /* Make charts bigger on larger screens */
+    }
+}
