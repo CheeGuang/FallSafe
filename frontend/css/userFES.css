@@ -1,0 +1,61 @@
+.indicator {
+    padding: 5px;
+    border-radius: 3px;
+    margin-top: 5px;
+    font-size: 20px;
+    text-align: center;
+    color: white;
+  }
+
+  .option {
+    width: 22%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .question {
+    padding: 10px 0; /* Increased vertical space for each question */
+    margin-bottom: 40px; 
+    font-size: 1.2rem;
+  }
+
+  .question p {
+    margin-bottom: 15px; 
+  }
+
+  input[type="radio"] {
+    width: 20px; 
+    height: 20px; 
+  }
+
+  .options {
+    display: flex;
+    justify-content: space-evenly;
+  }
+
+  .options .option {
+    padding: 10px;
+    font-size: 1.1rem;
+  }
+
+  .btn-primary {
+    padding: 10px 20px;
+    font-size: 1.2rem;
+  }
+
+  .container {
+    max-width: 900px;
+  }
+
+  .language-selector {
+    position: relative;
+    padding-bottom: 50px; /* Ensure enough space for the dropdown */
+    padding-top: 70px;
+  }
+
+  h1{
+    padding-top: 70px;
+  }
+  

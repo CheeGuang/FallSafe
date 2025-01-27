@@ -3,13 +3,13 @@ package main
 import (
 	"log"
 	"net/http"
-	"openAIMicroservice/openAI"
-
-	"os"
 	"strings"
+	"os"
 
-	"github.com/golang-jwt/jwt/v4"
+	"fallsEfficacyScaleMicroservice/FES"
+
 	"github.com/gorilla/handlers"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 )
 
@@ -52,7 +52,6 @@ func authenticateMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-
 func main() {
 	// Initialize the router
 	router := mux.NewRouter()
@@ -61,20 +60,18 @@ func main() {
 	authenticated := router.NewRoute().Subrouter()
 	authenticated.Use(authenticateMiddleware)
 
-	// Speech generation endpoint
-	authenticated.HandleFunc("/api/v1/generateSpeech", openAI.GenerateSpeech).Methods("POST")
-	authenticated.HandleFunc("/api/v1/generateResponse", openAI.GenerateResponse).Methods("POST")
-	authenticated.HandleFunc("/api/v1/generateTranslation", openAI.GenerateTranslation).Methods("POST")
-
+	// Public APIs
+	authenticated.HandleFunc("/api/v1/questions", FES.GetQuestions).Methods("GET")
+	authenticated.HandleFunc("/api/v1/saveResponses", FES.SaveResponse).Methods("POST")
 
 	// Add CORS support
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://127.0.0.1:5150"}), // Update for allowed origins
+		handlers.AllowedOrigins([]string{"http://127.0.0.1:5250"}), // Update for allowed origins
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "OPTIONS"}), // Update for allowed HTTP methods
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}), // Include Authorization header
 	)(router)
 
 	// Start the server
-	log.Println("OpenAI Microservice is running on port 5150...")
-	log.Fatal(http.ListenAndServe(":5150", corsHandler))
+	log.Println("fallsEfficacyScale Microservice is running on port 5250...")
+	log.Fatal(http.ListenAndServe(":5250", corsHandler))
 }
