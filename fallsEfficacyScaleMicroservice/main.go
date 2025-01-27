@@ -100,12 +100,12 @@ func main() {
 
 	// Add CORS support
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://127.0.0.1:5250"}),         // Update for allowed origins
+		handlers.AllowedOrigins([]string{"http://127.0.0.1:5300"}),         // Update for allowed origins
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "OPTIONS"}), // Update for allowed HTTP methods
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}), // Include Authorization header
 	)(router)
 
 	// Start the server
-	log.Println("fallsEfficacyScale Microservice is running on port 5250...")
-	log.Fatal(http.ListenAndServe(":5250", corsHandler))
+	log.Println("fallsEfficacyScale Microservice is running on port 5300...")
+	log.Fatal(http.ListenAndServe(":5300", corsHandler))
 }

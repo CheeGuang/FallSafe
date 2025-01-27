@@ -1,4 +1,4 @@
-const API_FES_URL = "http://localhost:5250/api/v1"; // FES API URL
+const API_FES_URL = "http://localhost:5300/api/v1"; // FES API URL
 const API_OpenAI_URL = "http://localhost:5150/api/v1"; // openAI API URL
 
 async function fetchQuestions() {

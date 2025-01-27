@@ -160,7 +160,7 @@ type UserResponse struct {
 }
 
 func CallFESForUserResponse(w http.ResponseWriter, r *http.Request) {
-	apiURL := "http://localhost:5250/api/v1/fes/getAllResponses"
+	apiURL := "http://localhost:5300/api/v1/fes/getAllResponses"
 
 	// Extract the Authorization header from the incoming request
 	authHeader := r.Header.Get("Authorization")
@@ -223,7 +223,7 @@ type UserResponseDetails struct {
 	ResponseScore int `json:"response_score"` // User's response score
 }
 func CallFESForUserResponseDetails(w http.ResponseWriter, r *http.Request){
-	apiURL := "http://localhost:5250/api/v1/fes/getAllIndividualRes" // URL to call `getAllFESIndividualRes` endpoint
+	apiURL := "http://localhost:5300/api/v1/fes/getAllIndividualRes" // URL to call `getAllFESIndividualRes` endpoint
 
 	// Extract the Authorization header from the incoming request
 	authHeader := r.Header.Get("Authorization")
