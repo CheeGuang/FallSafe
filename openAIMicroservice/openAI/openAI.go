@@ -94,8 +94,7 @@ func GenerateSpeech(w http.ResponseWriter, r *http.Request) {
 	log.Println("Entering GenerateSpeech...")
 
 	var requestData struct {
-		InputText      string `json:"input_text"`
-		TargetLanguage string `json:"target_language"` // Add target language for translation
+		InputText string `json:"input_text"`
 	}
 
 	log.Println("Decoding incoming request body...")
@@ -106,18 +105,8 @@ func GenerateSpeech(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("Request data received: %+v\n", requestData)
 
-	// Call TranslateText function to translate the input text
-	translatedText, err := TranslateText(requestData.TargetLanguage, requestData.InputText)
-	if err != nil {
-		log.Printf("Error translating text: %v\n", err)
-		http.Error(w, "Failed to translate text", http.StatusInternalServerError)
-		return
-	}
-
-	log.Printf("Translated text: %s\n", translatedText)
-
-	log.Println("Calling CallTTSModel with translated text...")
-	audioData, err := CallTTSModel(translatedText)
+	log.Println("Calling CallTTSModel...")
+	audioData, err := CallTTSModel(requestData.InputText)
 	if err != nil {
 		log.Printf("Error generating speech: %v\n", err)
 		http.Error(w, "Failed to generate speech", http.StatusInternalServerError)
@@ -137,7 +126,6 @@ func GenerateSpeech(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("Exiting GenerateSpeech...")
 }
-
 
 type GPT4oRequest struct {
 	Model    string    `json:"model"`

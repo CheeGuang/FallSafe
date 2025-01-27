@@ -70,34 +70,47 @@ const API_OpenAI_URL = "http://localhost:5150/api/v1"; // openAI API URL
 
     //play tts with TargetLanguage
     async function playTextToSpeech(text) {
-      const dropdown = document.getElementById("language-dropdown");
-      const targetLanguage = dropdown.value;
-
-      try {
-        const response = await fetch(`${API_OpenAI_URL}/generateSpeech`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ input_text: text, target_language: targetLanguage })
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to generate speech");
+        const dropdown = document.getElementById("language-dropdown");
+        const targetLanguage = dropdown.value;
+    
+        try {
+        let translatedText = text;
+        if (targetLanguage.toLowerCase() !== "en") {
+            const translationResponse = await fetch(`${API_OpenAI_URL}/generateTranslation`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ input_text: text, target_language: targetLanguage }),
+            });
+    
+            if (!translationResponse.ok) {
+            throw new Error("Failed to generate translation");
+            }
+    
+            const translationData = await translationResponse.json();
+            translatedText = translationData.translation;
+            console.log("Translated text:", translatedText);
         }
-
-        const audioBlob = await response.blob();
+    
+        const ttsResponse = await fetch(`${API_OpenAI_URL}/generateSpeech`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ input_text: translatedText, target_language: targetLanguage }),
+        });
+    
+        if (!ttsResponse.ok) {
+            throw new Error("Failed to generate speech");
+        }
+    
+        const audioBlob = await ttsResponse.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
         audio.play();
-      } catch (error) {
-        console.error("Error generating speech:", error);
-      }
+        } catch (error) {
+        console.error("Error during TTS process:", error);
+        }
     }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      fetchQuestions();
-
-      document.getElementById("submit-button").addEventListener("click", submitResponses);
-    });
+  
+  
 
   //generate response from openAI endpoint
   async function generateResponse(prompt) {
@@ -119,28 +132,7 @@ const API_OpenAI_URL = "http://localhost:5150/api/v1"; // openAI API URL
     }
   }
 
-  //generate translation from openAI endpoint
-  async function generateTranslation(text) {
-  const dropdown = document.getElementById("language-dropdown");
-  const targetLanguage = dropdown.value;
-
-  try {
-    const response = await fetch(`${API_OpenAI_URL}/generateTranslation`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ input_text: text, target_language: targetLanguage }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to generate translation");
-    }
-
-    const data = await response.json();
-    console.log("Translated text:", data.translation);
-  } catch (error) {
-    console.error("Error generating translation:", error);
-  }
-}
+  //generate translation from openAI endpoind
 
     
   //submit responses to db
