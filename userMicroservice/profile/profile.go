@@ -3,11 +3,9 @@ package profile
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
@@ -79,26 +77,12 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 // User represents the structure of a user record
 type User struct {
-	UserID      int              `json:"user_id"`
-	Name        string           `json:"name"`
-	Email       string           `json:"email"`
-	PhoneNumber string           `json:"phone_number"`
-	Address     string           `json:"address"`
-	Age         string           `json:"age"`
-	TestResults []UserTestResult `json:"test_results,omitempty"`
-}
-
-// UserTestResult represents the test results of a user
-type UserTestResult struct {
-	ResultID         int       `json:"result_id"`
-	UserID           int       `json:"user_id"`
-	SessionID        int       `json:"session_id"`
-	TestID           int       `json:"test_id"`
-	TestName         string    `json:"test_name"`
-	TimeTaken        float64   `json:"time_taken"`
-	AbruptPercentage int       `json:"abrupt_percentage"`
-	RiskLevel        string    `json:"risk_level"`
-	TestDate         time.Time `json:"test_date"`
+	UserID      int    `json:"user_id"`
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number"`
+	Address     string `json:"address"`
+	Age         string `json:"age"`
 }
 
 // GetUserByID handles retrieving a user record from the database by userID
@@ -127,14 +111,6 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch test results for the user
-	user.TestResults, err = GetUserTestResults(userID)
-	if err != nil {
-		log.Printf("Error fetching test results: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
 	// Respond with the user data as JSON
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(user)
@@ -145,91 +121,51 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetUserTestResults retrieves test results for a given userID
-func GetUserTestResults(userID string) ([]UserTestResult, error) {
+// Struct for retriving only name and age with ID
+type UserNameAge struct {
+	UserID int    `json:"user_id"`
+	Name   string `json:"name"`
+	Age    string `json:"age"`
+}
+
+// This function is used by admin in getting the whole list of elderly available
+func GetAllUser(w http.ResponseWriter, r *http.Request) {
+	var userList []UserNameAge
+	//Query to fetch all users (id, name, and age)
 	rows, err := db.Query(`
-		SELECT 
-			utr.result_id, 
-			utr.user_id, 
-			utr.session_id, 
-			utr.test_id, 
-			t.test_name,
-			utr.time_taken, 
-			utr.abrupt_percentage, 
-			utr.risk_level, 
-			CAST(utr.test_date AS CHAR) -- Convert test_date to string
-		FROM FallSafe_SelfAssessmentDB.UserTestResult utr
-		JOIN FallSafe_SelfAssessmentDB.Test t ON utr.test_id = t.test_id
-		WHERE utr.user_id = ?`, userID)
-
+		SELECT user_id, name, age
+		FROM User`)
 	if err != nil {
-		return nil, err
+		log.Printf("Error querying users: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 	defer rows.Close()
 
-	var results []UserTestResult
+	//Iterate over the rows and scan the values into the users slice
 	for rows.Next() {
-		var result UserTestResult
-		var testDateStr string // Store date as string before parsing
-
-		if err := rows.Scan(
-			&result.ResultID, &result.UserID, &result.SessionID,
-			&result.TestID, &result.TestName,
-			&result.TimeTaken, &result.AbruptPercentage,
-			&result.RiskLevel, &testDateStr); err != nil {
-			return nil, err
+		var user UserNameAge
+		if err := rows.Scan(&user.UserID, &user.Name, &user.Age); err != nil {
+			log.Printf("Error scanning user row: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
 		}
-
-		// Parse the string to time.Time
-		parsedDate, err := time.Parse("2006-01-02 15:04:05", testDateStr) // Adjust format if needed
-		if err != nil {
-			return nil, fmt.Errorf("error parsing test_date: %v", err)
-		}
-		result.TestDate = parsedDate
-
-		results = append(results, result)
+		userList = append(userList, user)
 	}
-	return results, nil
-}
 
-// UserFESResponse represents the structure for a Falls Efficacy Scale response
-type UserFESResponse struct {
-	ResponseID   int       `json:"response_id"`
-	UserID       int       `json:"user_id"`
-	TotalScore   int       `json:"total_score"`
-	ResponseDate time.Time `json:"response_date"`
-}
+	// Check if there was an error while iterating the rows
+	if err := rows.Err(); err != nil {
+		log.Printf("Error iterating over rows: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 
-// GetUserFESResults retrieves Falls Efficacy Scale test results for a given userID
-func GetUserFESResults(userID string) ([]UserFESResponse, error) {
-	rows, err := db.Query(
-		`SELECT response_id, user_id, total_score, response_date 
-		 FROM FallSafe_FallsEfficacyScaleDB.UserResponse 
-		 WHERE user_id = ?`, userID)
+	// Respond with the list of users as JSON
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(userList)
 	if err != nil {
-		return nil, err
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
-	defer rows.Close()
-
-	var results []UserFESResponse
-	for rows.Next() {
-		var result UserFESResponse
-		var responseDateStr string // Store date as string before parsing
-
-		if err := rows.Scan(
-			&result.ResponseID, &result.UserID,
-			&result.TotalScore, &responseDateStr); err != nil {
-			return nil, err
-		}
-
-		// Parse the string to time.Time
-		parsedDate, err := time.Parse("2006-01-02 15:04:05", responseDateStr)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing response_date: %v", err)
-		}
-		result.ResponseDate = parsedDate
-
-		results = append(results, result)
-	}
-	return results, nil
 }

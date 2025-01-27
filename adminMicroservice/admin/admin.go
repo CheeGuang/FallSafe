@@ -3,9 +3,12 @@ package admin
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
@@ -81,5 +84,197 @@ func GetAdminByID(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error encoding response: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
+	}
+}
+
+// Struct representing basic user information, for Dashboard
+type UserNameAge struct {
+	UserID int    `json:"user_id"`
+	Name   string `json:"name"`
+	Age    string `json:"age"`
+}
+
+func CallUserMicroservice(w http.ResponseWriter, r *http.Request) {
+	apiURL := "http://localhost:5100/api/v1/user/getAllUser"
+
+	//Extract the Authorization header from the incoming request
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, "Authorization header missing", http.StatusUnauthorized)
+		return
+	}
+
+	// Create an HTTP GET request
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		log.Printf("Error creating request: %v", err)
+		http.Error(w, "Failed to create request", http.StatusInternalServerError)
+		return
+	}
+
+	// Set the Authorization header
+	req.Header.Set("Authorization", authHeader)
+
+	// Perform the request to the downstream microservice
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Error making request: %v", err)
+		http.Error(w, "Failed to contact user microservice", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Check the status code of the response
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		http.Error(w, fmt.Sprintf("Microservice error: %s", string(body)), resp.StatusCode)
+		return
+	}
+
+	// Parse the response body
+	var users []UserNameAge
+	err = json.NewDecoder(resp.Body).Decode(&users)
+	if err != nil {
+		log.Printf("Error decoding response: %v", err)
+		http.Error(w, "Failed to parse response from microservice", http.StatusInternalServerError)
+		return
+	}
+
+	//Respond to the original client with the data
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(users)
+	if err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Failed to send response to client", http.StatusInternalServerError)
+	}
+}
+
+// Struct representing the User Response attributes
+type UserResponse struct {
+	ResponseID   uint16    `json:"response_id"`                      // Unique ID for the response
+	UserID       uint16    `json:"user_id"`                          // Associated user ID
+	TotalScore   uint16    `json:"total_score"`                      // Total score across all questions
+	ResponseDate time.Time `json:"response_date" db:"response_date"` // Date of response submission
+}
+
+func CallFESForUserResponse(w http.ResponseWriter, r *http.Request) {
+	apiURL := "http://localhost:5300/api/v1/fes/getAllResponses"
+
+	// Extract the Authorization header from the incoming request
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, "Authorization header missing", http.StatusUnauthorized)
+		return
+	}
+
+	// Create an HTTP GET request
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		log.Printf("Error creating request: %v", err)
+		http.Error(w, "Failed to create request", http.StatusInternalServerError)
+		return
+	}
+
+	// Set the Authorization header
+	req.Header.Set("Authorization", authHeader)
+
+	// Perform the request to the downstream microservice
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Error making request: %v", err)
+		http.Error(w, "Failed to contact response microservice", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Check the status code of the response
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		http.Error(w, fmt.Sprintf("Microservice error: %s", string(body)), resp.StatusCode)
+		return
+	}
+
+	// Parse the response body
+	var responses []UserResponse
+	err = json.NewDecoder(resp.Body).Decode(&responses)
+	if err != nil {
+		log.Printf("Error decoding response: %v", err)
+		http.Error(w, "Failed to parse response from microservice", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond to the original client with the data
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(responses)
+	if err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Failed to send response to client", http.StatusInternalServerError)
+	}
+}
+
+// Struct for Individual Question Information
+type UserResponseDetails struct {
+	ResponseID    int `json:"response_id"`    // Unique ID of the response
+	QuestionID    int `json:"question_id"`    // Associated question ID
+	ResponseScore int `json:"response_score"` // User's response score
+}
+func CallFESForUserResponseDetails(w http.ResponseWriter, r *http.Request){
+	apiURL := "http://localhost:5300/api/v1/fes/getAllIndividualRes" // URL to call `getAllFESIndividualRes` endpoint
+
+	// Extract the Authorization header from the incoming request
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, "Authorization header missing", http.StatusUnauthorized)
+		return
+	}
+
+	// Create an HTTP GET request
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		log.Printf("Error creating request: %v", err)
+		http.Error(w, "Failed to create request", http.StatusInternalServerError)
+		return
+	}
+
+	// Set the Authorization header
+	req.Header.Set("Authorization", authHeader)
+
+	// Perform the request to the downstream microservice
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Error making request: %v", err)
+		http.Error(w, "Failed to contact response microservice", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Check the status code of the response
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		http.Error(w, fmt.Sprintf("Microservice error: %s", string(body)), resp.StatusCode)
+		return
+	}
+
+	// Parse the response body
+	var responseDetails []UserResponseDetails
+	err = json.NewDecoder(resp.Body).Decode(&responseDetails)
+	if err != nil {
+		log.Printf("Error decoding response: %v", err)
+		http.Error(w, "Failed to parse response from microservice", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond to the original client with the data
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(responseDetails)
+	if err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Failed to send response to client", http.StatusInternalServerError)
 	}
 }

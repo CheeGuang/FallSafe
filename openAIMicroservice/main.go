@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"openAIMicroservice/openAI"
+
 	"os"
 	"strings"
 
@@ -56,12 +57,10 @@ func main() {
 	// Initialize the router
 	router := mux.NewRouter()
 
-
-
-
 	// JWT Authentication Logic
 	authenticated := router.NewRoute().Subrouter()
 	authenticated.Use(authenticateMiddleware)
+
 	// Speech generation endpoint
 	authenticated.HandleFunc("/api/v1/generateSpeech", openAI.GenerateSpeech).Methods("POST")
 	authenticated.HandleFunc("/api/v1/generateResponse", openAI.GenerateResponse).Methods("POST")
@@ -76,6 +75,6 @@ func main() {
 	)(router)
 
 	// Start the server
-	log.Println("User Microservice is running on port 5150...")
+	log.Println("OpenAI Microservice is running on port 5150...")
 	log.Fatal(http.ListenAndServe(":5150", corsHandler))
 }
