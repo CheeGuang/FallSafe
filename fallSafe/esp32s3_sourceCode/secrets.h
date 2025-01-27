@@ -5,6 +5,8 @@
  
 const char WIFI_SSID[] = "LEES";               //change this
 const char WIFI_PASSWORD[] = "64611373";           //change this
+// const char WIFI_SSID[] = "Jeffrey Lee";               //change this
+// const char WIFI_PASSWORD[] = "JeffreyLee";           //change this
 const char AWS_IOT_ENDPOINT[] = "a2whgkpksw2b1u-ats.iot.ap-southeast-1.amazonaws.com";       //change this
  
 // Amazon Root CA 1

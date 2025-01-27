@@ -30,6 +30,8 @@ PubSubClient client(net);
 void connectAWS()
 {
   WiFi.mode(WIFI_STA);
+  Serial.println(WIFI_SSID);
+  Serial.println(WIFI_PASSWORD);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   Serial.println("Connecting to Wi-Fi");
@@ -176,6 +178,36 @@ void setup()
   initMPU9250();
   Serial.println("MPU9250 initialized successfully.");
 
+  Serial.println("Scanning for Wi-Fi networks...");
+  
+  // Perform Wi-Fi scan
+  int networkCount = WiFi.scanNetworks();
+  if (networkCount == 0) {
+    Serial.println("No networks found.");
+  } else {
+    Serial.println("Networks found:");
+    for (int i = 0; i < networkCount; i++) {
+      // Print SSID, Signal Strength, and Encryption Type
+      Serial.print(i + 1);
+      Serial.print(": ");
+      Serial.print(WiFi.SSID(i));       // SSID name
+      Serial.print(" (");
+      Serial.print(WiFi.RSSI(i));      // Signal strength
+      Serial.print(" dBm) ");
+      Serial.print("Encryption: ");
+      switch (WiFi.encryptionType(i)) { // Print encryption type
+        case WIFI_AUTH_OPEN: Serial.println("Open"); break;
+        case WIFI_AUTH_WEP: Serial.println("WEP"); break;
+        case WIFI_AUTH_WPA_PSK: Serial.println("WPA/PSK"); break;
+        case WIFI_AUTH_WPA2_PSK: Serial.println("WPA2/PSK"); break;
+        case WIFI_AUTH_WPA_WPA2_PSK: Serial.println("WPA/WPA2/PSK"); break;
+        case WIFI_AUTH_WPA3_PSK: Serial.println("WPA3/PSK"); break;
+        default: Serial.println("Unknown"); break;
+      }
+      delay(10);
+    }
+  }
+  
   connectAWS();
 }
 
