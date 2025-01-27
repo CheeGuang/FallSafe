@@ -17,7 +17,7 @@ async function fetchQuestions() {
     renderQuestions(questions);
   } catch (error) {
     console.error(error);
-    alert("Error fetching questions. Please try again.");
+    showCustomAlert("Error fetching questions. Please try again.");
   }
 }
 
@@ -170,7 +170,7 @@ async function submitResponses() {
         score: parseInt(selectedOption.value, 10),
       });
     } else {
-      alert("Please answer all questions before submitting.");
+      showCustomAlert("Please answer all questions before submitting.");
       throw new Error("Incomplete responses");
     }
   });
@@ -195,10 +195,10 @@ async function submitResponses() {
     }
 
     const result = await response.json();
-    alert(result.message);
+    showCustomAlert(result.message, "userHome.html");
   } catch (error) {
     console.error(error);
-    alert("Error submitting responses. Please try again.");
+    showCustomAlert("Error submitting responses. Please try again.");
   }
 }
 

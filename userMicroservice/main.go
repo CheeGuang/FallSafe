@@ -92,12 +92,11 @@ func main() {
 
 	// JWT Authentication Logic
 	authenticated := router.NewRoute().Subrouter()
-
 	authenticated.HandleFunc("/api/v1/user/getAllUser", profile.GetAllUser).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(profile.GetAllUser)))
 	authenticated.HandleFunc("/api/v1/user/getAUserFESResults", profile.CallFESForGetUserFESResults).Methods("GET").Handler(authenticateMiddleware([]string{"User"})(http.HandlerFunc(profile.CallFESForGetUserFESResults)))
 	authenticated.HandleFunc("/api/v1/user/getAUserTestResults", profile.CallSelfAssessmentForGetUserTestResults).Methods("GET").Handler(authenticateMiddleware([]string{"User"})(http.HandlerFunc(profile.CallSelfAssessmentForGetUserTestResults)))
 
-	//authenticated.Use(authenticateMiddleware)
+	//
 
 	// Add CORS support
 	corsHandler := handlers.CORS(
