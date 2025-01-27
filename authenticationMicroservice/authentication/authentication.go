@@ -240,6 +240,7 @@ func generateJWT(userID int) (string, time.Time, error) {
 		"phone_number": user.PhoneNumber,
 		"address":      user.Address,
 		"age":          user.Age,
+		"role":         "User",
 		"exp":          expiryTime.Unix(),
 		"iat":          time.Now().Unix(),
 	}
