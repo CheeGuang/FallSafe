@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
+
 // JWT Authentication Middleware with Role Check for multiple roles
 func authenticateMiddleware(allowedRoles []string) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
@@ -91,7 +92,7 @@ func main() {
 
 	// Protected APIs
 	authenticated.HandleFunc("/api/v1/questions", FES.GetQuestions).Methods("GET").Handler(authenticateMiddleware([]string{"User"})(http.HandlerFunc(FES.GetQuestions)))
-	authenticated.HandleFunc("/api/v1/saveResponses", FES.SaveResponse).Methods("POST")
+	authenticated.HandleFunc("/api/v1/saveResponses", FES.SaveResponse).Methods("POST").Handler(authenticateMiddleware([]string{"User"})(http.HandlerFunc(FES.SaveResponse)))
 	authenticated.HandleFunc("/api/v1/fes/getAllResponses", FES.GetAllUserResponse).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(FES.GetAllUserResponse)))
 	authenticated.HandleFunc("/api/v1/fes/getAllIndividualRes", FES.GetAllFESIndividualRes).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(FES.GetAllFESIndividualRes)))
 
