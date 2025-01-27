@@ -59,10 +59,13 @@ func authenticateMiddleware(next http.Handler) http.Handler {
 func main() {
 	// Initialize the router
 	router := mux.NewRouter()
-	
+
 	// Authentication test endpoint
 	router.HandleFunc("/api/v1/selfAssessment/ws", selfAssessment.StartWebSocketServer)
-	
+
+	// Unauthenticated endpoint
+	router.HandleFunc("/api/v1/user/getUserResults", selfAssessment.GetUserTestResults).Methods("GET")
+
 	// JWT Authentication Logic
 	authenticated := router.NewRoute().Subrouter()
 	authenticated.Use(authenticateMiddleware)
@@ -72,8 +75,8 @@ func main() {
 		go selfAssessment.StartMQTTConnection() // Start MQTT connection in a goroutine
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("MQTT connection started and subscribed to topic."))
-		}).Methods("GET")
-		
+	}).Methods("GET")
+
 	// Authentication test endpoint
 	authenticated.HandleFunc("/api/v1/selfAssessment/test", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Starting self-assessment test...")
@@ -183,7 +186,7 @@ func main() {
 	}).Methods("POST")
 	// Add CORS support
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://127.0.0.1:5250"}), // Update for allowed origins
+		handlers.AllowedOrigins([]string{"http://127.0.0.1:5250"}),         // Update for allowed origins
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "OPTIONS"}), // Update for allowed HTTP methods
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}), // Include Authorization header
 	)(router)

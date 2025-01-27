@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
+
 // JWT Authentication Middleware with Role Check for multiple roles
 func authenticateMiddleware(allowedRoles []string) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
@@ -94,6 +95,7 @@ func main() {
 	authenticated.HandleFunc("/api/v1/saveResponses", FES.SaveResponse).Methods("POST")
 	authenticated.HandleFunc("/api/v1/fes/getAllResponses", FES.GetAllUserResponse).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(FES.GetAllUserResponse)))
 	authenticated.HandleFunc("/api/v1/fes/getAllIndividualRes", FES.GetAllFESIndividualRes).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(FES.GetAllFESIndividualRes)))
+	authenticated.HandleFunc("/api/v1/user/getFESResults", FES.GetUserFESResults).Methods("GET").Handler(authenticateMiddleware([]string{"User"})(http.HandlerFunc(FES.GetUserFESResults)))
 
 	// Speech generation endpoint
 	//authenticated.HandleFunc("/api/v1/readQuestion", openAI.ReadQuestion).Methods("POST")
