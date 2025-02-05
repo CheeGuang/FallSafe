@@ -1,0 +1,22 @@
+.action-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* Add spacing between buttons */
+  }
+  
+  .action-buttons .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30%; /* Adjust the width if needed */
+    padding: 15px;
+    font-size: 1.2rem; /* Slightly larger font */
+    font-weight: bold; /* Bold text */
+    border-radius: 8px;
+  }
+  
+  .action-buttons .btn i {
+    margin-right: 15px; /* Space between icon and text */
+    font-size: 1.5rem; /* Slightly larger icon size */
+  }

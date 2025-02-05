@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (selectedRole == "User"){ //only for normal User
           showCustomAlert("Login successful!", "./userHome.html");
         } else if (selectedRole === "Admin") {
-          showCustomAlert("Admin login successful", "./adminDashboard.html");
+          showCustomAlert("Admin login successful", "./adminHome.html");
         }
       } else {
         // If login fails, show an error message

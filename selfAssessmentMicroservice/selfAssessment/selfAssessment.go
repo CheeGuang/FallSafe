@@ -573,10 +573,10 @@ func calculateScore(timeTaken, abruptPercentage float64, testName string) int {
 		TimeTolerance   float64
 		AbruptTolerance float64
 	}{
-		"Timed Up and Go Test":        {TimeTolerance: 12, AbruptTolerance: 20},
+		"Timed Up and Go Test":         {TimeTolerance: 12, AbruptTolerance: 20},
 		"Five Times Sit to Stand Test": {TimeTolerance: 14, AbruptTolerance: 20},
-		"Dynamic Gait Index (DGI)":    {TimeTolerance: 20, AbruptTolerance: 20},
-		"4 Stage Balance Test":        {TimeTolerance: 40, AbruptTolerance: 15},
+		"Dynamic Gait Index (DGI)":     {TimeTolerance: 20, AbruptTolerance: 20},
+		"4 Stage Balance Test":         {TimeTolerance: 40, AbruptTolerance: 15},
 	}
 
 	// Default tolerances
@@ -611,8 +611,6 @@ func calculateScore(timeTaken, abruptPercentage float64, testName string) int {
 	finalScore := int(math.Round(float64(timeScore)*0.7 + float64(abruptScore)*0.3))
 	return finalScore
 }
-
-
 
 // UserTestResult represents the test results of a user
 type UserTestResult struct {
@@ -693,5 +691,262 @@ func GetUserTestResults(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(results); err != nil {
 		http.Error(w, "Failed to encode JSON", http.StatusInternalServerError)
+	}
+}
+
+// Struct to hold user_id, avg score and session_date
+type TestSessionUser struct {
+	SessionID   int       `json:"session_id"`   // Unique ID for the session
+	UserID      int       `json:"user_id"`      // Associated user ID
+	SessionDate time.Time `json:"session_date"` // Date and time of the session
+	AvgScore    int16     `json:"avg_score"`    // Average score for the session
+}
+
+func GetAllUserAvgScore(w http.ResponseWriter, r *http.Request) {
+	// Define a slice to store the list of test session user results
+	var sessionResults []TestSessionUser
+
+	// Query to fetch all test session details
+	rows, err := db.Query(`
+		SELECT session_id, user_id, session_date, avg_score
+		FROM TestSession`)
+	if err != nil {
+		log.Printf("Error querying test session results: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// Iterate over the rows and scan the values into the sessionResults slice
+	for rows.Next() {
+		var session TestSessionUser
+		if err := rows.Scan(
+			&session.SessionID,
+			&session.UserID,
+			&session.SessionDate,
+			&session.AvgScore,
+		); err != nil {
+			log.Printf("Error scanning test session row: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		sessionResults = append(sessionResults, session)
+	}
+
+	// Check if there was an error while iterating over the rows
+	if err := rows.Err(); err != nil {
+		log.Printf("Error iterating over rows: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with the list of test session results as JSON
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(sessionResults)
+	if err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+// Struct to represent avg_time with test name Result
+type FATestWithAvgTime struct {
+	ResultID    uint      `json:"result_id"`
+	TestName    string    `json:"test_name"`
+	UserID      uint      `json:"user_id"`
+	TimeTaken   float64   `json:"time_taken"`
+	SessionDate time.Time `json:"session_date"`
+}
+
+// Function to fetch the test name, as well as the userID and time taken.
+func GetAllFATestWithAvgTime(w http.ResponseWriter, r *http.Request) {
+	// Define a slice to store the list of test results
+	var testResults []FATestWithAvgTime
+
+	// Query to fetch test results with test name and session date
+	rows, err := db.Query(`
+		SELECT utr.result_id, t.test_name, utr.user_id, utr.time_taken, ts.session_date
+		FROM UserTestResult utr
+		JOIN Test t ON utr.test_id = t.test_id
+		JOIN TestSession ts ON utr.session_id = ts.session_id`)
+	if err != nil {
+		log.Printf("Error querying user test results: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// Iterate over the rows and scan the values into the testResults slice
+	for rows.Next() {
+		var result FATestWithAvgTime
+		if err := rows.Scan(
+			&result.ResultID,
+			&result.TestName,
+			&result.UserID,
+			&result.TimeTaken,
+			&result.SessionDate,
+		); err != nil {
+			log.Printf("Error scanning test result row: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		testResults = append(testResults, result)
+	}
+
+	// Check if there was an error while iterating over the rows
+	if err := rows.Err(); err != nil {
+		log.Printf("Error iterating over rows: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with the list of test results as JSON
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(testResults)
+	if err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+// Struct to hold user_id and overall_risk_level
+type UserRisk struct {
+	UserID         int    `json:"user_id"`
+	OverallRiskLevel string `json:"overall_risk_level"`
+}
+
+func GetUserOverallLatestRisk(w http.ResponseWriter, r *http.Request) {
+	// Slice to hold the results
+	var userRisks []UserRisk
+
+	// Query to get the latest session for each user and determine their overall risk level
+	query := `
+		WITH LatestSession AS (
+			SELECT user_id, MAX(session_id) AS latest_session_id
+			FROM TestSession
+			GROUP BY user_id
+		),
+		RiskCount AS (
+			SELECT 
+				ls.user_id,
+				SUM(CASE WHEN utr.risk_level = 'low' THEN 1 ELSE 0 END) AS low_count,
+				SUM(CASE WHEN utr.risk_level = 'moderate' THEN 1 ELSE 0 END) AS moderate_count,
+				SUM(CASE WHEN utr.risk_level = 'high' THEN 1 ELSE 0 END) AS high_count
+			FROM LatestSession ls
+			JOIN UserTestResult utr ON ls.latest_session_id = utr.session_id
+			GROUP BY ls.user_id
+		)
+		SELECT 
+			user_id,
+			CASE 
+				WHEN high_count >= 2 THEN 'high'
+				WHEN moderate_count >= 2 THEN 'moderate'
+				ELSE 'low'
+			END AS overall_risk_level
+		FROM RiskCount;
+	`
+
+	// Execute query
+	rows, err := db.Query(query)
+	if err != nil {
+		log.Printf("Error executing query: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// Scan results into the slice
+	for rows.Next() {
+		var risk UserRisk
+		if err := rows.Scan(&risk.UserID, &risk.OverallRiskLevel); err != nil {
+			log.Printf("Error scanning row: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		userRisks = append(userRisks, risk)
+	}
+
+	// Check for errors after scanning rows
+	if err := rows.Err(); err != nil {
+		log.Printf("Error iterating over rows: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with JSON output
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(userRisks)
+	if err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+// struct to hold the user ID and days since last response
+type FallAssesLastRes struct {
+	UserID             int    `json:"user_id"`
+	DaysSinceResponse  int    `json:"days_since_last_fares"`
+}
+// Gets the user_id with days since last response for fall assessment
+func GetAllFallAssesLatestResDate(w http.ResponseWriter, r *http.Request) {
+	// Define a slice to store the list of user responses
+	var userResponseList []FallAssesLastRes
+
+	// Query to fetch the user_id and last response date from FallAssessment table
+	rows, err := db.Query(`
+		SELECT user_id, MAX(session_date) AS last_response_date
+		FROM TestSession
+		GROUP BY user_id;
+	`)
+	if err != nil {
+		log.Printf("Error querying fall assessment responses: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// Iterate over the rows and scan the values into the userResponseList slice
+	for rows.Next() {
+		var response FallAssesLastRes
+		var lastResponseDate string
+		if err := rows.Scan(&response.UserID, &lastResponseDate); err != nil {
+			log.Printf("Error scanning fall assessment row: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		// Parse the last response date and calculate the number of days since that date
+		parsedDate, err := time.Parse("2006-01-02T15:04:05Z", lastResponseDate)
+		if err != nil {
+			log.Printf("Error parsing last response date: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		// Calculate the difference in days
+		daysSinceResponse := int(time.Since(parsedDate).Hours() / 24)
+		response.DaysSinceResponse = daysSinceResponse
+
+		// Add the result to the response list
+		userResponseList = append(userResponseList, response)
+	}
+
+	// Check if there was an error while iterating over the rows
+	if err := rows.Err(); err != nil {
+		log.Printf("Error iterating over rows: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with the list of user responses as JSON
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(userResponseList)
+	if err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 }

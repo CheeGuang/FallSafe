@@ -333,3 +333,71 @@ func GetAllFESIndividualRes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+// Define a struct to hold the response data
+type UserLastResDetails struct {
+	UserID           int    `json:"user_id"`
+	DaysSinceResponse int    `json:"days_since_last_fesres"`
+}
+//Get the user_id with their days since last res
+func GetAllFESLatestResDate(w http.ResponseWriter, r *http.Request) {
+	// Define a slice to store the list of user responses
+	var userResponseList []UserLastResDetails
+
+	// Query to fetch the user_id and last response date
+	rows, err := db.Query(`
+		SELECT user_id, MAX(response_date) AS last_response_date
+		FROM UserResponse
+		GROUP BY user_id;
+	`)
+	if err != nil {
+		log.Printf("Error querying user responses: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// Iterate over the rows and scan the values into the userResponseList slice
+	for rows.Next() {
+		var response UserLastResDetails
+		var lastResponseDate string
+		if err := rows.Scan(&response.UserID, &lastResponseDate); err != nil {
+			log.Printf("Error scanning user response row: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		// Parse the last response date and calculate the number of days since that date
+		parsedDate, err := time.Parse("2006-01-02T15:04:05Z", lastResponseDate)
+		if err != nil {
+			log.Printf("Error parsing last response date: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		// Calculate the difference in days
+		daysSinceResponse := int(time.Since(parsedDate).Hours() / 24)
+		response.DaysSinceResponse = daysSinceResponse
+
+
+		// Add the result to the response list
+		userResponseList = append(userResponseList, response)
+	}
+
+	// Check if there was an error while iterating over the rows
+	if err := rows.Err(); err != nil {
+		log.Printf("Error iterating over rows: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with the list of user responses as JSON
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(userResponseList)
+	if err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+	

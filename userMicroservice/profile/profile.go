@@ -128,15 +128,16 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 type UserNameAge struct {
 	UserID int    `json:"user_id"`
 	Name   string `json:"name"`
+	Email  string `json:"email"`
 	Age    string `json:"age"`
 }
 
 // This function is used by admin in getting the whole list of elderly available
 func GetAllUser(w http.ResponseWriter, r *http.Request) {
 	var userList []UserNameAge
-	//Query to fetch all users (id, name, and age)
+	//Query to fetch all users (id, name, email and age)
 	rows, err := db.Query(`
-		SELECT user_id, name, age
+		SELECT user_id, name, email, age
 		FROM User`)
 	if err != nil {
 		log.Printf("Error querying users: %v", err)
@@ -148,7 +149,7 @@ func GetAllUser(w http.ResponseWriter, r *http.Request) {
 	//Iterate over the rows and scan the values into the users slice
 	for rows.Next() {
 		var user UserNameAge
-		if err := rows.Scan(&user.UserID, &user.Name, &user.Age); err != nil {
+		if err := rows.Scan(&user.UserID, &user.Name, &user.Email, &user.Age); err != nil {
 			log.Printf("Error scanning user row: %v", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return

@@ -1,0 +1,28 @@
+.chart-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+.chart-card {
+    width: 48%;
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    border-radius: 8px;
+}
+.page-link {
+    color: #007bff;
+    background-color: #fff !important;
+    border: 1px solid #dee2e6 !important;
+    transition: all 0.3s ease !important;
+}
+
+.page-link:hover {
+    background-color: #f8f9fa !important;
+    color: #0056b3 !important;
+}
+
+.page-item.active .page-link {
+    background-color: #007bff !important;
+    border-color: #007bff !important;
+    color: white !important;
+}

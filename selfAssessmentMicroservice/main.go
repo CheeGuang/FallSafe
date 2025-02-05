@@ -102,6 +102,12 @@ func main() {
 	authenticated := router.NewRoute().Subrouter()
 	authenticated.Use(authenticateMiddleware([]string{"Admin", "User"}))
 
+	//Endpoints for Admin dashboard
+	authenticated.HandleFunc("/api/v1/selfAssessment/getAllAvgScore", selfAssessment.GetAllUserAvgScore).Methods("GET")
+	authenticated.HandleFunc("/api/v1/selfAssessment/getAllAvgTime", selfAssessment.GetAllFATestWithAvgTime).Methods("GET")
+	authenticated.HandleFunc("/api/v1/selfAssessment/getAllUserRisk", selfAssessment.GetUserOverallLatestRisk).Methods("GET")
+	authenticated.HandleFunc("/api/v1/selfAssessment/getAllLastResDay", selfAssessment.GetAllFallAssesLatestResDate).Methods("GET")
+
 	// Self-Assessment management endpoints
 	authenticated.HandleFunc("/api/v1/selfAssessment/startMQTT", func(w http.ResponseWriter, r *http.Request) {
 		go selfAssessment.StartMQTTConnection() // Start MQTT connection in a goroutine

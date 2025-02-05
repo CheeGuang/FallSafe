@@ -1,5 +1,9 @@
 const token = localStorage.getItem("token");
 console.log(token);
+if (!token) {
+    // Redirect to the login page if no token is found
+    window.location.href = "./login.html";
+}
 
 // Store the fetched data globally for use in filtering and rendering
 let dashboardData = {
@@ -187,7 +191,7 @@ function updateDashboard(filterType, filterValue) {
 
     const userIds = filteredUsers.map(user => user.user_id);
     const filteredResponses = dashboardData.userResponses.filter(response => userIds.includes(response.user_id));
-
+    //console.log("filtered:" + filteredResponses);
     // Update charts
     updateAverageScoreChart(filteredResponses);
     updateDistributionChart(filteredResponses);

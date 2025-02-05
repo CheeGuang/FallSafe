@@ -1,0 +1,512 @@
+const token = localStorage.getItem("token");
+console.log(token);
+if (!token) {
+    // Redirect to the login page if no token is found
+    window.location.href = "./login.html";
+}
+
+// Store the fetched data globally for use in filtering and rendering
+let dashboardData = {
+    users: [],
+    avgScoreList: [],
+    TimeTakenList: [],
+    tableDatafullList:[], //original data set to be compared
+    tableDatafilteredList: [], //will used this as the global one for filtered
+};
+//Pages for the table
+let currentPage = 1;
+const usersPerPage = 5;
+
+
+//sample data format for users
+/*{
+    "user_id": 1,
+    "name": "Alice Tan",
+    "email" ""
+    "age": "61"
+},
+//sample data for avgScoreTestSession
+{
+    "session_id": 1,
+    "user_id": 1,
+    "session_date": "2022-07-27T00:00:00Z",
+    "avg_score": 22
+},
+//sample data for timeTakenChart
+{
+    "result_id": 1,
+    "test_name": "Timed Up and Go Test",
+    "user_id": 1,
+    "time_taken": 25.5,
+    "session_date": "2022-07-27T00:00:00Z"
+},
+{
+    "result_id": 5,
+    "test_name": "Timed Up and Go Test",
+    "user_id": 1,
+    "time_taken": 23,
+    "session_date": "2023-01-27T00:00:00Z"
+},
+//sample schema for table
+{
+    "user_id": 1,
+    "overall_risk_level": "high"
+},
+*/
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    initializeDashboard();
+    setupEventListeners();
+});
+
+async function initializeDashboard() {
+    try {
+        const [users, avgScoreList, TimeTakenList, latestOverallRisk ] = await Promise.all([fetchUsersFromAPI(), fetchFAAvgScoreFromAPI(), fetchFAAvgTimeFromAPI(), fetchAllUserRiskFromAPI()]);
+
+        // Store the fetched data
+        dashboardData.users = users;
+        dashboardData.avgScoreList = avgScoreList;
+        dashboardData.TimeTakenList = TimeTakenList;
+
+        const mergedList = mergeUserRiskData(users, latestOverallRisk);
+        dashboardData.tableDatafullList = mergedList;
+
+        console.log(users);
+        initializeCharts();
+        updateDashboard('age', 'all'); // Load initial data for all elderly
+    } catch (error) {
+        console.error('Error initializing dashboard:', error);
+        showCustomAlert('Failed to load data. Please try again later.');
+    }
+}
+//to populate risk data for table
+function mergeUserRiskData(userDetailsList, riskLevelsList) {
+    return riskLevelsList.map(risk => {
+        // Find the corresponding user details by user_id
+        const user = userDetailsList.find(user => user.user_id === risk.user_id);
+        
+        if (user) {
+            return {
+                user_id: user.user_id,
+                name: user.name,
+                email: user.email,
+                age: user.age,
+                overall_risk_level: risk.overall_risk_level
+            };
+        }
+        return null;
+    }).filter(user => user !== null); // Remove null values
+}
+
+
+
+// Function to fetch users from API
+async function fetchUsersFromAPI() {
+    try {
+        console.log(token);
+        const response = await fetch('http://localhost:5200/api/v1/admin/getAllElderlyUser', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            const errorDetails = await response.text();
+            throw new Error(`Error: ${errorDetails || 'Failed to fetch users'}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching users:', error.message);
+        showCustomAlert("Error fetching user's list");
+        throw error;
+    }
+}
+
+// Function to fetch average scores from API
+async function fetchFAAvgScoreFromAPI() {
+    try {
+        console.log(token);
+        const response = await fetch('http://localhost:5200/api/v1/admin/getAllFAAvgScore', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            const errorDetails = await response.text();
+            throw new Error(`Error: ${errorDetails || 'Failed to fetch average scores'}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching average scores:', error.message);
+        showCustomAlert("Error fetching average scores");
+        throw error;
+    }
+}
+
+// Function to fetch all user test time taken 
+async function fetchFAAvgTimeFromAPI() {
+    try {
+        const response = await fetch('http://localhost:5200/api/v1/admin/getAllFATime', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            const errorDetails = await response.text();
+            throw new Error(`Error: ${errorDetails || 'Failed to fetch test results'}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching test results:', error.message);
+        showCustomAlert("Error fetching test results");
+        throw error;
+    }
+}
+
+// Function to fetch all user risk levels, latest
+async function fetchAllUserRiskFromAPI() {
+    try {
+        const response = await fetch('http://localhost:5250/api/v1/selfAssessment/getAllUserRisk', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            const errorDetails = await response.text();
+            throw new Error(`Error: ${errorDetails || 'Failed to fetch user risk levels'}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching user risk levels:', error.message);
+        showCustomAlert("Error fetching user risk levels");
+        throw error;
+    }
+}
+
+function setupEventListeners() {
+    const ageGroupSelector = document.getElementById('ageGroupSelector');
+    const searchButton = document.getElementById('searchButton');
+    const userIdInput = document.getElementById('individualSearch');
+
+    // Handle age group selection
+    ageGroupSelector.addEventListener('change', function () {
+        const selectedAgeGroup = ageGroupSelector.value;
+
+        if (selectedAgeGroup === 'all') {
+            if (userIdInput.value !== '') {
+                userIdInput.value = ''; // Clear the User ID input
+                updateDashboard('all'); // Fetch and display all users
+            } else {
+                userIdInput.disabled = false; // Enable User ID input
+                updateDashboard('all'); // Display all users if no previous search was done
+            }
+        } else {
+            userIdInput.value = ''; // Clear User ID input
+            userIdInput.disabled = true; // Disable User ID input
+            updateDashboard('age', selectedAgeGroup); // Filter by age group
+        }
+    });
+
+    // Handle the "ALL" button click separately to reset the filter
+    document.getElementById('ageGroupSelector').addEventListener('click', function () {
+        const selectedAgeGroup = ageGroupSelector.value;
+
+        // If the "ALL" option is clicked and the User ID input has value, clear it
+        if (selectedAgeGroup === 'all') {
+            if (userIdInput.value !== '') {
+                userIdInput.value = ''; // Clear the User ID input
+                updateDashboard('all'); // Reset dashboard to show all users
+            }
+        }
+    });
+
+    // Handle user ID search
+    searchButton.addEventListener('click', function () {
+        const userId = parseInt(userIdInput.value, 10);
+        const selectedAgeGroup = ageGroupSelector.value;
+
+        if (selectedAgeGroup === 'all') {
+            if (!isNaN(userId)) {
+                updateDashboard('user', userId);
+            } else {
+                showCustomAlert('Please enter a valid User ID.');
+            }
+        } else {
+            showCustomAlert('Age range is selected. Search by User ID is disabled.');
+        }
+    });
+}
+
+function updateDashboard(filterType, filterValue) {
+    let filteredUsers;
+    if (filterType === 'all') {
+        // Display all users
+        filteredUsers = dashboardData.users; 
+    }
+    // Filter by age group
+    else if (filterType === 'age') {
+        if (filterValue === 'all') {
+            filteredUsers = dashboardData.users; // All users if 'all' is selected
+        } else {
+            const [minAge, maxAge] = filterValue === '90+' ? [90, Infinity] : filterValue.split('-').map(Number);
+            filteredUsers = dashboardData.users.filter(user => user.age >= minAge && user.age <= maxAge);
+        }
+    }
+
+    // Filter by User ID
+    else if (filterType === 'user') {
+        filteredUsers = dashboardData.users.filter(user => user.user_id === filterValue);
+    }
+
+    const userIds = filteredUsers.map(user => user.user_id);
+    const filteredResponsesAvgScore = dashboardData.avgScoreList.filter(response => userIds.includes(response.user_id));
+    const filteredResponsesAvgTime = dashboardData.TimeTakenList.filter(response => userIds.includes(response.user_id));
+    //filtering of TABLE
+    const riskLevels = {
+        'low': 1,
+        'moderate': 2,
+        'high': 3
+    };
+    
+    const givenListTable = dashboardData.tableDatafullList
+        .filter(response => userIds.includes(response.user_id))
+        .sort((a, b) => riskLevels[b.overall_risk_level] - riskLevels[a.overall_risk_level]);   
+
+    dashboardData.tableDatafilteredList = givenListTable; //save as global, will be referencing to this
+    console.log(givenListTable);
+    updateAverageScoreChart(filteredResponsesAvgScore);
+    updateTimeTakenChart(filteredResponsesAvgTime);
+    renderTable(givenListTable);
+}
+
+
+function updateAverageScoreChart(filteredResponses){
+    const monthlyAverages = {};
+
+    // Iterate over each response to accumulate total score and count per month
+    filteredResponses.forEach(response => {
+        const month = response.session_date.slice(0, 7); // Extract "YYYY-MM"
+        if (!monthlyAverages[month]) {
+            monthlyAverages[month] = { totalScore: 0, count: 0 };
+        }
+        monthlyAverages[month].totalScore += response.avg_score; // Add the avg_score to the total for the month
+        monthlyAverages[month].count += 1; // Increment the count for the month
+    });
+
+    // Sort the months (labels) and calculate the average score for each month
+    const labels = Object.keys(monthlyAverages).sort();
+    const data = labels.map(month => {
+        const average = monthlyAverages[month].totalScore / monthlyAverages[month].count;
+        return parseFloat(average.toFixed(2)); // Ensure the average is rounded to 2 decimal places
+    });
+
+    // Update the chart with the new data
+    window.averageSessionScoreChart.data.labels = labels;
+    window.averageSessionScoreChart.data.datasets[0].data = data;
+    window.averageSessionScoreChart.update();
+}
+
+function updateTimeTakenChart(filteredResponses) {
+    // Compute average time taken per test name
+    const testAvgTime = {};
+    const testCount = {};
+
+    filteredResponses.forEach(({ test_name, time_taken }) => {
+        if (!testAvgTime[test_name]) {
+            testAvgTime[test_name] = 0;
+            testCount[test_name] = 0;
+        }
+        testAvgTime[test_name] += time_taken;
+        testCount[test_name] += 1;
+    });
+
+    // Calculate final averages
+    const testNames = Object.keys(testAvgTime);
+    const avgTimes = testNames.map(test => (testAvgTime[test] / testCount[test]).toFixed(2));
+
+    // Update the Chart.js dataset
+    window.timeTakenChart.data.labels = testNames;
+    window.timeTakenChart.data.datasets[0].data = avgTimes;
+    window.timeTakenChart.update();
+
+}
+
+function initializeCharts() {
+
+    /*const mockTestResults = [
+        { test_name: "Balance Test", avg_time: 12.5 },
+        { test_name: "Strength Test", avg_time: 18.7 },
+        { test_name: "Cognitive Test", avg_time: 22.3 },
+        { test_name: "Endurance Test", avg_time: 15.4 },
+    ];*/
+
+    // Line Chart: Average Session Score Over Time
+    const avgCtx = document.getElementById('averageSessionScoreChart').getContext('2d');
+    window.averageSessionScoreChart = new Chart(avgCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Average Session Score',
+                data: [],
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { title: { display: true, text: 'Avg Score' } },
+                x: { title: { display: true, text: 'Date' } }
+            },
+            plugins: {
+                legend: {
+                    display: false // Hide the label (legend)
+                },
+                tooltip: {
+                    enabled: true 
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Avg Score'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Month'
+                    }
+                }
+            },
+        }
+    });
+
+    // Bar Chart: Average Time Taken per Test
+    const timeCtx = document.getElementById('timeTakenChart').getContext('2d');
+    window.timeTakenChart = new Chart(timeCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Avg Time (s)',
+                data: [],
+                backgroundColor: 'rgba(255, 99, 132, 0.5)'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { title: { display: true, text: 'Time (seconds)' } },
+                x: { title: { display: true, text: 'Test Name' } }
+            },
+            plugins: {
+                legend: {
+                    display: false // Hide the label (legend)
+                },
+                tooltip: {
+                    enabled: true 
+                }
+            },
+        }
+    });
+
+    //Table chart, to initialise, nothing yet until table
+}
+
+function renderTable(filteredUsers) {
+    const tableBody = document.getElementById('tableBody');
+    tableBody.innerHTML = '';
+
+    // Paginate data
+    const start = (currentPage - 1) * usersPerPage;
+    const paginatedUsers = filteredUsers.slice(start, start + usersPerPage);
+
+    // Insert table rows
+    paginatedUsers.forEach(user => {
+        let riskBadge = '';
+        switch(user.overall_risk_level.toLowerCase()) {
+            case 'high':
+                riskBadge = `<span class="badge bg-danger rounded-pill">High</span>`;
+                break;
+            case 'moderate':
+                riskBadge = `<span class="badge bg-warning text-dark rounded-pill">Moderate</span>`;
+                break;
+            case 'low':
+                riskBadge = `<span class="badge bg-success rounded-pill">Low</span>`;
+                break;
+        }
+
+        const row = `
+            <tr>
+                <td>${user.name}</td>
+                <td>${user.age}</td>
+                <td>${user.email}</td>
+                <td>${riskBadge}</td>
+            </tr>`;
+        tableBody.innerHTML += row;
+    });
+
+    // Update pagination
+    renderPagination(filteredUsers.length);
+}
+
+function renderPagination(totalUsers) {
+    const pagination = document.getElementById('pagination');
+    pagination.innerHTML = '';
+    const totalPages = Math.ceil(totalUsers / usersPerPage);
+
+    // Previous button
+    if (currentPage > 1) {
+        pagination.innerHTML += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>`;
+    }
+
+    // Page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        pagination.innerHTML += `
+            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+            </li>`;
+    }
+
+    // Next button
+    if (currentPage < totalPages) {
+        pagination.innerHTML += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>`;
+    }
+}
+
+function changePage(page) {
+    currentPage = page;
+    renderTable(dashboardData.tableDatafilteredList);
+}

@@ -28,22 +28,23 @@
     ></script>
 
     <!-- Page Name -->
-    <title>FallSafe - FES Dashboard</title>
+    <title>FallSafe - Fall Assessment Dashboard</title>
 
     <!-- Linking CSS -->
     <link rel="stylesheet" href="./css/normalize.css" />
     <link rel="stylesheet" href="./css/style.css" />
 
     <!-- ######################################## INSERT PAGE'S CSS HERE \/ ########################################################### -->
-    <link rel="stylesheet" href="./css/adminDashboard.css" />
+    <link rel="stylesheet" href="./css/adminFallAsses.css" />
     <!-- ######################################## END OF PAGE'S CSS ########################################################### -->
 
     <!-- Linking JS -->
     <script src="./js/scriptForAdmin.js" defer></script>
 
     <!-- ######################################## INSERT PAGE'S JS HERE \/ ########################################################### -->
-    <script src="./js/adminDashboard.js" defer></script>
+    <script src="./js/adminFallAsses.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!--CHART.JS SCRIPT FILE-->
+    
     <!-- ######################################## END OF PAGE'S JS ########################################################### -->
 
     <!-- Add a favicon to the tab bar -->
@@ -73,7 +74,7 @@
           <!-- Dashboard Container -->
           <div class="dashboard-container">
             <!-- Dashboard Title -->
-            <h2 class="mb-4" style="text-align: left;">Falls Efficacy Scale Analysis</h2>
+            <h2 class="mb-4" style="text-align: left;">Fall Assessment Analysis</h2>
   
             <!-- Filter Controls -->
             <div class="filter-controls mb-4">
@@ -102,42 +103,60 @@
 
             <!-- Dashboard Grid -->
             <div class="row">
-              <!-- Average FES Score Card -->
-              <div class="col-md-6 mb-4">
-                <div class="card">
-                  <div class="card-header">
-                    <h5 class="card-title mb-0">Average FES Score</h5>
-                  </div>
-                  <div class="card-body">
-                    <canvas id="averageScoreChart"></canvas>
-                  </div>
+                <!-- Average Session Score Chart -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Average Session Score Over Time</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="averageSessionScoreChart"></canvas>
+                        </div>
+                    </div>
                 </div>
-              </div>
 
-              <!-- Score Distribution Card -->
-              <div class="col-md-6 mb-4">
-                <div class="card">
-                  <div class="card-header">
-                    <h5 class="card-title mb-0">Latest Score Distribution</h5>
-                  </div>
-                  <div class="card-body">
-                    <canvas id="distributionChart"></canvas>
-                  </div>
+                <!-- Average Time Taken per Test -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Average Time Taken per Test</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="timeTakenChart"></canvas>
+                        </div>
+                    </div>
                 </div>
-              </div>
+
+                <!-- High-Risk Elderly Users Table with Sorting & Pagination -->
+                <div class="col-md-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Latest High-Risk Elderly Users</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-striped" id="highRiskTable">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Age</th>
+                                        <th>Email</th>
+                                        <th>Risk Level</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody">
+                                    <!-- Data will be inserted here -->
+                                </tbody>
+                            </table>
+
+                            <!-- Pagination -->
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center" id="pagination"></ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
 
             </div>
-                    <!-- Detailed Breakdown of Scores -->
-                    <div class="col-md-12 mb-4">
-                      <div class="card">
-                        <div class="card-header">
-                          <h5 class="card-title mb-0">Latest Breakdown of Individual Questions</h5>
-                        </div>
-                        <div class="card-body" style="display: flex; justify-content: center;">
-                          <canvas id="questionScoreChart" style="max-width: 400px; max-height: 400px;"></canvas>
-                        </div>
-                      </div>
-                    </div>
           </div>
           <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
         </div>
