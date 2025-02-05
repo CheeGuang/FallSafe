@@ -4,6 +4,7 @@ const API_OpenAI_URL = "http://localhost:5150/api/v1"; // openAI API URL
 let questions = [];
 let currentPage = 1;
 const questionsPerPage = 4;
+let userAnswers = {}; //store user responses in userAnwsers object
 
 async function fetchQuestions() {
   try {
@@ -48,28 +49,28 @@ function renderQuestions() {
     <div class="options d-flex justify-content-between mt-3">
       <div class="option" data-risk="low">
         <label>
-          <input type="radio" name="question-${question.id}" value="1">
+          <input type="radio" name="question-${question.id}" value="1" ${userAnswers[question.id] === 1 ? 'checked' : ''}> 
           <span role="img" aria-label="Low risk" style="font-size: 2em;">🙂</span>
           <p style="margin: 0; text-align: center; font-size: 0.9em;">Highly Confident</p>
         </label>
       </div>
       <div class="option" data-risk="moderate">
         <label>
-          <input type="radio" name="question-${question.id}" value="2">
+          <input type="radio" name="question-${question.id}" value="2" ${userAnswers[question.id] === 2 ? 'checked' : ''}>
           <span role="img" aria-label="Moderate risk" style="font-size: 2em;">😐</span>
           <p style="margin: 0; text-align: center; font-size: 0.9em;">Moderately Confident</p>
         </label>
       </div>
       <div class="option" data-risk="high">
         <label>
-          <input type="radio" name="question-${question.id}" value="3">
+          <input type="radio" name="question-${question.id}" value="3" ${userAnswers[question.id] === 3 ? 'checked' : ''}>
           <span role="img" aria-label="High risk" style="font-size: 2em;">😟</span>
           <p style="margin: 0; text-align: center; font-size: 0.9em;">Somewhat Confident</p>
         </label>
       </div>
       <div class="option" data-risk="very-high">
         <label>
-          <input type="radio" name="question-${question.id}" value="4">
+          <input type="radio" name="question-${question.id}" value="4" ${userAnswers[question.id] === 4 ? 'checked' : ''}>
           <span role="img" aria-label="Very high risk" style="font-size: 2em;">😱</span>
           <p style="margin: 0; text-align: center; font-size: 0.9em;">Not Confident</p>
         </label>
@@ -78,6 +79,14 @@ function renderQuestions() {
   `;
 
     container.appendChild(questionDiv);
+
+    //event listeners to save option after user selects
+    const radioButtons = questionDiv.querySelectorAll('input[type="radio"]');
+    radioButtons.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        userAnswers[question.id] = parseInt(e.target.value);
+      });
+    });
   });
 
   updatePaginationButtons();
@@ -102,15 +111,31 @@ function updatePaginationButtons() {
 }
 
 function handlePageChange(direction) {
-  if (
-    direction === "next" &&
-    currentPage * questionsPerPage < questions.length
-  ) {
+  saveCurrentPageAnswers(); //save ansers before page change
+  
+  if (direction === "next" && currentPage * questionsPerPage < questions.length) {
     currentPage++;
   } else if (direction === "back" && currentPage > 1) {
     currentPage--;
   }
+  
   renderQuestions();
+}
+
+//save page answers to userAnswers object
+function savePageAnswers() {
+  const startIndex = (currentPage - 1) * questionsPerPage;
+  const endIndex = Math.min(startIndex + questionsPerPage, questions.length);
+  const currentQuestions = questions.slice(startIndex, endIndex);
+
+  currentQuestions.forEach(question => {
+    const selectedOption = document.querySelector(
+      `input[name="question-${question.id}"]:checked`
+    );
+    if (selectedOption) {
+      userAnswers[question.id] = parseInt(selectedOption.value);
+    }
+  });
 }
 
 async function playTextToSpeech(text) {
@@ -178,15 +203,14 @@ async function playTextToSpeech(text) {
 }
 
 async function submitResponses() {
+  savePageAnswers();
+
   const responses = [];
   questions.forEach((question) => {
-    const selectedOption = document.querySelector(
-      `input[name="question-${question.id}"]:checked`
-    );
-    if (selectedOption) {
+    if (userAnswers[question.id]) {
       responses.push({
         question_id: question.id,
-        score: parseInt(selectedOption.value, 10),
+        score: userAnswers[question.id],
       });
     }
   });
@@ -196,12 +220,12 @@ async function submitResponses() {
     return;
   }
 
-  const payload = {
-    user_id: 1,
-    responses,
-  };
+    const payload = {
+      user_id: 1, 
+      responses,
+    };
 
-  try {
+    try {
     const response = await fetch(`${API_FES_URL}/saveResponses`, {
       method: "POST",
       headers: {
@@ -257,6 +281,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document
-    .getElementById("submit-button")
-    .addEventListener("click", submitResponses);
+  .getElementById("submit-button")
+  .addEventListener("click", submitResponses);
+
+  //language change handler
+  document.getElementById("language-dropdown").addEventListener("change", () => {
+    //re-render questions to update text-to-speech buttons
+    renderQuestions();
+  });
 });
