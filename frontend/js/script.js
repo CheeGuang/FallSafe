@@ -58,4 +58,27 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }, displayDuration);
   };
+
+  initializeGoogleTranslate();
+  // Additional check for top bar
+  setInterval(removeTranslateBanner, 100);
 });
+
+function initializeGoogleTranslate() {
+  window.initGoogleTranslate = function () {
+    new google.translate.TranslateElement(
+      {
+        includedLanguages: "en,ta,ms,zh-CN",
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false,
+      },
+      "google_translate_element"
+    );
+  };
+
+  const translationScript = document.createElement("script");
+  translationScript.src =
+    "//translate.google.com/translate_a/element.js?cb=initGoogleTranslate";
+  translationScript.async = true;
+  document.body.appendChild(translationScript);
+}

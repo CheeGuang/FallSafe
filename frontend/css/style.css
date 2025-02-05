@@ -146,3 +146,64 @@ label {
   font-size: 1.7rem !important; /* Larger text for labels */
   font-weight: bold !important; /* Make labels bold */
 }
+
+/* Beautify Google Translate Dropdown */
+body > .skiptranslate :first-child {
+  display: none;
+}
+#google_translate_element .goog-te-gadget-simple {
+  background: #f8f9fa; /* Light Gray Background */
+  color: #333; /* Dark Text */
+  border: 1px solid #ddd; /* Subtle Border */
+  padding: 10px 15px;
+  border-radius: 8px; /* Softer Rounded Corners */
+  font-size: 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#google_translate_element .goog-te-gadget-simple:hover {
+  background: #e9ecef; /* Slightly Darker Gray on Hover */
+  border-color: #ccc;
+}
+
+#google_translate_element .goog-te-gadget-simple img {
+  display: none; /* Hide default Google Translate icon */
+}
+
+#google_translate_element .VIpgJd-ZVi9od-xl07Ob-lTBxed {
+  color: #333 !important;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+#google_translate_element .VIpgJd-ZVi9od-xl07Ob-lTBxed span:first-child {
+  margin-right: 10px; /* Adjust the value as needed */
+}
+
+#google_translate_element .VIpgJd-ZVi9od-xl07Ob-lTBxed span {
+  font-size: 16px;
+  margin-right: 5px;
+}
+
+#google_translate_element
+  .VIpgJd-ZVi9od-xl07Ob-lTBxed
+  span[aria-hidden="true"] {
+  font-size: 14px;
+  margin-left: 5px;
+  color: #666; /* Soft Gray Dropdown Icon */
+}
+
+#google_translate_element > .skiptranslate,
+#google_translate_element .VIpgJd-ZVi9od-ORHb-OEVmcd {
+  display: block !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}

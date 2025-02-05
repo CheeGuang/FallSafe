@@ -264,7 +264,8 @@ func TranslateText(targetLanguage, inputText string) (string, error) {
 		return "", fmt.Errorf("OPENAI_APIKEY environment variable is not set")
 	}
 
-	prompt := fmt.Sprintf("Translate the following text to %s: %s", targetLanguage, inputText)
+	prompt := fmt.Sprintf("Only return the translated text in %s and nothing else: %s", targetLanguage, inputText)
+
 	log.Printf("Preparing request for GPT-4o-mini with prompt: %s\n", prompt)
 	gptRequest := GPT4oRequest{
 		Model: "gpt-4o",

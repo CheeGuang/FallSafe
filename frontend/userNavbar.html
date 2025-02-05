@@ -54,18 +54,46 @@
             >Results</a
           >
         </li>
-        <li class="nav-item d-flex justify-content-center align-items-center">
-          <button
-            class="btn btn-danger text-white ms-3"
-            id="signOutButton"
-            type="button"
-            onclick="localStorage.clear(); window.location.href='index.html';"
-            style="font-size: 20px"
+        <!-- Account Dropdown -->
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle account-icon"
+            href="#"
+            id="accountDropdown"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
           >
-            Sign Out
-          </button>
+            <img
+              src="./img/account-icon.png"
+              alt="User Avatar"
+              class="rounded-circle"
+              width="40"
+              height="40"
+            />
+          </a>
+          <ul
+            class="dropdown-menu dropdown-menu-end"
+            aria-labelledby="accountDropdown"
+          >
+            <li>
+              <a class="dropdown-item" href="userSettings.html">Settings</a>
+            </li>
+            <li>
+              <a class="dropdown-item text-danger" href="#" id="signOutButton"
+                >Sign Out</a
+              >
+            </li>
+          </ul>
         </li>
       </ul>
     </div>
   </div>
 </nav>
+
+<style>
+  /* Hide dropdown arrow */
+  .account-icon::after {
+    display: none !important;
+  }
+</style>

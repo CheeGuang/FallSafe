@@ -35,14 +35,14 @@
     <link rel="stylesheet" href="./css/style.css" />
 
     <!-- ######################################## INSERT PAGE'S CSS HERE \/ ########################################################### -->
-    <link rel="stylesheet" href="./css/userHome.css" />
+    <link rel="stylesheet" href="./css/login.css" />
     <!-- ######################################## END OF PAGE'S CSS ########################################################### -->
 
     <!-- Linking JS -->
     <script src="./js/script.js" defer></script>
 
     <!-- ######################################## INSERT PAGE'S JS HERE \/ ########################################################### -->
-    <script src="./js/userHome.js" defer></script>
+    <script src="./js/adminLogin.js" defer></script>
     <!-- ######################################## END OF PAGE'S JS ########################################################### -->
 
     <!-- Add a favicon to the tab bar -->
@@ -69,44 +69,43 @@
           <div id="customAlertContainer"></div>
 
           <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
+          <h1>Admin Login</h1>
+          <p class="mb-4">Welcome back!</p>
 
-          <!-- Welcome Message -->
-          <h1 class="welcome-message">
-            Welcome, <span id="userName">user Name</span>!
-          </h1>
-          <p class="mb-3">What would you like to do today?</p>
-
-          <!-- Action Buttons -->
-          <div class="action-buttons">
-            <button
-              class="btn btn-primary"
-              id="fallsEfficacyScaleButton"
-              onclick="window.location.href='./userFES.html'"
-            >
-              <i class="fas fa-chart-line"></i> Falls Efficacy Scale
-            </button>
-            <button
-              class="btn btn-primary"
-              id="selfFallRiskAssessmentButton"
-              onclick="window.location.href='./userSelfAssessment.html'"
-            >
-              <i class="fas fa-file-alt"></i> Self Assessment
-            </button>
-            <button
-              class="btn btn-primary"
-              id="consultDoctorButton"
-              onclick="window.location.href='./userConsultDoctor.html'"
-            >
-              <i class="fas fa-user-md"></i> Consult Doctor
-            </button>
-            <button
-              class="btn btn-primary"
-              id="viewResultsButton"
-              onclick="window.location.href='./userResults.html'"
-            >
-              <i class="fas fa-chart-bar"></i> View Results
-            </button>
+          <!-- Login Form Card -->
+          <div
+            class="card p-4 shadow-sm text-start"
+            style="max-width: 400px; margin: 0 auto"
+          >
+            <form>
+              <div class="mb-3">
+                <label for="email" class="form-label">Email address</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="email"
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="password"
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Login</button>
+            </form>
           </div>
+          <!-- Sign Up Link Outside Card -->
+          <p class="mt-3">
+            New here? <a href="./signup.html">Sign up</a> to join FallSafe!
+          </p>
+          <p><a href="./login.html">Back</a></p>
           <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
         </div>
       </div>

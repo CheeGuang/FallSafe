@@ -43,8 +43,9 @@
 
     <!-- ######################################## INSERT PAGE'S JS HERE \/ ########################################################### -->
     <script src="./js/adminFallAsses.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!--CHART.JS SCRIPT FILE-->
-    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!--CHART.JS SCRIPT FILE-->
+
     <!-- ######################################## END OF PAGE'S JS ########################################################### -->
 
     <!-- Add a favicon to the tab bar -->
@@ -71,31 +72,44 @@
           <div id="customAlertContainer"></div>
 
           <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
+          <h1>Fall Assessment Analysis</h1>
           <!-- Dashboard Container -->
           <div class="dashboard-container">
             <!-- Dashboard Title -->
-            <h2 class="mb-4" style="text-align: left;">Fall Assessment Analysis</h2>
-  
+
             <!-- Filter Controls -->
             <div class="filter-controls mb-4">
               <!-- Age Group Filter -->
-              <select id="ageGroupSelector" class="form-select d-inline-block me-3" style="width: auto;">
-                  <option value="all">All</option>
-                  <option value="60-70">60-70</option>
-                  <option value="70-80">70-80</option>
-                  <option value="80-90">80-90</option>
-                  <option value="90+">90+</option>
+              <select
+                id="ageGroupSelector"
+                class="form-select d-inline-block me-3"
+                style="width: auto"
+              >
+                <option value="all">All</option>
+                <option value="60-70">60-70</option>
+                <option value="70-80">70-80</option>
+                <option value="80-90">80-90</option>
+                <option value="90+">90+</option>
               </select>
-              
+
               <!-- Individual Search -->
-              <div class="input-group" style="width: auto; display: inline-flex;">
-                <input type="number" 
-                       id="individualSearch" 
-                       class="form-control" 
-                       placeholder="Search by User ID"
-                       min="1"
-                       style="max-width: 270px;">
-                <button class="btn btn-outline-secondary" type="button" id="searchButton">
+              <div
+                class="input-group"
+                style="width: auto; display: inline-flex"
+              >
+                <input
+                  type="number"
+                  id="individualSearch"
+                  class="form-control"
+                  placeholder="Search by User ID"
+                  min="1"
+                  style="max-width: 270px"
+                />
+                <button
+                  class="btn btn-outline-secondary"
+                  type="button"
+                  id="searchButton"
+                >
                   <i class="fas fa-search"></i>
                 </button>
               </div>
@@ -103,59 +117,65 @@
 
             <!-- Dashboard Grid -->
             <div class="row">
-                <!-- Average Session Score Chart -->
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Average Session Score Over Time</h5>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="averageSessionScoreChart"></canvas>
-                        </div>
-                    </div>
+              <!-- Average Session Score Chart -->
+              <div class="col-md-6 mb-4">
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="card-title mb-0">
+                      Average Session Score Over Time
+                    </h5>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="averageSessionScoreChart"></canvas>
+                  </div>
                 </div>
+              </div>
 
-                <!-- Average Time Taken per Test -->
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Average Time Taken per Test</h5>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="timeTakenChart"></canvas>
-                        </div>
-                    </div>
+              <!-- Average Time Taken per Test -->
+              <div class="col-md-6 mb-4">
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="card-title mb-0">Average Time Taken per Test</h5>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="timeTakenChart"></canvas>
+                  </div>
                 </div>
+              </div>
 
-                <!-- High-Risk Elderly Users Table with Sorting & Pagination -->
-                <div class="col-md-12 mb-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Latest High-Risk Elderly Users</h5>
-                        </div>
-                        <div class="card-body">
-                            <table class="table table-striped" id="highRiskTable">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Age</th>
-                                        <th>Email</th>
-                                        <th>Risk Level</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tableBody">
-                                    <!-- Data will be inserted here -->
-                                </tbody>
-                            </table>
+              <!-- High-Risk Elderly Users Table with Sorting & Pagination -->
+              <div class="col-md-12 mb-4">
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="card-title mb-0">
+                      Latest High-Risk Elderly Users
+                    </h5>
+                  </div>
+                  <div class="card-body">
+                    <table class="table table-striped" id="highRiskTable">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Age</th>
+                          <th>Email</th>
+                          <th>Risk Level</th>
+                        </tr>
+                      </thead>
+                      <tbody id="tableBody">
+                        <!-- Data will be inserted here -->
+                      </tbody>
+                    </table>
 
-                            <!-- Pagination -->
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination justify-content-center" id="pagination"></ul>
-                            </nav>
-                        </div>
-                    </div>
+                    <!-- Pagination -->
+                    <nav aria-label="Page navigation">
+                      <ul
+                        class="pagination justify-content-center"
+                        id="pagination"
+                      ></ul>
+                    </nav>
+                  </div>
                 </div>
-
+              </div>
             </div>
           </div>
           <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
@@ -171,5 +191,4 @@
       ></div>
     </footer>
   </body>
-  
 </html>
