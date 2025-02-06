@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -176,13 +177,19 @@ func GetAllUser(w http.ResponseWriter, r *http.Request) {
 
 // Struct representing the User Response attributes
 type UserResponse struct {
-	ResponseID   uint16    `json:"response_id"`                      // Unique ID for the response
-	UserID       uint16    `json:"user_id"`                          // Associated user ID
-	TotalScore   uint16    `json:"total_score"`                      // Total score across all questions
-	ResponseDate time.Time `json:"response_date" db:"response_date"` // Date of response submission
+	ResponseID      uint16               `json:"response_id"`                      // Unique ID for the response
+	UserID         uint16               `json:"user_id"`                          // Associated user ID
+	TotalScore     uint16               `json:"total_score"`                      // Total score across all questions
+	ResponseDate   time.Time            `json:"response_date" db:"response_date"` // Date of response submission
+	ResponseDetails []UserResponseDetail `json:"response_details"`                // List of question responses
 }
 
-func CallFESForGetUserFESResults(w http.ResponseWriter, r *http.Request) {
+type UserResponseDetail struct {
+	QuestionID    uint16 `json:"question_id"`    // ID of the question
+	ResponseScore uint8  `json:"response_score"` // Score given by the user
+}
+
+func CallFESForActionableInsights(w http.ResponseWriter, r *http.Request) {
 	// Extract userID from the request query parameters
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {
@@ -191,7 +198,7 @@ func CallFESForGetUserFESResults(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Construct the API URL with user_id
+	// Construct the API URL to fetch FES results
 	apiURL := fmt.Sprintf("http://localhost:5300/api/v1/fes/getFESResults?user_id=%s", userID)
 
 	// Extract the Authorization header from the incoming request
@@ -201,7 +208,7 @@ func CallFESForGetUserFESResults(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create an HTTP GET request
+	// Create an HTTP GET request to fetch FES results
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
 		log.Printf("Error creating request: %v", err)
@@ -212,12 +219,12 @@ func CallFESForGetUserFESResults(w http.ResponseWriter, r *http.Request) {
 	// Set the Authorization header
 	req.Header.Set("Authorization", authHeader)
 
-	// Perform the request to the downstream microservice
+	// Perform the request to the FES microservice
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Error making request: %v", err)
-		http.Error(w, "Failed to contact response microservice", http.StatusInternalServerError)
+		http.Error(w, "Failed to contact FES microservice", http.StatusInternalServerError)
 		return
 	}
 	defer resp.Body.Close()
@@ -230,29 +237,79 @@ func CallFESForGetUserFESResults(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse the response body
-	var responses []UserResponse
-	err = json.NewDecoder(resp.Body).Decode(&responses)
+	var fesResponses []UserResponse
+	err = json.NewDecoder(resp.Body).Decode(&fesResponses)
 	if err != nil {
 		log.Printf("Error decoding response: %v", err)
-		http.Error(w, "Failed to parse response from microservice", http.StatusInternalServerError)
+		http.Error(w, "Failed to parse response from FES microservice", http.StatusInternalServerError)
 		return
 	}
 
-	// Respond to the original client with the data
+	// Process FES results and generate a summary prompt
+	latestFES := fesResponses[len(fesResponses)-1] // Get the most recent response
+	summaryPrompt := fmt.Sprintf("Provide 5 actionable insights to reduce or maintain a good fall risk based on a total score of %d. Format the response exactly as: 1) ... <br> 2) ... <br> 3) ... <br> 4) ... <br> 5) ... Do not say 'certainly'. Use replace all ** with <strong> to bold key words and \\n with <br> for new lines. Be Concise", latestFES.TotalScore)
+	// Construct the AI request body
+	aiRequestBody, err := json.Marshal(map[string]string{
+		"prompt": summaryPrompt,
+	})
+	if err != nil {
+		log.Printf("Error encoding AI request: %v", err)
+		http.Error(w, "Failed to create AI request payload", http.StatusInternalServerError)
+		return
+	}
+
+	// Call the AI microservice for insights
+	aiAPIURL := "http://127.0.0.1:5150/api/v1/generateResponse"
+	aiReq, err := http.NewRequest("POST", aiAPIURL, bytes.NewBuffer(aiRequestBody))
+	if err != nil {
+		log.Printf("Error creating AI request: %v", err)
+		http.Error(w, "Failed to create AI request", http.StatusInternalServerError)
+		return
+	}
+	aiReq.Header.Set("Authorization", authHeader)
+	aiReq.Header.Set("Content-Type", "application/json")
+
+	// Execute the request to the AI service
+	aiResp, err := client.Do(aiReq)
+	if err != nil {
+		log.Printf("Error contacting AI service: %v", err)
+		http.Error(w, "Failed to contact AI service", http.StatusInternalServerError)
+		return
+	}
+	defer aiResp.Body.Close()
+
+	// Check AI response status
+	if aiResp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(aiResp.Body)
+		http.Error(w, fmt.Sprintf("AI service error: %s", string(body)), aiResp.StatusCode)
+		return
+	}
+
+	// Parse AI response
+	var aiResponse map[string]interface{}
+	err = json.NewDecoder(aiResp.Body).Decode(&aiResponse)
+	if err != nil {
+		log.Printf("Error decoding AI response: %v", err)
+		http.Error(w, "Failed to parse AI response", http.StatusInternalServerError)
+		return
+	}
+
+	// Prepare the combined response
+	responseData := map[string]interface{}{
+		"fes_results": fesResponses,
+		"actionable_insights": aiResponse,
+	}
+
+	// Respond to the original client with both FES results and AI-generated insights
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(responses)
-	if err != nil {
-		log.Printf("Error encoding response: %v", err)
-		http.Error(w, "Failed to send response to client", http.StatusInternalServerError)
-	}
+	json.NewEncoder(w).Encode(responseData)
 }
+
 
 // UserTestResult represents the test results of a user
 type UserTestResult struct {
 	ResultID         int       `json:"result_id"`
-	UserID           int       `json:"user_id"`
-	SessionID        int       `json:"session_id"`
 	TestID           int       `json:"test_id"`
 	TestName         string    `json:"test_name"`
 	TimeTaken        float64   `json:"time_taken"`
@@ -261,7 +318,8 @@ type UserTestResult struct {
 	TestDate         time.Time `json:"test_date"`
 }
 
-func CallSelfAssessmentForGetUserTestResults(w http.ResponseWriter, r *http.Request) {
+
+func CallSelfAssessmentForInsights(w http.ResponseWriter, r *http.Request) {
 	// Extract userID from the request query parameters
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {
@@ -270,7 +328,7 @@ func CallSelfAssessmentForGetUserTestResults(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// Construct the API URL with user_id
+	// Construct the API URL to fetch Self-Assessment results
 	apiURL := fmt.Sprintf("http://localhost:5250/api/v1/selfAssessment/getUserResults?user_id=%s", userID)
 
 	// Extract the Authorization header from the incoming request
@@ -280,7 +338,7 @@ func CallSelfAssessmentForGetUserTestResults(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// Create an HTTP GET request
+	// Create an HTTP GET request to fetch Self-Assessment results
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
 		log.Printf("Error creating request: %v", err)
@@ -291,12 +349,12 @@ func CallSelfAssessmentForGetUserTestResults(w http.ResponseWriter, r *http.Requ
 	// Set the Authorization header
 	req.Header.Set("Authorization", authHeader)
 
-	// Perform the request to the downstream microservice
+	// Perform the request to the Self-Assessment microservice
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Error making request: %v", err)
-		http.Error(w, "Failed to contact response microservice", http.StatusInternalServerError)
+		http.Error(w, "Failed to contact Self-Assessment microservice", http.StatusInternalServerError)
 		return
 	}
 	defer resp.Body.Close()
@@ -309,20 +367,88 @@ func CallSelfAssessmentForGetUserTestResults(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Parse the response body
-	var responses []UserTestResult
-	err = json.NewDecoder(resp.Body).Decode(&responses)
+	var sessions []struct {
+		SessionID     int       `json:"session_id"`
+		UserID       int       `json:"user_id"`
+		SessionDate  time.Time `json:"session_date"`
+		TestResults  []UserTestResult `json:"test_results"`
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&sessions)
 	if err != nil {
 		log.Printf("Error decoding response: %v", err)
-		http.Error(w, "Failed to parse response from microservice", http.StatusInternalServerError)
+		http.Error(w, "Failed to parse response from Self-Assessment microservice", http.StatusInternalServerError)
 		return
 	}
 
-	// Respond to the original client with the data
+	// Convert full response into JSON string
+	fullResponse, err := json.Marshal(sessions)
+	if err != nil {
+		log.Printf("Error encoding full response: %v", err)
+		http.Error(w, "Failed to encode full response", http.StatusInternalServerError)
+		return
+	}
+
+	// Prepare AI summary prompt
+	summaryPrompt := fmt.Sprintf(
+		"Provide 5 actionable insights to reduce or maintain a good fall risk based on the self-assessment test '%s'. Format the response exactly as: 1) ... <br> 2) ... <br> 3) ... <br> 4) ... <br> 5) ... Do not say 'certainly'. Use replace all ** with <strong> to bold key words and \n with <br> for new lines. Be Very Concise",
+		string(fullResponse),
+	)
+
+	// Construct the AI request body
+	aiRequestBody, err := json.Marshal(map[string]string{
+		"prompt": summaryPrompt,
+	})
+	if err != nil {
+		log.Printf("Error encoding AI request: %v", err)
+		http.Error(w, "Failed to create AI request payload", http.StatusInternalServerError)
+		return
+	}
+
+	// Call the AI microservice for insights
+	aiAPIURL := "http://127.0.0.1:5150/api/v1/generateResponse"
+	aiReq, err := http.NewRequest("POST", aiAPIURL, bytes.NewBuffer(aiRequestBody))
+	if err != nil {
+		log.Printf("Error creating AI request: %v", err)
+		http.Error(w, "Failed to create AI request", http.StatusInternalServerError)
+		return
+	}
+	aiReq.Header.Set("Authorization", authHeader)
+	aiReq.Header.Set("Content-Type", "application/json")
+
+	// Execute the request to the AI service
+	aiResp, err := client.Do(aiReq)
+	if err != nil {
+		log.Printf("Error contacting AI service: %v", err)
+		http.Error(w, "Failed to contact AI service", http.StatusInternalServerError)
+		return
+	}
+	defer aiResp.Body.Close()
+
+	// Check AI response status
+	if aiResp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(aiResp.Body)
+		http.Error(w, fmt.Sprintf("AI service error: %s", string(body)), aiResp.StatusCode)
+		return
+	}
+
+	// Parse AI response
+	var aiResponse map[string]interface{}
+	err = json.NewDecoder(aiResp.Body).Decode(&aiResponse)
+	if err != nil {
+		log.Printf("Error decoding AI response: %v", err)
+		http.Error(w, "Failed to parse AI response", http.StatusInternalServerError)
+		return
+	}
+
+	// Prepare the combined response
+	responseData := map[string]interface{}{
+		"self_assessment_results": sessions,
+		"actionable_insights": aiResponse,
+	}
+
+	// Respond to the original client with both Self-Assessment results and AI-generated insights
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(responses)
-	if err != nil {
-		log.Printf("Error encoding response: %v", err)
-		http.Error(w, "Failed to send response to client", http.StatusInternalServerError)
-	}
+	json.NewEncoder(w).Encode(responseData)
 }

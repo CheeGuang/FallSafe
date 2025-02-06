@@ -27,6 +27,7 @@ async function fetchQuestions() {
   }
 }
 
+// Modify renderQuestions to restore selections when navigating
 function renderQuestions() {
   const container = document.getElementById("questions-container");
   container.innerHTML = "";
@@ -36,85 +37,70 @@ function renderQuestions() {
   const questionsToDisplay = questions.slice(startIndex, endIndex);
 
   questionsToDisplay.forEach((question) => {
+    const selectedValue = userAnswers[question.id] || null; // Check if an answer exists
+
     const questionDiv = document.createElement("div");
     questionDiv.className = "question mb-4";
 
     questionDiv.innerHTML = `
-    <div style="display: flex; justify-content: center; align-items: center">
-      <p style="margin: 0;" class="question-title">Q${question.id}: ${
+      <div style="display: flex; justify-content: center; align-items: center">
+        <p style="margin: 0;" class="question-title">Q${question.id}: ${
       question.text
     }</p>
-      <button class="play-button" data-id="${question.id}" data-text="${
-      question.text
-    }" aria-label="Play text" style="background: none; border: none; cursor: pointer;">
-        <span role="img" aria-label="Speaker" style="font-size: 2.5em; cursor: pointer;">🔊</span>
-      </button>
-    </div>
-    <div class="options d-flex justify-content-between mt-3">
-      <div class="option" data-risk="low">
-        <label>
-          <input type="radio" name="question-${question.id}" value="1" ${
-      userAnswers[question.id] === 1 ? "checked" : ""
-    }> 
-          <span role="img" aria-label="Low risk" style="font-size: 2em;">🙂</span>
-          <p style="margin: 0; text-align: center; font-size: 0.9em;">Highly Confident</p>
-        </label>
       </div>
-      <div class="option" data-risk="moderate">
-        <label>
-          <input type="radio" name="question-${question.id}" value="2" ${
-      userAnswers[question.id] === 2 ? "checked" : ""
-    }>
-          <span role="img" aria-label="Moderate risk" style="font-size: 2em;">😐</span>
-          <p style="margin: 0; text-align: center; font-size: 0.9em;">Moderately Confident</p>
-        </label>
+      <div class="options d-flex justify-content-between mt-3">
+        ${createOptionHTML(
+          question.id,
+          1,
+          "🙂",
+          "Highly Confident",
+          selectedValue
+        )}
+        ${createOptionHTML(
+          question.id,
+          2,
+          "😐",
+          "Moderately Confident",
+          selectedValue
+        )}
+        ${createOptionHTML(
+          question.id,
+          3,
+          "😟",
+          "Somewhat Confident",
+          selectedValue
+        )}
+        ${createOptionHTML(
+          question.id,
+          4,
+          "😱",
+          "Not Confident",
+          selectedValue
+        )}
       </div>
-      <div class="option" data-risk="high">
-        <label>
-          <input type="radio" name="question-${question.id}" value="3" ${
-      userAnswers[question.id] === 3 ? "checked" : ""
-    }>
-          <span role="img" aria-label="High risk" style="font-size: 2em;">😟</span>
-          <p style="margin: 0; text-align: center; font-size: 0.9em;">Somewhat Confident</p>
-        </label>
-      </div>
-      <div class="option" data-risk="very-high">
-        <label>
-          <input type="radio" name="question-${question.id}" value="4" ${
-      userAnswers[question.id] === 4 ? "checked" : ""
-    }>
-          <span role="img" aria-label="Very high risk" style="font-size: 2em;">😱</span>
-          <p style="margin: 0; text-align: center; font-size: 0.9em;">Not Confident</p>
-        </label>
-      </div>
-    </div>
-  `;
+    `;
 
     container.appendChild(questionDiv);
-
-    //event listeners to save option after user selects
-    const radioButtons = questionDiv.querySelectorAll('input[type="radio"]');
-    radioButtons.forEach((radio) => {
-      radio.addEventListener("change", (e) => {
-        userAnswers[question.id] = parseInt(e.target.value);
-        checkAllQuestionsAnswered();
-      });
-    });
   });
 
   updatePaginationButtons();
-
-  document.querySelectorAll(".play-button").forEach((button) => {
-    button.addEventListener("click", async (event) => {
-      const text = event.target.closest("button").getAttribute("data-text");
-      // Disable all play buttons
-      const playButtons = document.querySelectorAll(".play-button");
-      playButtons.forEach((button) => (button.disabled = true));
-      await playTextToSpeech(text);
-    });
-  });
+  checkAllQuestionsAnswered(); // Re-check after rendering
 }
 
+// Helper function to generate option HTML
+function createOptionHTML(questionId, value, emoji, text, selectedValue) {
+  return `
+    <div class="option ${selectedValue === value ? "selected" : ""}">
+      <label>
+        <input type="radio" name="question-${questionId}" value="${value}" ${
+    selectedValue === value ? "checked" : ""
+  }>
+        <span role="img" aria-label="${text}" style="font-size: 2em;">${emoji}</span>
+        <p style="margin: 0; text-align: center; font-size: 0.9em;">${text}</p>
+      </label>
+    </div>
+  `;
+}
 function updatePaginationButtons() {
   const backButton = document.getElementById("back-button");
   const nextButton = document.getElementById("next-button");
@@ -136,15 +122,9 @@ function handlePageChange(direction) {
   }
 
   renderQuestions();
-
-  // Scroll to the language dropdown
-  const dropdownElement = document.getElementById("language-dropdown");
-  if (dropdownElement) {
-    dropdownElement.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
 }
 
-//save page answers to userAnswers object
+// Save answers to userAnswers object before navigating
 function savePageAnswers() {
   const startIndex = (currentPage - 1) * questionsPerPage;
   const endIndex = Math.min(startIndex + questionsPerPage, questions.length);
@@ -160,6 +140,7 @@ function savePageAnswers() {
   });
 }
 
+// Function to check if all questions are answered
 function checkAllQuestionsAnswered() {
   const totalQuestions = questions.length;
   const answeredQuestions = Object.keys(userAnswers).length;
@@ -324,12 +305,34 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("submit-button")
     .addEventListener("click", submitResponses);
-
-  //language change handler
-  document
-    .getElementById("language-dropdown")
-    .addEventListener("change", () => {
-      //re-render questions to update text-to-speech buttons
-      renderQuestions();
-    });
+  // Handle option selection
+  document.addEventListener("click", (event) => {
+    const label = event.target.closest(".option label");
+    if (label) {
+      const input = label.querySelector("input[type='radio']");
+      if (input) {
+        input.checked = true;
+        userAnswers[input.name.split("-")[1]] = parseInt(input.value); // Save selection
+        updateSelectionUI(input);
+        checkAllQuestionsAnswered();
+      }
+    }
+  });
 });
+
+// Function to update the UI based on the selection
+function updateSelectionUI(selectedInput) {
+  const questionId = selectedInput.name.split("-")[1];
+
+  // Remove selection from all options in the same question
+  document
+    .querySelectorAll(`input[name="question-${questionId}"]`)
+    .forEach((input) => {
+      input.closest(".option").classList.remove("selected");
+    });
+
+  // Add selection class to the selected option
+  selectedInput.closest(".option").classList.add("selected");
+
+  checkAllQuestionsAnswered(); // Check if submit button should be enabled
+}

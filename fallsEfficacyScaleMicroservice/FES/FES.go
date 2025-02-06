@@ -3,7 +3,6 @@ package FES
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -161,13 +160,21 @@ func SaveResponse(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Struct representing the User Response for FES
-type UserResponse struct {
-	ResponseID   uint16    `json:"response_id"`                      // Unique ID for the response
-	UserID       uint16    `json:"user_id"`                          // Associated user ID
-	TotalScore   uint16    `json:"total_score"`                      // Total score across all questions
-	ResponseDate time.Time `json:"response_date" db:"response_date"` // Date of response submission
+// UserResponseDetail represents an individual response to a FallsEfficacyScale question
+type UserResponseDetail struct {
+    QuestionID    uint16 `json:"question_id"`
+    ResponseScore uint8  `json:"response_score"`
 }
+
+// UserResponse represents a Falls Efficacy Scale test result, including response details
+type UserResponse struct {
+    ResponseID      uint16               `json:"response_id"`
+    UserID         uint16               `json:"user_id"`
+    TotalScore     uint16               `json:"total_score"`
+    ResponseDate   time.Time            `json:"response_date"`
+    ResponseDetails []UserResponseDetail `json:"response_details"`
+}
+
 
 // Function for retrieving the whole list of User Responses
 func GetAllUserResponse(w http.ResponseWriter, r *http.Request) {
@@ -219,6 +226,7 @@ func GetAllUserResponse(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetUserFESResults retrieves Falls Efficacy Scale test results for a given userID
+// GetUserFESResults retrieves Falls Efficacy Scale test results for a given userID
 func GetUserFESResults(w http.ResponseWriter, r *http.Request) {
 	// Extract userID from query parameters
 	userIDStr := r.URL.Query().Get("user_id")
@@ -233,7 +241,7 @@ func GetUserFESResults(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Query the database
+	// Query UserResponse table
 	rows, err := db.Query(
 		`SELECT response_id, user_id, total_score, response_date 
 		 FROM UserResponse  
@@ -246,27 +254,39 @@ func GetUserFESResults(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	var results []UserResponse
+
 	for rows.Next() {
 		var result UserResponse
-		var responseDateStr string // Store date as string before parsing
-
-		if err := rows.Scan(
-			&result.ResponseID, &result.UserID,
-			&result.TotalScore, &responseDateStr); err != nil {
+		if err := rows.Scan(&result.ResponseID, &result.UserID, &result.TotalScore, &result.ResponseDate); err != nil {
 			log.Printf("Error scanning row: %v", err)
 			http.Error(w, "Failed to parse user FES results", http.StatusInternalServerError)
 			return
 		}
 
-		// Parse the string to time.Time using RFC3339 format
-		parsedDate, err := time.Parse(time.RFC3339, responseDateStr)
+		// Fetch UserResponseDetails for this response_id
+		detailRows, err := db.Query(
+			`SELECT question_id, response_score 
+			 FROM UserResponseDetails 
+			 WHERE response_id = ?`, result.ResponseID)
 		if err != nil {
-			log.Printf("Error parsing response_date: %v", err)
-			http.Error(w, fmt.Sprintf("Error parsing response_date: %v", err), http.StatusInternalServerError)
+			log.Printf("Database query error (UserResponseDetails): %v", err)
+			http.Error(w, "Failed to fetch response details", http.StatusInternalServerError)
 			return
 		}
-		result.ResponseDate = parsedDate
+		defer detailRows.Close()
 
+		var details []UserResponseDetail
+		for detailRows.Next() {
+			var detail UserResponseDetail
+			if err := detailRows.Scan(&detail.QuestionID, &detail.ResponseScore); err != nil {
+				log.Printf("Error scanning detail row: %v", err)
+				http.Error(w, "Failed to parse response details", http.StatusInternalServerError)
+				return
+			}
+			details = append(details, detail)
+		}
+
+		result.ResponseDetails = details
 		results = append(results, result)
 	}
 

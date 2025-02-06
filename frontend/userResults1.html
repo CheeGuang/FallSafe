@@ -35,14 +35,14 @@
     <link rel="stylesheet" href="./css/style.css" />
 
     <!-- ######################################## INSERT PAGE'S CSS HERE \/ ########################################################### -->
-    <link rel="stylesheet" href="./css/userHome.css" />
+    <!-- <link rel="stylesheet" href="./css/" /> -->
     <!-- ######################################## END OF PAGE'S CSS ########################################################### -->
 
     <!-- Linking JS -->
     <script src="./js/script.js" defer></script>
 
     <!-- ######################################## INSERT PAGE'S JS HERE \/ ########################################################### -->
-    <script src="./js/userHome.js" defer></script>
+    <script src="./js/userResults1.js" defer></script>
     <!-- ######################################## END OF PAGE'S JS ########################################################### -->
 
     <!-- Add a favicon to the tab bar -->
@@ -70,43 +70,74 @@
 
           <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
 
-          <!-- Welcome Message -->
-          <h1 class="welcome-message">
-            Welcome, <span id="userName">user Name</span>!
-          </h1>
-          <p class="mb-3">What would you like to do today?</p>
-
-          <!-- Action Buttons -->
-          <div class="action-buttons">
-            <button
-              class="btn btn-primary"
-              id="fallsEfficacyScaleButton"
-              onclick="window.location.href='./userFES.html'"
-            >
-              <i class="fas fa-chart-line"></i> Falls Efficacy Scale
-            </button>
-            <button
-              class="btn btn-primary"
-              id="selfFallRiskAssessmentButton"
-              onclick="window.location.href='./userSelfAssessment.html'"
-            >
-              <i class="fas fa-file-alt"></i> Self Assessment
-            </button>
-            <button
-              class="btn btn-primary"
-              id="consultDoctorButton"
-              onclick="window.location.href='./userConsultDoctor.html'"
-            >
-              <i class="fas fa-user-md"></i> Consult Doctor
-            </button>
-            <button
-              class="btn btn-primary"
-              id="viewResultsButton"
-              onclick="window.location.href='./userResults1.html'"
-            >
-              <i class="fas fa-chart-bar"></i> View Results
-            </button>
+          <h1>Welcome to FallSafe</h1>
+          <!-- p Subtitle -->
+          <p class="mb-3">
+            Driving towards a sustainable future with eco-friendly car rentals.
+          </p>
+          <div class="container mt-4">
+            <div class="mt-5 mb-5">
+              <h2 class="mt-4">Fall Risk Analysis</h2>
+              <div class="progress" style="height: 30px">
+                <div
+                  id="risk-progress"
+                  class="progress-bar"
+                  role="progressbar"
+                  style="width: 0%"
+                  aria-valuenow="0"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                ></div>
+              </div>
+              <p id="risk-label" class="mt-2">
+                <strong>Calculating...</strong>
+              </p>
+            </div>
+            <div class="mt-5 mb-5">
+              <h2>Actionable Insights</h2>
+              <div id="actionable-insights" class="text-start"></div>
+            </div>
+            <div class="mt-5 mb-5">
+              <h3 class="mt-4">Falls Efficacy Scale Results</h3>
+              <div class="container">
+                <div class="row">
+                  <div class="col-md-6">
+                    <canvas id="fes-total-score"></canvas>
+                  </div>
+                  <div class="col-md-6">
+                    <canvas id="fes-average-score"></canvas>
+                  </div>
+                </div>
+                <div class="container mt-5">
+                  <label
+                    for="testDropdown"
+                    class="form-label"
+                    style="font-size: 18px"
+                    >Select a Test:</label
+                  >
+                  <select
+                    id="testDropdown"
+                    class="form-select"
+                    style="font-size: 16px"
+                  >
+                    <option value="" disabled selected>Loading tests...</option>
+                  </select>
+                </div>
+                <div class="row mt-4">
+                  <div class="col-md-6">
+                    <canvas id="fes-latest-question-scores"></canvas>
+                  </div>
+                  <div class="col-md-6">
+                    <canvas id="fes-muscle-group-scores"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+
+          <!-- Chart.js -->
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
           <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
         </div>
       </div>

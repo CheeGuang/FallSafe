@@ -60,8 +60,6 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   initializeGoogleTranslate();
-  // Additional check for top bar
-  setInterval(removeTranslateBanner, 100);
 });
 
 function initializeGoogleTranslate() {

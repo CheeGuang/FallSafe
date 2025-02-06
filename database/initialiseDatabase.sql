@@ -207,6 +207,31 @@ CREATE TABLE User (
 
 
 -- **************************************************
+-- DATABASE: ConsultationDB
+-- PURPOSE: Handles all Whereby video call consultation data
+-- **************************************************
+
+-- Drop and recreate the ConsultationDB database
+DROP DATABASE IF EXISTS ConsultationDB;
+CREATE DATABASE ConsultationDB;
+USE ConsultationDB;
+
+-- Create the Appointments table
+-- PURPOSE: Stores details of video call consultations
+CREATE TABLE Appointments (
+    AppointmentID INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, -- Unique ID for the appointment
+    UserID INT UNSIGNED NOT NULL,                                 -- Associated member ID
+    AdminID INT UNSIGNED NOT NULL,                                  -- Associated admin ID
+    startDateTime NVARCHAR(40) NOT NULL,                           -- Start time of the appointment
+    endDateTime NVARCHAR(40) NOT NULL,                             -- End time of the appointment
+    ParticipantURL NVARCHAR(1000) NOT NULL,                        -- URL for the participant
+    HostRoomURL NVARCHAR(1000) NOT NULL,                           -- URL for the host (admin)
+    INDEX idx_member_id (MemberID),                                -- Index for quick lookup by MemberID
+    INDEX idx_admin_id (AdminID),                                  -- Index for quick lookup by AdminID
+    INDEX idx_start_datetime (startDateTime)                       -- Index to optimize queries by start time
+);
+
+-- **************************************************
 -- DATABASE: FallSafe_AuthenticationDB
 -- Add dummy data
 -- **************************************************

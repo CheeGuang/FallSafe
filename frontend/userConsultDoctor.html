@@ -70,80 +70,20 @@
 
           <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
           <h2 class="mb-4">Schedule Your Appointment</h2>
-          <p class="mb-4">
-            Easily book an appointment using the options below.
-          </p>
+          <p class="mb-4">Easily book an appointment with a doctor</p>
 
-          <!-- Option 1: HealthHub -->
-          <div class="card mb-4 p-3">
-            <div
-              class="card-body d-flex flex-column justify-content-center align-items-center"
-            >
-              <h3 class="card-title">HealthHub</h3>
-              <p class="card-text text-center">
-                Use HealthHub to book an appointment with your preferred clinic
-                or doctor. HealthHub provides easy access to healthcare services
-                across Singapore.
-              </p>
-              <button
-                class="btn btn-primary mt-3"
-                onclick="window.location.href='https://www.healthhub.sg'"
-              >
-                <i class="fas fa-calendar-alt"></i> Schedule Appointment
-              </button>
-            </div>
-          </div>
-
-          <!-- Option 2: Doctor Anywhere -->
-          <div class="card mb-4 p-3">
-            <div
-              class="card-body d-flex flex-column justify-content-center align-items-center"
-            >
-              <h3 class="card-title">Doctor Anywhere</h3>
-              <p class="card-text text-center">
-                Doctor Anywhere lets you book a video consultation with a
-                healthcare professional from the comfort of your home.
-              </p>
-              <button
-                class="btn btn-primary mt-3"
-                onclick="window.location.href='https://www.doctoranywhere.com'"
-              >
-                <i class="fas fa-laptop-medical"></i> Schedule Appointment
-              </button>
-            </div>
-          </div>
-
-          <!-- Option 3: Polyclinic -->
-          <div class="card mb-4 p-3">
-            <div
-              class="card-body d-flex flex-column justify-content-center align-items-center"
-            >
-              <h3 class="card-title">Polyclinic</h3>
-              <p class="card-text text-center">
-                Find and book an appointment at the nearest polyclinic for your
-                healthcare needs.
-              </p>
-              <button
-                class="btn btn-primary mt-3"
-                onclick="window.location.href='https://polyclinic.singhealth.com.sg/patient-care/Pages/online-appointment-system.aspx'"
-              >
-                <i class="fas fa-clinic-medical"></i> Schedule Appointment
-              </button>
-            </div>
-          </div>
-
-          <!-- Hotlines -->
-          <h3 class="mb-3 mt-5">Hotlines</h3>
-          <ul class="list-group mb-4">
-            <li class="list-group-item">
-              <i class="fas fa-phone me-2"></i>
-              HealthHub Hotline: <strong>1800 225 4482</strong>
-            </li>
-            <li class="list-group-item">
-              <i class="fas fa-phone me-2"></i>
-              Polyclinic Hotline: <strong>6643 6969</strong>
-            </li>
-          </ul>
+          <!-- Calendly inline widget begin -->
+          <div
+            class="calendly-inline-widget"
+            data-url="https://calendly.com/jeffreyleetino/30min"
+            style="min-width: 320px; height: 700px"
+          ></div>
+          <script
+            type="text/javascript"
+            src="https://assets.calendly.com/assets/external/widget.js"
+            async
+          ></script>
+          <!-- Calendly inline widget end -->
 
           <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
         </div>

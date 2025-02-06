@@ -573,9 +573,9 @@ func calculateScore(timeTaken, abruptPercentage float64, testName string) int {
 		TimeTolerance   float64
 		AbruptTolerance float64
 	}{
-		"Timed Up and Go Test":         {TimeTolerance: 12, AbruptTolerance: 20},
-		"Five Times Sit to Stand Test": {TimeTolerance: 14, AbruptTolerance: 20},
-		"Dynamic Gait Index (DGI)":     {TimeTolerance: 20, AbruptTolerance: 20},
+		"Timed Up and Go Test":         {TimeTolerance: 20, AbruptTolerance: 30},
+		"Five Times Sit to Stand Test": {TimeTolerance: 25, AbruptTolerance: 40},
+		"Dynamic Gait Index (DGI)":     {TimeTolerance: 25, AbruptTolerance: 20},
 		"4 Stage Balance Test":         {TimeTolerance: 40, AbruptTolerance: 15},
 	}
 
@@ -615,8 +615,6 @@ func calculateScore(timeTaken, abruptPercentage float64, testName string) int {
 // UserTestResult represents the test results of a user
 type UserTestResult struct {
 	ResultID         int       `json:"result_id"`
-	UserID           int       `json:"user_id"`
-	SessionID        int       `json:"session_id"`
 	TestID           int       `json:"test_id"`
 	TestName         string    `json:"test_name"`
 	TimeTaken        float64   `json:"time_taken"`
@@ -625,8 +623,18 @@ type UserTestResult struct {
 	TestDate         time.Time `json:"test_date"`
 }
 
-// GetUserTestResults retrieves test results for a given userID
-func GetUserTestResults(w http.ResponseWriter, r *http.Request) {
+// TestSession represents a test session with associated test results
+type TestSession struct {
+	SessionID    int              `json:"session_id"`
+	UserID       int              `json:"user_id"`
+	SessionDate  time.Time        `json:"session_date"`
+	AvgScore     sql.NullInt64    `json:"avg_score,omitempty"`
+	SessionNotes sql.NullString   `json:"session_notes,omitempty"`
+	TestResults  []UserTestResult `json:"test_results"`
+}
+
+// GetTestSessions retrieves test sessions and results for a given userID
+func GetTestSessions(w http.ResponseWriter, r *http.Request) {
 	// Extract userID from query parameters
 	userIDStr := r.URL.Query().Get("user_id")
 	if userIDStr == "" {
@@ -640,56 +648,118 @@ func GetUserTestResults(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Query the database
-	rows, err := db.Query(`
+	// Query to fetch test sessions
+	sessionQuery := `
 		SELECT 
-			utr.result_id, 
-			utr.user_id, 
-			utr.session_id, 
-			utr.test_id, 
-			t.test_name,
-			utr.time_taken, 
-			utr.abrupt_percentage, 
-			utr.risk_level, 
-			CAST(utr.test_date AS CHAR) -- Convert test_date to string
-		FROM UserTestResult utr
-		JOIN Test t ON utr.test_id = t.test_id
-		WHERE utr.user_id = ?`, userID)
+			session_id, 
+			user_id, 
+			CAST(session_date AS CHAR), -- Convert to string
+			avg_score, 
+			session_notes
+		FROM TestSession
+		WHERE user_id = ?
+		ORDER BY session_date DESC;
+	`
 
+	rows, err := db.Query(sessionQuery, userID)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Database query failed: %v", err), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	var results []UserTestResult
+	var sessions []TestSession
+
+	// Iterate through each session
 	for rows.Next() {
-		var result UserTestResult
-		var testDateStr string // Store date as string before parsing
+		var session TestSession
+		var sessionDateStr string // Store as string before parsing
 
 		if err := rows.Scan(
-			&result.ResultID, &result.UserID, &result.SessionID,
-			&result.TestID, &result.TestName,
-			&result.TimeTaken, &result.AbruptPercentage,
-			&result.RiskLevel, &testDateStr); err != nil {
-			http.Error(w, fmt.Sprintf("Error scanning row: %v", err), http.StatusInternalServerError)
+			&session.SessionID, &session.UserID, &sessionDateStr, &session.AvgScore, &session.SessionNotes,
+		); err != nil {
+			http.Error(w, fmt.Sprintf("Error scanning session row: %v", err), http.StatusInternalServerError)
 			return
 		}
 
-		// Parse the string to time.Time
-		parsedDate, err := time.Parse("2006-01-02 15:04:05", testDateStr) // Adjust format if needed
+		// Debug: Print sessionDateStr before parsing
+		log.Printf("Raw session_date string: %s", sessionDateStr)
+
+		// Parse session_date using "YYYY-MM-DD HH:MM:SS" format
+		parsedSessionDate, err := time.Parse("2006-01-02 15:04:05", sessionDateStr)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Error parsing test_date: %v", err), http.StatusInternalServerError)
+			log.Printf("Error parsing session_date: %v", err)
+			http.Error(w, fmt.Sprintf("Error parsing session_date: %v", err), http.StatusInternalServerError)
 			return
 		}
-		result.TestDate = parsedDate
+		session.SessionDate = parsedSessionDate
 
-		results = append(results, result)
+		// Query to fetch test results for the session
+		testResultQuery := `
+			SELECT 
+				utr.result_id, 
+				utr.test_id, 
+				t.test_name,
+				utr.time_taken, 
+				utr.abrupt_percentage, 
+				utr.risk_level, 
+				CAST(utr.test_date AS CHAR) -- Convert test_date to string
+			FROM UserTestResult utr
+			JOIN Test t ON utr.test_id = t.test_id
+			WHERE utr.session_id = ?
+			ORDER BY utr.test_date DESC;
+		`
+
+		testRows, err := db.Query(testResultQuery, session.SessionID)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error querying test results: %v", err), http.StatusInternalServerError)
+			return
+		}
+		defer testRows.Close()
+
+		var testResults []UserTestResult
+		for testRows.Next() {
+			var result UserTestResult
+			var testDateStr string
+
+			if err := testRows.Scan(
+				&result.ResultID, &result.TestID, &result.TestName,
+				&result.TimeTaken, &result.AbruptPercentage,
+				&result.RiskLevel, &testDateStr,
+			); err != nil {
+				http.Error(w, fmt.Sprintf("Error scanning test result row: %v", err), http.StatusInternalServerError)
+				return
+			}
+
+			// Debug: Print testDateStr before parsing
+			log.Printf("Raw test_date string: %s", testDateStr)
+
+			// Parse test_date using "YYYY-MM-DD HH:MM:SS" format
+			parsedTestDate, err := time.Parse("2006-01-02 15:04:05", testDateStr)
+			if err != nil {
+				log.Printf("Error parsing test_date: %v", err)
+				http.Error(w, fmt.Sprintf("Error parsing test_date: %v", err), http.StatusInternalServerError)
+				return
+			}
+			result.TestDate = parsedTestDate
+
+			testResults = append(testResults, result)
+		}
+
+		// **Exclude sessions if they don't have exactly 4 test results**
+		if len(testResults) != 4 {
+			log.Printf("Skipping session %d (only %d test results)", session.SessionID, len(testResults))
+			continue
+		}
+
+		// Assign test results to the session
+		session.TestResults = testResults
+		sessions = append(sessions, session)
 	}
 
 	// Encode results as JSON and send response
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(results); err != nil {
+	if err := json.NewEncoder(w).Encode(sessions); err != nil {
 		http.Error(w, "Failed to encode JSON", http.StatusInternalServerError)
 	}
 }

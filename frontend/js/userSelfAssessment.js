@@ -377,8 +377,11 @@ document.addEventListener("DOMContentLoaded", function () {
       nextTestButton.disabled = true; // Disable "Next Test" button
       resetStopwatch();
     } else {
-      // Save final test results
-      if (storedResults[testID]) {
+      // Only save final test results if the button is not in "View Results" mode
+      if (
+        storedResults[testID] &&
+        nextTestButton.textContent !== "View Results"
+      ) {
         try {
           const token = localStorage.getItem("token");
           if (!token) {
@@ -393,7 +396,6 @@ document.addEventListener("DOMContentLoaded", function () {
           const riskLevel = calculateRiskLevel(score);
           storedResults[testID].riskLevel = riskLevel; // Overwrite riskLevel in stored results
 
-          // Debugging output to verify the updated storedResults object
           console.log("Final updated storedResults:", storedResults[testID]);
 
           // Send result to saveTestResult endpoint
@@ -405,7 +407,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
               },
-              body: JSON.stringify(storedResults[testID]), // Include recalculated riskLevel
+              body: JSON.stringify(storedResults[testID]),
             }
           );
 
@@ -811,13 +813,6 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
-
-  // Trigger results display when "View Results" is clicked
-  nextTestButton.addEventListener("click", () => {
-    if (nextTestButton.textContent === "View Results") {
-      displayResults();
-    }
-  });
 
   // Trigger results display when "View Results" is clicked
   nextTestButton.addEventListener("click", () => {

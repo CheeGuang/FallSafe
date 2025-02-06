@@ -5,13 +5,15 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"userMicroservice/profile"
+
+	"consultationMicroservice/consultation"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
+// Authentication middleware to validate JWT
 // JWT Authentication Middleware with Role Check for multiple roles
 func authenticateMiddleware(allowedRoles []string) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
@@ -82,30 +84,30 @@ func authenticateMiddleware(allowedRoles []string) mux.MiddlewareFunc {
 	}
 }
 
+
+
 func main() {
 	// Initialize the router
 	router := mux.NewRouter()
 
-	// Profile management endpoints
-	router.HandleFunc("/api/v1/user/create", profile.CreateUser).Methods("POST") // No auth needed
-	router.HandleFunc("/api/v1/user/getUser", profile.GetUserByID).Methods("GET")
-
+	// consultation management endpoints
+	router.HandleFunc("/api/v1/consultation/unprotectedGetUser", consultation.GetAllUsers).Methods("GET")
+	
 	// JWT Authentication Logic
 	authenticated := router.NewRoute().Subrouter()
-	authenticated.HandleFunc("/api/v1/user/getAllUser", profile.GetAllUser).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(profile.GetAllUser)))
-	authenticated.HandleFunc("/api/v1/user/getAUserFESResults", profile.CallFESForActionableInsights).Methods("GET").Handler(authenticateMiddleware([]string{"User"})(http.HandlerFunc(profile.CallFESForActionableInsights)))
-	authenticated.HandleFunc("/api/v1/user/getAUserTestResults", profile.CallSelfAssessmentForInsights).Methods("GET").Handler(authenticateMiddleware([]string{"User"})(http.HandlerFunc(profile.CallSelfAssessmentForInsights)))
-
-	//
+	authenticated.Use(authenticateMiddleware([]string{"Admin", "User"}))
+	
+	// consultation management endpoints
+	authenticated.HandleFunc("/api/v1/consultation/protectedGetUser", consultation.GetAllUsers).Methods("GET")
 
 	// Add CORS support
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://127.0.0.1:5100"}),         // Update for allowed origins
+		handlers.AllowedOrigins([]string{"http://127.0.0.1:9000"}), // Update for allowed origins
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "OPTIONS"}), // Update for allowed HTTP methods
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}), // Include Authorization header
 	)(router)
 
 	// Start the server
-	log.Println("User Microservice is running on port 5100...")
-	log.Fatal(http.ListenAndServe(":5100", corsHandler))
+	log.Println("User Microservice is running on port 9000...")
+	log.Fatal(http.ListenAndServe(":9000", corsHandler))
 }
