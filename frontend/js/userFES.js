@@ -41,36 +41,48 @@ function renderQuestions() {
 
     questionDiv.innerHTML = `
     <div style="display: flex; justify-content: center; align-items: center">
-      <p style="margin: 0;" class="question-title">Q${question.id}: ${question.text}</p>
-      <button class="play-button" data-id="${question.id}" data-text="${question.text}" aria-label="Play text" style="background: none; border: none; cursor: pointer;">
+      <p style="margin: 0;" class="question-title">Q${question.id}: ${
+      question.text
+    }</p>
+      <button class="play-button" data-id="${question.id}" data-text="${
+      question.text
+    }" aria-label="Play text" style="background: none; border: none; cursor: pointer;">
         <span role="img" aria-label="Speaker" style="font-size: 2.5em; cursor: pointer;">🔊</span>
       </button>
     </div>
     <div class="options d-flex justify-content-between mt-3">
       <div class="option" data-risk="low">
         <label>
-          <input type="radio" name="question-${question.id}" value="1" ${userAnswers[question.id] === 1 ? 'checked' : ''}> 
+          <input type="radio" name="question-${question.id}" value="1" ${
+      userAnswers[question.id] === 1 ? "checked" : ""
+    }> 
           <span role="img" aria-label="Low risk" style="font-size: 2em;">🙂</span>
           <p style="margin: 0; text-align: center; font-size: 0.9em;">Highly Confident</p>
         </label>
       </div>
       <div class="option" data-risk="moderate">
         <label>
-          <input type="radio" name="question-${question.id}" value="2" ${userAnswers[question.id] === 2 ? 'checked' : ''}>
+          <input type="radio" name="question-${question.id}" value="2" ${
+      userAnswers[question.id] === 2 ? "checked" : ""
+    }>
           <span role="img" aria-label="Moderate risk" style="font-size: 2em;">😐</span>
           <p style="margin: 0; text-align: center; font-size: 0.9em;">Moderately Confident</p>
         </label>
       </div>
       <div class="option" data-risk="high">
         <label>
-          <input type="radio" name="question-${question.id}" value="3" ${userAnswers[question.id] === 3 ? 'checked' : ''}>
+          <input type="radio" name="question-${question.id}" value="3" ${
+      userAnswers[question.id] === 3 ? "checked" : ""
+    }>
           <span role="img" aria-label="High risk" style="font-size: 2em;">😟</span>
           <p style="margin: 0; text-align: center; font-size: 0.9em;">Somewhat Confident</p>
         </label>
       </div>
       <div class="option" data-risk="very-high">
         <label>
-          <input type="radio" name="question-${question.id}" value="4" ${userAnswers[question.id] === 4 ? 'checked' : ''}>
+          <input type="radio" name="question-${question.id}" value="4" ${
+      userAnswers[question.id] === 4 ? "checked" : ""
+    }>
           <span role="img" aria-label="Very high risk" style="font-size: 2em;">😱</span>
           <p style="margin: 0; text-align: center; font-size: 0.9em;">Not Confident</p>
         </label>
@@ -82,9 +94,10 @@ function renderQuestions() {
 
     //event listeners to save option after user selects
     const radioButtons = questionDiv.querySelectorAll('input[type="radio"]');
-    radioButtons.forEach(radio => {
-      radio.addEventListener('change', (e) => {
+    radioButtons.forEach((radio) => {
+      radio.addEventListener("change", (e) => {
         userAnswers[question.id] = parseInt(e.target.value);
+        checkAllQuestionsAnswered();
       });
     });
   });
@@ -111,15 +124,24 @@ function updatePaginationButtons() {
 }
 
 function handlePageChange(direction) {
-  saveCurrentPageAnswers(); //save ansers before page change
-  
-  if (direction === "next" && currentPage * questionsPerPage < questions.length) {
+  savePageAnswers(); // Save answers before page change
+
+  if (
+    direction === "next" &&
+    currentPage * questionsPerPage < questions.length
+  ) {
     currentPage++;
   } else if (direction === "back" && currentPage > 1) {
     currentPage--;
   }
-  
+
   renderQuestions();
+
+  // Scroll to the language dropdown
+  const dropdownElement = document.getElementById("language-dropdown");
+  if (dropdownElement) {
+    dropdownElement.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 //save page answers to userAnswers object
@@ -128,7 +150,7 @@ function savePageAnswers() {
   const endIndex = Math.min(startIndex + questionsPerPage, questions.length);
   const currentQuestions = questions.slice(startIndex, endIndex);
 
-  currentQuestions.forEach(question => {
+  currentQuestions.forEach((question) => {
     const selectedOption = document.querySelector(
       `input[name="question-${question.id}"]:checked`
     );
@@ -138,9 +160,28 @@ function savePageAnswers() {
   });
 }
 
+function checkAllQuestionsAnswered() {
+  const totalQuestions = questions.length;
+  const answeredQuestions = Object.keys(userAnswers).length;
+
+  const submitButton = document.getElementById("submit-button");
+  submitButton.disabled = answeredQuestions < totalQuestions;
+}
+
 async function playTextToSpeech(text) {
-  const dropdown = document.getElementById("language-dropdown");
-  const targetLanguage = dropdown.value;
+  let targetLanguage = "en";
+  const googtrans = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("googtrans="));
+  if (googtrans) {
+    let language = googtrans.split("=")[1].replace("/auto/", "");
+    if (language === "zh-CN") {
+      language = "zh";
+    }
+    targetLanguage = language;
+    console.log(targetLanguage); // Output the final targetLanguage
+  }
+
   const playButtons = document.querySelectorAll(".play-button");
 
   try {
@@ -220,12 +261,12 @@ async function submitResponses() {
     return;
   }
 
-    const payload = {
-      user_id: 1, 
-      responses,
-    };
+  const payload = {
+    user_id: 1,
+    responses,
+  };
 
-    try {
+  try {
     const response = await fetch(`${API_FES_URL}/saveResponses`, {
       method: "POST",
       headers: {
@@ -281,12 +322,14 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document
-  .getElementById("submit-button")
-  .addEventListener("click", submitResponses);
+    .getElementById("submit-button")
+    .addEventListener("click", submitResponses);
 
   //language change handler
-  document.getElementById("language-dropdown").addEventListener("change", () => {
-    //re-render questions to update text-to-speech buttons
-    renderQuestions();
-  });
+  document
+    .getElementById("language-dropdown")
+    .addEventListener("change", () => {
+      //re-render questions to update text-to-speech buttons
+      renderQuestions();
+    });
 });

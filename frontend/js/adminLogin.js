@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // API endpoint for user login
-    const endpoint = "http://localhost:5050/api/v1/authentication/user/login";
+    const endpoint = "http://localhost:5050/api/v1/authentication/admin/login";
 
     try {
       // Send a POST request to the login endpoint
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (response.ok) {
         // If login is successful, store the JWT token
         localStorage.setItem("token", data.token);
-        showCustomAlert("Login successful!", "./userHome.html");
+        showCustomAlert("Login successful!", "./adminHome.html");
       } else {
         // If login fails, show an error message
         showCustomAlert(

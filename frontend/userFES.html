@@ -71,84 +71,13 @@
           <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
           <!-- Page Content -->
           <h1>Falls Efficacy Scale</h1>
-          <p class="lead text-muted" style="padding-bottom: 4em">
+          <p class="lead text-muted">
             Please rate your confidence in completing each of the 16 tasks
             listed below. These tasks assess your confidence in avoiding falls
             in various situations.
           </p>
-          <!--supported languages from openAI-->
-          <div class="mb-4">
-            <label for="language-dropdown" class="form-label"
-              >Select Language</label
-            >
-            <select
-              id="language-dropdown"
-              class="form-select"
-              aria-label="Select Target Language"
-            >
-              <option value="en" selected>English</option>
-              <option value="zh">Chinese</option>
-              <option value="ms">Malay</option>
-              <option value="ta">Tamil</option>
-              <option value="af">Afrikaans</option>
-              <option value="ar">Arabic</option>
-              <option value="hy">Armenian</option>
-              <option value="az">Azerbaijani</option>
-              <option value="be">Belarusian</option>
-              <option value="bs">Bosnian</option>
-              <option value="bg">Bulgarian</option>
-              <option value="ca">Catalan</option>
-              <option value="hr">Croatian</option>
-              <option value="cs">Czech</option>
-              <option value="da">Danish</option>
-              <option value="nl">Dutch</option>
 
-              <option value="et">Estonian</option>
-              <option value="fi">Finnish</option>
-              <option value="fr">French</option>
-              <option value="gl">Galician</option>
-              <option value="de">German</option>
-              <option value="el">Greek</option>
-              <option value="he">Hebrew</option>
-              <option value="hi">Hindi</option>
-              <option value="hu">Hungarian</option>
-              <option value="is">Icelandic</option>
-              <option value="id">Indonesian</option>
-              <option value="it">Italian</option>
-              <option value="ja">Japanese</option>
-              <option value="kn">Kannada</option>
-              <option value="kk">Kazakh</option>
-              <option value="ko">Korean</option>
-              <option value="lv">Latvian</option>
-              <option value="lt">Lithuanian</option>
-              <option value="mk">Macedonian</option>
-              <option value="mr">Marathi</option>
-              <option value="mi">Maori</option>
-              <option value="ne">Nepali</option>
-              <option value="no">Norwegian</option>
-              <option value="fa">Persian</option>
-              <option value="pl">Polish</option>
-              <option value="pt">Portuguese</option>
-              <option value="ro">Romanian</option>
-              <option value="ru">Russian</option>
-              <option value="sr">Serbian</option>
-              <option value="sk">Slovak</option>
-              <option value="sl">Slovenian</option>
-              <option value="es">Spanish</option>
-              <option value="sw">Swahili</option>
-              <option value="sv">Swedish</option>
-              <option value="tl">Tagalog</option>
-
-              <option value="th">Thai</option>
-              <option value="tr">Turkish</option>
-              <option value="uk">Ukrainian</option>
-              <option value="ur">Urdu</option>
-              <option value="vi">Vietnamese</option>
-              <option value="cy">Welsh</option>
-            </select>
-          </div>
-
-          <h2 style="padding-top: 4em; padding-bottom: 1em">
+          <h2 style="padding-top: 1em; padding-bottom: 1em">
             How Confident are you in the following:
           </h2>
           <div id="questions-container"></div>
@@ -159,7 +88,9 @@
             <button id="next-button" class="btn btn-secondary">Next</button>
           </div>
           <div class="d-flex justify-content-center mt-3">
-            <button id="submit-button" class="btn btn-primary">Submit</button>
+            <button id="submit-button" class="btn btn-primary" disabled>
+              Submit
+            </button>
           </div>
           <div
             id="loading-spinner"
