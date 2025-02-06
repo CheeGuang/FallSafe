@@ -122,6 +122,12 @@ function handlePageChange(direction) {
   }
 
   renderQuestions();
+
+  // Scroll to the subtitle after page change
+  const subtitle = document.getElementById("subtitle");
+  if (subtitle) {
+    subtitle.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 // Save answers to userAnswers object before navigating
