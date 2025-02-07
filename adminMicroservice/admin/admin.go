@@ -292,8 +292,8 @@ type TestSessionUser struct {
 }
 
 // Function to call selfAssessMicro, get all user with their dates and score
-func CallFAForAllUserAvgScore(w http.ResponseWriter, r *http.Request) {
-	apiURL := "http://localhost:5250/api/v1/selfAssessment/getAllAvgScore"
+func CallFAForAllUserTotalScore(w http.ResponseWriter, r *http.Request) {
+	apiURL := "http://localhost:5250/api/v1/selfAssessment/getAllTotalScore"
 
 	// Extract the Authorization header from the incoming request
 	authHeader := r.Header.Get("Authorization")
@@ -817,3 +817,4 @@ func CallFESUserRiskLevel(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to send response to client", http.StatusInternalServerError)
 	}
 }
+

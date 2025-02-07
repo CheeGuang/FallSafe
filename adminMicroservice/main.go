@@ -97,7 +97,7 @@ func main() {
 	authenticated.HandleFunc("/api/v1/admin/getAllElderlyUser", admin.CallUserMicroservice).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(admin.CallUserMicroservice)))
 	authenticated.HandleFunc("/api/v1/admin/getAllElderlyFESResponse", admin.CallFESForUserResponse).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(admin.CallFESForUserResponse)))
 	authenticated.HandleFunc("/api/v1/admin/getAllElderlyFESResDetails", admin.CallFESForUserResponseDetails).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(admin.CallFESForUserResponseDetails)))
-	authenticated.HandleFunc("/api/v1/admin/getAllFAAvgScore", admin.CallFAForAllUserAvgScore).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(admin.CallFAForAllUserAvgScore)))
+	authenticated.HandleFunc("/api/v1/admin/getAllFATotalScore", admin.CallFAForAllUserTotalScore).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(admin.CallFAForAllUserTotalScore)))
 	authenticated.HandleFunc("/api/v1/admin/getAllFATime", admin.CallFAForAllUserTime).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(admin.CallFAForAllUserTime)))
 	authenticated.HandleFunc("/api/v1/admin/getAllFAUserRisk", admin.CallFAForAllUserRisk).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(admin.CallFAForAllUserRisk)))
 	authenticated.HandleFunc("/api/v1/admin/getAllLastResFES", admin.CallFESLastResDayForAllUsers).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(admin.CallFESLastResDayForAllUsers)))

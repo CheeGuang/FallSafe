@@ -165,6 +165,7 @@ function setupEventListeners() {
                 updateDropdown(filteredUsers);
             } else {
                 suggestionDropdown.style.display = 'none'; // Hide dropdown if input is empty
+                updateDashboard('all'); // Reset dashboard when input is empty
             }
         } else {
             suggestionDropdown.style.display = 'none'; // Hide dropdown when age group filter is active
@@ -299,6 +300,19 @@ function updateRadarChart(filteredResponses) { //FilteredResponses, gives the fi
 }
 
 function updateAverageScoreChart(filteredResponses) {
+    if (!Array.isArray(filteredResponses) || filteredResponses.length === 0) {
+        console.warn("No data available. Clearing the chart.");
+
+        // Clear the chart data
+        window.averageSessionScoreChart.data.labels = [];
+        window.averageSessionScoreChart.data.datasets.forEach(dataset => {
+            dataset.data = [];
+        });
+
+        // Update the chart to reflect the cleared state
+        window.averageSessionScoreChart.update();
+        return;
+    }
     const monthlyAverages = {};
 
     filteredResponses.forEach(response => {
