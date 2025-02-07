@@ -242,6 +242,9 @@ async function playTextToSpeech(text, button) {
 async function submitResponses() {
   savePageAnswers();
 
+  const submitButton = document.getElementById("submit-button");
+  submitButton.disabled = true; // Disable submit button
+
   const responses = [];
   questions.forEach((question) => {
     if (userAnswers[question.id]) {
@@ -254,6 +257,7 @@ async function submitResponses() {
 
   if (responses.length !== questions.length) {
     showCustomAlert("Please answer all questions before submitting.");
+    submitButton.disabled = false; // Re-enable submit button
     return;
   }
 
@@ -281,6 +285,7 @@ async function submitResponses() {
   } catch (error) {
     console.error(error);
     showCustomAlert("Error submitting responses. Please try again.");
+    submitButton.disabled = false; // Re-enable submit button only if submission fails
   }
 }
 

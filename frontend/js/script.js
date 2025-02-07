@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const loadComponent = (url, placeholderId) => {
+  const loadComponent = (url, placeholderId, callback = null) => {
     fetch(url)
       .then((response) => {
         if (!response.ok) {
@@ -9,14 +9,15 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .then((data) => {
         document.getElementById(placeholderId).innerHTML = data;
+        if (callback) callback(); // Execute the callback after loading the component
       })
       .catch((error) => console.error("Error loading component:", error));
   };
 
-  // Check for token in localStorage and load the appropriate navbar
+  // Load the appropriate navbar based on authentication token
   const token = localStorage.getItem("token");
   const navbarUrl = token ? "./userNavbar.html" : "./navbar.html";
-  loadComponent(navbarUrl, "navbar-container");
+  loadComponent(navbarUrl, "navbar-container", attachSignOutListener); // Call attachSignOutListener after navbar loads
 
   // Load Footer
   loadComponent("./footer.html", "footer-container");
@@ -79,4 +80,22 @@ function initializeGoogleTranslate() {
     "//translate.google.com/translate_a/element.js?cb=initGoogleTranslate";
   translationScript.async = true;
   document.body.appendChild(translationScript);
+}
+
+// Function to attach the sign-out event listener **after** the navbar is loaded
+function attachSignOutListener() {
+  console.log("Attaching sign-out event listener...");
+  const signOutButton = document.getElementById("signOutButton");
+
+  if (signOutButton) {
+    signOutButton.addEventListener("click", function () {
+      console.log("Sign out clicked. Removing token...");
+      localStorage.removeItem("token");
+
+      // Redirect to index.html
+      window.location.href = "index.html";
+    });
+  } else {
+    console.error("Error: Sign-out button not found!");
+  }
 }
