@@ -43,7 +43,8 @@
 
     <!-- ######################################## INSERT PAGE'S JS HERE \/ ########################################################### -->
     <script src="./js/adminDashboard.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!--CHART.JS SCRIPT FILE-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!--CHART.JS SCRIPT FILE-->
     <!-- ######################################## END OF PAGE'S JS ########################################################### -->
 
     <!-- Add a favicon to the tab bar -->
@@ -73,17 +74,23 @@
           <!-- Dashboard Container -->
           <div class="dashboard-container">
             <!-- Dashboard Title -->
-            <h2 class="mb-4" style="text-align: left;">Falls Efficacy Scale Analysis</h2>
-  
+            <h2 class="mb-4" style="text-align: left">
+              Falls Efficacy Scale Analysis
+            </h2>
+
             <!-- Filter Controls -->
             <div class="filter-controls mb-4">
               <!-- Age Group Filter -->
-              <select id="ageGroupSelector" class="form-select d-inline-block me-3" style="width: auto;">
-                  <option value="all">All</option>
-                  <option value="60-70">60-70</option>
-                  <option value="70-80">70-80</option>
-                  <option value="80-90">80-90</option>
-                  <option value="90+">90+</option>
+              <select
+                id="ageGroupSelector"
+                class="form-select d-inline-block me-3"
+                style="width: auto"
+              >
+                <option value="all">All</option>
+                <option value="60-70">60-70</option>
+                <option value="70-80">70-80</option>
+                <option value="80-90">80-90</option>
+                <option value="90+">90+</option>
               </select>
               
             <!-- Individual Search --> 
@@ -133,19 +140,26 @@
                   </div>
                 </div>
               </div>
-
             </div>
-                    <!-- Detailed Breakdown of Scores -->
-                    <div class="col-md-12 mb-4">
-                      <div class="card">
-                        <div class="card-header">
-                          <h5 class="card-title mb-0">Latest Breakdown of Individual Questions</h5>
-                        </div>
-                        <div class="card-body" style="display: flex; justify-content: center;">
-                          <canvas id="questionScoreChart" style="max-width: 400px; max-height: 400px;"></canvas>
-                        </div>
-                      </div>
-                    </div>
+            <!-- Detailed Breakdown of Scores -->
+            <div class="col-md-12 mb-4">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">
+                    Latest Breakdown of Individual Questions
+                  </h5>
+                </div>
+                <div
+                  class="card-body"
+                  style="display: flex; justify-content: center"
+                >
+                  <canvas
+                    id="questionScoreChart"
+                    style="max-width: 400px; max-height: 400px"
+                  ></canvas>
+                </div>
+              </div>
+            </div>
           </div>
           <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
         </div>
@@ -160,5 +174,4 @@
       ></div>
     </footer>
   </body>
-  
 </html>

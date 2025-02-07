@@ -1,597 +1,586 @@
-document.addEventListener("DOMContentLoaded", function () {
-  // Retrieve the token from localStorage
-  const token = localStorage.getItem("token");
+let latestQuestionChart = null;
+let muscleGroupChart = null;
 
-  // Check if the token exists
+document.addEventListener("DOMContentLoaded", async function () {
+  const token = localStorage.getItem("token");
   if (!token) {
-    window.location.href = "./login.html"; // Redirect to login if no token is found
+    alert("User not authenticated");
     return;
   }
 
   try {
-    // Decode the token to extract user information
-    const decodedToken = parseJwt(token);
-    const userName = decodedToken.name || "User";
+    const user_id = decodeToken(token).user_id;
+    const [fesResults, testResults] = await Promise.all([
+      fetchData(
+        `http://127.0.0.1:5100/api/v1/user/getAUserFESResults?user_id=${user_id}`
+      ),
+      fetchData(
+        `http://127.0.0.1:5100/api/v1/user/getAUserTestResults?user_id=${user_id}`
+      ),
+    ]);
 
-    // Update the title dynamically with the user's name
-    document.getElementById(
-      "userResultsTitle"
-    ).innerText = `Here are your results, ${userName}:`;
-    document.getElementById(
-      "historyTitle"
-    ).innerText = `Test History for ${userName}`;
-
-    if (decodedToken.exp < Math.floor(Date.now() / 1000)) {
-      showCustomAlert("Your session has expired. Please log in again.");
-      localStorage.removeItem("token");
-      window.location.href = "./login.html";
+    if (!fesResults || !testResults) {
+      alert("Error fetching data");
       return;
     }
 
-    // Fetch user test results and FES results using the extracted userID
-    fetchTestResults(decodedToken.user_id);
-    fetchFESResults(decodedToken.user_id);
-  } catch (error) {
-    console.error("Error decoding token:", error);
-    showCustomAlert("An error occurred. Please log in again.");
-    localStorage.removeItem("token");
-    window.location.href = "./login.html";
-  }
-
-  // Function to decode JWT token
-  function parseJwt(token) {
-    const base64Url = token.split(".")[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => `%${("00" + c.charCodeAt(0).toString(16)).slice(-2)}`)
-        .join("")
+    displayActionableInsights(
+      fesResults.actionable_insights.response,
+      testResults.actionable_insights.response
     );
-    return JSON.parse(jsonPayload);
+    const overallRisk = calculateOverallRisk(
+      fesResults.fes_results,
+      testResults.self_assessment_results
+    );
+
+    console.log(fesResults.fes_results);
+
+    displayRiskResult(overallRisk);
+    generateCharts(fesResults.fes_results);
+    generateGaugeCharts(fesResults.fes_results);
+    populateDropdown(fesResults.fes_results);
+    updateCharts(fesResults.fes_results, fesResults.fes_results.length - 1);
+    updateMuscleStrengthChart(
+      fesResults.fes_results,
+      fesResults.fes_results.length - 1
+    );
+  } catch (error) {
+    console.error("Error: ", error);
+    alert("An error occurred while fetching data.");
   }
+});
 
-  // Function to fetch user test results for self assessment
-  function fetchTestResults(userID) {
-    fetch(
-      `http://127.0.0.1:5100/api/v1/user/getAUserTestResults?user_id=${userID}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Include JWT token
-        },
-      }
-    )
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to fetch test results");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        const aggregatedData = aggregateTestResults(data);
-        calculateFallRisk(data);
-        renderCharts(aggregatedData);
-        displayDetailedData(data);
-      })
-      .catch((error) => console.error("Error:", error));
+function decodeToken(token) {
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch (error) {
+    console.error("Invalid token", error);
+    return null;
   }
+}
 
-  // Function to aggregate test results (calculate averages for duplicate test names)
-  function aggregateTestResults(results) {
-    const aggregatedResults = {};
+async function fetchData(url) {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("No token found, please log in.");
 
-    // Loop through the results and aggregate by test_name
-    results.forEach((result) => {
-      if (!aggregatedResults[result.test_name]) {
-        aggregatedResults[result.test_name] = {
-          totalTime: 0,
-          totalAbrupt: 0,
-          count: 0,
-        };
-      }
-      aggregatedResults[result.test_name].totalTime += result.time_taken;
-      aggregatedResults[result.test_name].totalAbrupt +=
-        result.abrupt_percentage;
-      aggregatedResults[result.test_name].count++;
-    });
-
-    // Convert aggregated results into an array of averages
-    return Object.keys(aggregatedResults).map((testName) => {
-      const { totalTime, totalAbrupt, count } = aggregatedResults[testName];
-      return {
-        test_name: testName,
-        avgTime: (totalTime / count).toFixed(2),
-        avgAbrupt: (totalAbrupt / count).toFixed(2),
-      };
-    });
-  }
-
-  function calculateFallRisk(results) {
-    if (!results.length) {
-      document.getElementById("fallRisk").innerHTML =
-        "<p>No data available to calculate fall risk.</p>";
-      return;
-    }
-
-    // Risk level mapping from string to numeric values
-    const riskLevelMapping = {
-      low: 10,
-      moderate: 30,
-      high: 60,
-    };
-
-    // Filter and map risk levels to numeric values
-    const validResults = results
-      .filter((result) => {
-        const risk = result.risk_level.toLowerCase(); // Convert to lowercase for consistency
-        return riskLevelMapping[risk] !== undefined; // Only keep valid risk levels
-      })
-      .map((result) => {
-        const risk = result.risk_level.toLowerCase();
-        return riskLevelMapping[risk]; // Map to numeric value
-      });
-
-    if (validResults.length === 0) {
-      document.getElementById("fallRisk").innerHTML =
-        "<p>No valid data to calculate fall risk.</p>";
-      return;
-    }
-
-    // Calculate the average risk
-    const totalRisk = validResults.reduce((sum, risk) => sum + risk, 0);
-    const avgRisk = totalRisk / validResults.length;
-
-    // Categorize the average risk level
-    let riskCategory;
-    if (avgRisk < 20) {
-      riskCategory = "Low Risk";
-    } else if (avgRisk < 50) {
-      riskCategory = "Moderate Risk";
-    } else {
-      riskCategory = "High Risk";
-    }
-
-    // Display the result
-    document.getElementById("fallRisk").innerHTML = `
-      <p><strong>Average Fall Risk Level:</strong> ${riskCategory} (${avgRisk.toFixed(
-      2
-    )})</p>
-    `;
-  }
-
-  function renderCharts(results) {
-    if (!results || results.length === 0) {
-      console.warn("No data available for chart.");
-      return;
-    }
-
-    const testNames = results.map((result) => result.test_name);
-    const avgTimes = results.map((result) => result.avgTime);
-    const avgAbrupt = results.map((result) => result.avgAbrupt);
-
-    const chartOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          labels: {
-            font: { size: 18 },
-          },
-        },
-        tooltip: {
-          bodyFont: { size: 16 },
-        },
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
+    });
+
+    if (response.status === 401) {
+      alert("Unauthorized: Please log in again.");
+      localStorage.removeItem("token");
+      window.location.href = "/login.html";
+      return null;
+    }
+
+    if (!response.ok) throw new Error(`Error: ${response.statusText}`);
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return null;
+  }
+}
+
+function displayActionableInsights(fesInsights, testInsights) {
+  const formatText = (text) =>
+    text
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // Bold formatting
+      .replace(/^[\s\S]*?1\)/, "1)") // Remove everything before "1)"
+      .replace(/\n/g, "") // Remove all newlines
+      .replace(/(?<!<br>\s*)\b([2-9]|[1-9][0-9]+)\)/g, "<br>$1)"); // Add <br> if missing before numbers 2+)
+
+  document.getElementById("actionable-insights").innerHTML = `
+    <h3>FES Recommendations:</h3><p>${formatText(fesInsights)}</p><br>
+    <h3>Self-Assessment Recommendations:</h3><p>${formatText(testInsights)}</p>
+  `;
+
+  console.log(formatText(fesInsights));
+  console.log(formatText(testInsights));
+}
+
+function calculateOverallRisk(fesResults, testResults) {
+  if (!fesResults.length || !testResults.length) {
+    console.warn("Insufficient data for risk calculation.");
+    return { percentage: 0, level: "low" };
+  }
+
+  // Get the latest FES result based on response date
+  const latestFES = fesResults.reduce((prev, curr) =>
+    new Date(prev.response_date) > new Date(curr.response_date) ? prev : curr
+  );
+
+  // Get the latest Test result based on test date
+  const latestTest = testResults.reduce((prev, curr) =>
+    new Date(prev.test_date) > new Date(curr.test_date) ? prev : curr
+  );
+
+  // Normalize FES Score to percentage
+  const fesScore = (latestFES.total_score / 64) * 100;
+
+  // Convert risk level into a score
+  const testRiskScore = getRiskScore(latestTest.risk_level) * 100; // Convert to percentage
+
+  // Calculate overall risk percentage (weighted average)
+  const overallRiskPercentage = (fesScore + testRiskScore) / 2;
+
+  return {
+    percentage: overallRiskPercentage,
+    level: determineRiskLevel(overallRiskPercentage),
+  };
+}
+
+function getRiskScore(riskLevel) {
+  const riskMapping = { low: 0.2, moderate: 0.5, high: 0.8 };
+  return riskMapping[riskLevel] || 0;
+}
+
+function determineRiskLevel(percentage) {
+  if (percentage < 30) return "low";
+  if (percentage < 60) return "moderate";
+  return "high";
+}
+
+function displayRiskResult({ percentage, level }) {
+  const progressBar = document.getElementById("risk-progress");
+  const riskLabel = document.getElementById("risk-label");
+
+  let color;
+  if (level === "low") {
+    color = "bg-success";
+  } else if (level === "moderate") {
+    color = "bg-warning";
+  } else {
+    color = "bg-danger";
+  }
+
+  progressBar.style.width = `${percentage.toFixed(2)}%`;
+  progressBar.className = `progress-bar ${color}`;
+  riskLabel.innerHTML = `<strong>${level.toUpperCase()}</strong> - ${percentage.toFixed(
+    2
+  )}% Risk`;
+}
+
+function generateCharts(fesResults) {
+  const labels = fesResults.map((res) =>
+    new Date(res.response_date).toLocaleDateString()
+  );
+  const totalScores = fesResults.map((res) => res.total_score);
+  const averageScores = fesResults.map(
+    (res) =>
+      res.response_details.reduce((sum, q) => sum + q.response_score, 0) /
+      res.response_details.length
+  );
+
+  const questionScores = fesResults[fesResults.length - 1].response_details.map(
+    (q) => q.response_score
+  );
+  const questionLabels = Array.from({ length: 16 }, (_, i) => `Q${i + 1}`);
+
+  createLineChart(
+    "fes-total-score",
+    "Total FES Score Over Time",
+    labels,
+    totalScores,
+    "Total Score"
+  );
+
+  createCategorizedBarChart(
+    "fes-latest-question-scores",
+    "Question Scores in Latest Test",
+    questionLabels,
+    questionScores
+  );
+}
+
+function createLineChart(canvasId, title, labels, data, label) {
+  const ctx = document.getElementById(canvasId).getContext("2d");
+
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: label,
+          data: data,
+          borderColor: "rgba(100, 149, 237, 0.8)", // Light Cornflower Blue
+          backgroundColor: "rgba(173, 216, 230, 0.3)", // Light Blue
+          fill: true,
+        },
+      ],
+    },
+    options: {
+      width: 300,
+      height: 900,
       scales: {
+        y: {
+          min: 16,
+          max: 64,
+          ticks: { font: { size: 16 } },
+        },
         x: {
           ticks: { font: { size: 16 } },
         },
+      },
+    },
+  });
+}
+
+function populateDropdown(fesResults) {
+  const dropdown = document.getElementById("testDropdown");
+  dropdown.innerHTML = "";
+
+  // Sort tests by date (oldest first)
+  fesResults.sort(
+    (a, b) => new Date(a.response_date) - new Date(b.response_date)
+  );
+
+  // Create "Select a Test" option
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.textContent = "Select a Test";
+  dropdown.appendChild(defaultOption);
+
+  // Add test options
+  fesResults.forEach((test, index) => {
+    const testNumber = index + 1; // Oldest test is Test 1, increments
+    const dateObj = new Date(test.response_date);
+
+    // Format date as "DDDD MMMM YYYY" and time as "h:mm a"
+    const formattedDate = dateObj.toLocaleDateString("en-GB", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    const formattedTime = dateObj
+      .toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+      .toLowerCase(); // Ensures "am/pm" is lowercase
+
+    const option = document.createElement("option");
+    option.value = index;
+    option.textContent = `Test ${testNumber} - ${formattedDate}, ${formattedTime}`;
+    dropdown.appendChild(option);
+  });
+
+  // Automatically select the latest test if available
+  if (fesResults.length > 0) {
+    dropdown.value = fesResults.length - 1;
+    updateCharts(fesResults, fesResults.length - 1);
+  }
+
+  dropdown.addEventListener("change", function () {
+    if (this.value !== "") {
+      updateCharts(fesResults, this.value);
+    }
+  });
+}
+
+function updateCharts(fesResults, selectedIndex) {
+  const selectedTest = fesResults[selectedIndex];
+  const questionScores = selectedTest.response_details.map(
+    (q) => q.response_score
+  );
+  const questionLabels = Array.from({ length: 16 }, (_, i) => `Q${i + 1}`);
+
+  const muscleGroups = {
+    Legs: [7, 8, 11, 13, 14, 15],
+    Glutes: [6],
+    Arms: [9, 10, 1, 2, 3],
+    Shoulders: [4],
+    Core: [5, 12, 16],
+  };
+
+  const muscleGroupScores = {};
+  Object.keys(muscleGroups).forEach((group) => {
+    const scores = muscleGroups[group].map(
+      (qIndex) =>
+        selectedTest.response_details.find((q) => q.question_id === qIndex)
+          ?.response_score || 0
+    );
+    muscleGroupScores[group] =
+      scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  });
+
+  // Get the new test numbering
+  const testNumber = parseInt(selectedIndex) + 1;
+
+  createCategorizedBarChart(
+    "fes-latest-question-scores",
+    `Question Scores in Test ${testNumber}`,
+    questionLabels,
+    questionScores
+  );
+
+  // Update Muscle Strength Chart based on latest selected test
+  updateMuscleStrengthChart(selectedTest);
+
+  console.log("Updated charts for Test:", testNumber);
+  console.log("Muscle Group Scores:", muscleGroupScores);
+}
+
+function createCategorizedBarChart(canvasId, title, labels, data) {
+  const ctx = document.getElementById(canvasId).getContext("2d");
+
+  // Destroy the existing chart before creating a new one
+  if (canvasId === "fes-latest-question-scores" && latestQuestionChart) {
+    latestQuestionChart.destroy();
+  }
+  if (canvasId === "fes-muscle-group-scores" && muscleGroupChart) {
+    muscleGroupChart.destroy();
+  }
+
+  const colors = data.map((value) => {
+    if (value <= 2) return "rgba(134, 255, 148, 0.8)"; // Light Blue
+    if (value <= 3) return "rgba(255, 234, 117, 0.8)"; // Peach
+    return "rgba(253, 82, 108, 0.8)"; // Light Pink
+  });
+
+  const chart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Score",
+          data: data,
+          backgroundColor: colors,
+          borderColor: "rgba(200, 200, 200, 0.5)",
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      scales: {
         y: {
+          min: 0,
+          max: 4,
+          ticks: { font: { size: 16 } },
+        },
+        x: {
           ticks: { font: { size: 16 } },
         },
       },
-    };
+    },
+  });
 
-    // Bar Chart with specific options
-    const barChartOptions = {
-      ...chartOptions,
-      scales: {
-        ...chartOptions.scales,
-        y: {
-          ...chartOptions.scales.y,
-          title: {
-            display: true,
-            text: "Time (seconds)",
-            font: { size: 16 },
-          },
-          beginAtZero: true, // Ensures that y-axis starts at 0
+  // Store the chart instance globally
+  if (canvasId === "fes-latest-question-scores") {
+    latestQuestionChart = chart;
+  }
+  if (canvasId === "fes-muscle-group-scores") {
+    muscleGroupChart = chart;
+  }
+
+  document.getElementById("question-socres-in-title").textContent = title;
+}
+
+function fesCalculateOverallRisk(fesResults) {
+  if (!fesResults || fesResults.length === 0) {
+    console.warn("Insufficient data for risk calculation.");
+    return { percentage: 0, level: "low" };
+  }
+
+  // Get the latest FES result based on response date
+  const latestFES = fesResults.reduce((prev, curr) =>
+    new Date(prev.response_date) > new Date(curr.response_date) ? prev : curr
+  );
+
+  // Normalize FES Score to percentage
+  const fesScore = (latestFES.total_score / 64) * 100;
+
+  return {
+    percentage: fesScore,
+    level: fesDetermineRiskLevel(fesScore),
+  };
+}
+
+function fesDetermineRiskLevel(percentage) {
+  if (percentage < 30) return "low";
+  if (percentage < 60) return "moderate";
+  return "high";
+}
+
+function generateGaugeCharts(fesResults) {
+  console.log("Generating gauge charts...");
+  console.log("FES Results:", fesResults);
+
+  if (!fesResults || fesResults.length < 2) {
+    console.warn("Not enough FES test data for gauge charts.");
+    return;
+  }
+
+  // Ensure we get the latest and second latest FES results
+  const latestFES = fesResults[fesResults.length - 1];
+  const secondLatestFES = fesResults[fesResults.length - 2];
+
+  console.log("Latest FES:", latestFES);
+  console.log("Second Latest FES:", secondLatestFES);
+
+  if (!latestFES || !secondLatestFES) {
+    console.warn("Missing FES test data for gauge charts.");
+    return;
+  }
+
+  // Calculate risk scores and log results
+  const latestRisk = fesCalculateOverallRisk([latestFES]);
+  const secondLatestRisk = fesCalculateOverallRisk([secondLatestFES]);
+
+  console.log("Latest Test Risk:", latestRisk);
+  console.log("Second Latest Test Risk:", secondLatestRisk);
+
+  // Generate gauge charts
+  createGaugeChart(
+    "fes-latest-test-risk",
+    "Latest Test Risk",
+    latestRisk.percentage,
+    latestRisk.level
+  );
+  createGaugeChart(
+    "fes-second-latest-test-risk",
+    "2nd Latest Test Risk",
+    secondLatestRisk.percentage,
+    secondLatestRisk.level
+  );
+}
+
+function createGaugeChart(canvasId, title, value, level) {
+  const ctx = document.getElementById(canvasId).getContext("2d");
+
+  // Define standard size for all charts
+  const chartSize = 300; // Ensures uniformity
+
+  // Map risk level to colors
+  const colorMapping = {
+    low: "rgba(134, 255, 148, 0.8)", // Green
+    moderate: "rgba(255, 234, 117, 0.8)", // Yellow
+    high: "rgba(253, 82, 108, 0.8)", // Red
+  };
+
+  const color = colorMapping[level] || "rgba(200, 200, 200, 0.8)";
+
+  // Generate the chart
+  new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      datasets: [
+        {
+          data: [value, 100 - value],
+          backgroundColor: [color, "#E0E0E0"], // Main color + grey
+          borderWidth: 0,
         },
-      },
-    };
-
-    new Chart(document.getElementById("barChart").getContext("2d"), {
-      type: "bar",
-      data: {
-        labels: testNames,
-        datasets: [
-          {
-            label: "Avg Time Taken (seconds)",
-            data: avgTimes,
-            backgroundColor: "rgba(54, 162, 235, 0.6)", // Changed color for visibility
-            borderColor: "rgba(54, 162, 235, 1)",
-            borderWidth: 1,
-            barThickness: 35, // Increased bar thickness
-          },
-        ],
-      },
-      options: barChartOptions,
-    });
-
-    // Set title for Bar Chart
-    document.getElementById("barChartTitle").innerText =
-      "Average Time Taken for Each Test (seconds)";
-
-    // Radar Chart
-    new Chart(document.getElementById("radarChart").getContext("2d"), {
-      type: "radar",
-      data: {
-        labels: testNames,
-        datasets: [
-          {
-            label: "Avg Abrupt Percentage",
-            data: avgAbrupt,
-            backgroundColor: "rgba(255, 99, 132, 0.2)",
-            borderColor: "rgba(255, 99, 132, 1)",
-            borderWidth: 1,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            labels: {
-              font: { size: 18 },
-            },
-          },
-          tooltip: {
-            enabled: true,
-            bodyFont: { size: 16 },
-            callbacks: {
-              label: function (tooltipItem) {
-                const value = tooltipItem.raw;
-                return `${tooltipItem.label}: ${value}%`;
-              },
-            },
-          },
-        },
-        scales: {
-          r: {
-            ticks: { font: { size: 16 } },
-            beginAtZero: true,
-          },
-        },
-        elements: {
-          point: {
-            radius: 5, // Makes points more visible
-            hoverRadius: 7, // Increases the radius when hovered
-          },
-        },
-      },
-    });
-
-    // Set title for Radar Chart
-    document.getElementById("radarChartTitle").innerText =
-      "Average Abrupt Percentage for Each Test";
-
-    // Line Chart
-    new Chart(document.getElementById("lineChart").getContext("2d"), {
-      type: "line",
-      data: {
-        labels: testNames,
-        datasets: [
-          {
-            label: "Avg Time Taken",
-            data: avgTimes,
-            borderColor: "rgba(75, 192, 192, 1)",
-            backgroundColor: "rgba(75, 192, 192, 0.2)",
-            borderWidth: 2,
-            fill: false,
-            tension: 0.3, // Smooth the line slightly
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            labels: {
-              font: { size: 18 },
-            },
-          },
-          tooltip: {
-            bodyFont: { size: 16 },
-          },
-        },
-        scales: {
-          x: {
-            grid: {
-              display: true,
-            },
-            ticks: { font: { size: 16 } },
-          },
-          y: {
-            grid: {
-              display: true,
-            },
-            ticks: { font: { size: 16 } },
-          },
-        },
-        elements: {
-          point: {
-            radius: 5, // Makes points more visible
-            hoverRadius: 7,
-          },
-        },
-      },
-    });
-
-    // Set title for Line Chart
-    document.getElementById("lineChartTitle").innerText =
-      "Average Time Taken Over Tests";
-
-    // Distribution Chart (Pie Chart)
-    const distributionChartOptions = {
-      ...chartOptions,
+      ],
+    },
+    options: {
+      responsive: false, // Fixed size
+      maintainAspectRatio: false, // Prevents distortion
+      width: chartSize,
+      height: chartSize,
+      rotation: -90, // Starts from bottom
+      circumference: 180, // Half-circle (180 degrees)
+      cutout: "70%", // Adjusts thickness of the gauge
       plugins: {
-        ...chartOptions.plugins,
-        tooltip: {
-          ...chartOptions.plugins.tooltip,
-          callbacks: {
-            label: function (tooltipItem) {
-              const value = tooltipItem.raw;
-              return ` ${tooltipItem.label}: ${value}%`; // Show value in tooltip
-            },
-          },
-        },
+        legend: { display: false },
+        tooltip: { enabled: false },
       },
+    },
+  });
+
+  // Add risk level text below the chart
+  const chartContainer = document.getElementById(canvasId).parentElement;
+  let riskLabel = document.getElementById(`${canvasId}-risk-label`);
+
+  if (!riskLabel) {
+    riskLabel = document.createElement("div");
+    riskLabel.id = `${canvasId}-risk-label`;
+    riskLabel.style.textAlign = "center";
+    riskLabel.style.fontSize = "18px";
+    riskLabel.style.fontWeight = "bold";
+    riskLabel.style.marginTop = "10px";
+    chartContainer.appendChild(riskLabel);
+  }
+
+  riskLabel.textContent = `${level.toUpperCase()} FALL RISK`;
+}
+
+function updateMuscleStrengthChart(selectedTest) {
+  if (!selectedTest || !selectedTest.response_details) {
+    console.error("Invalid test data provided:", selectedTest);
+    return;
+  }
+
+  const muscleGroups = {
+    Legs: [7, 8, 11, 13, 14, 15],
+    Glutes: [6],
+    Arms: [9, 10, 1, 2, 3],
+    Shoulders: [4],
+    Core: [5, 12, 16],
+  };
+
+  const muscleLabels = document.getElementById("muscle-strength-labels");
+  muscleLabels.innerHTML = "";
+
+  Object.keys(muscleGroups).forEach((group) => {
+    const indices = muscleGroups[group];
+
+    const scores = selectedTest.response_details
+      .filter((q) => indices.includes(q.question_id))
+      .map((q) => q.response_score);
+
+    const avgScore = scores.length
+      ? scores.reduce((sum, score) => sum + score, 0) / scores.length
+      : 0;
+    const weakStrong = avgScore > 2 ? "Weak" : "Strong";
+    const color = avgScore > 2 ? "text-danger" : "text-success";
+
+    console.log(
+      `Muscle Group: ${group}, Avg Score: ${avgScore}, Status: ${weakStrong}`
+    );
+
+    const positionMap = {
+      Legs: { top: "78%", left: "50%" },
+      Glutes: { top: "58%", left: "50%" },
+      Arms: { top: "52%", left: "74%" },
+      Shoulders: { top: "30%", left: "50%" },
+      Core: { top: "43%", left: "50%" },
     };
 
-    new Chart(document.getElementById("distributionChart").getContext("2d"), {
-      type: "pie",
-      data: {
-        labels: testNames,
-        datasets: [
-          {
-            data: avgAbrupt,
-            backgroundColor: [
-              "#ff6384",
-              "#36a2eb",
-              "#ffce56",
-              "#4bc0c0",
-              "#9966ff",
-              "#ff9f40",
-            ], // Use more distinct colors
-            borderWidth: 0, // Remove borders between slices
-          },
-        ],
-      },
-      options: distributionChartOptions,
-    });
+    const pos = positionMap[group];
+    if (pos) {
+      const div = document.createElement("div");
+      div.className = `muscle-status position-absolute ${color} text-center`;
+      div.style.top = pos.top;
+      div.style.left = pos.left;
+      div.style.transform = "translate(-50%, -50%)"; // Center the element
+      div.style.fontWeight = "bold";
+      div.style.fontSize = "24px";
 
-    // Set title for Distribution Chart
-    document.getElementById("distributionChartTitle").innerText =
-      "Test Abrupt Percentage Distribution";
-  }
+      // Create a span for strength label (Weak/Strong)
+      const strengthSpan = document.createElement("span");
+      strengthSpan.textContent = weakStrong;
 
-  // FES data
-  function fetchFESResults(userID) {
-    fetch(
-      `http://127.0.0.1:5100/api/v1/user/getAUserFESResults?user_id=${userID}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to fetch FES results");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (data.length > 0) {
-          processFESResults(data);
-          populateFESTable(data); // Populate the FES table
-        } else {
-          document.getElementById("fesChartContainer").innerHTML =
-            "<p>No FES data available.</p>";
-        }
-      })
-      .catch((error) => console.error("Error fetching FES results:", error));
-  }
+      // Create a div for group name
+      const groupSpan = document.createElement("div");
+      groupSpan.textContent = group;
+      groupSpan.style.fontSize = "16px";
+      groupSpan.style.fontWeight = "normal";
 
-  function processFESResults(fesResults) {
-    fesResults.sort(
-      (a, b) => new Date(a.response_date) - new Date(b.response_date)
-    );
-
-    const labels = fesResults.map((result) => {
-      const dateObj = new Date(result.response_date);
-      return dateObj.toLocaleDateString("en-GB"); // 'en-GB' uses DD/MM/YYYY format
-    });
-    const scores = fesResults.map((result) => result.total_score);
-
-    // Calculate risk level from total_score
-    const riskLevels = scores.map((score) => {
-      if (score <= 20) return "High Risk";
-      if (score <= 40) return "Moderate Risk";
-      return "Low Risk";
-    });
-
-    document.getElementById("fesRiskLevel").innerHTML = `
-      <p><strong>Latest Fall Risk Level:</strong> ${
-        riskLevels[riskLevels.length - 1]
-      } (Score: ${scores[scores.length - 1]})</p>
-    `;
-
-    renderFESChart(labels, scores);
-  }
-
-  function renderFESChart(labels, scores) {
-    const ctx = document.getElementById("fesChart").getContext("2d");
-    new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: "FES Total Score",
-            data: scores,
-            borderColor: "rgba(255, 99, 132, 1)",
-            backgroundColor: "rgba(255, 99, 132, 0.2)",
-            borderWidth: 2,
-            fill: false,
-            tension: 0.3,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { labels: { font: { size: 18 } } },
-          tooltip: { bodyFont: { size: 16 } },
-        },
-        scales: {
-          x: { ticks: { font: { size: 16 } } },
-          y: {
-            ticks: { font: { size: 16 } },
-            title: { display: true, text: "FES Score", font: { size: 16 } },
-            beginAtZero: true,
-            suggestedMax: 100,
-          },
-        },
-        elements: {
-          point: { radius: 5, hoverRadius: 7 },
-        },
-      },
-    });
-
-    document.getElementById("fesChartTitle").innerText =
-      "Falls Efficacy Scale (FES) Score Over Time";
-  }
-
-  function formatDateWithTimeZone(date) {
-    // Convert the input date to a Date object if it is a string
-    const dateObj = new Date(date);
-
-    // Get the time zone offset in minutes
-    const timeZoneOffset = dateObj.getTimezoneOffset(); // Returns offset in minutes, e.g., -480 for GMT+8
-
-    // Calculate the sign of the offset
-    const sign = timeZoneOffset > 0 ? "-" : "+";
-
-    // Convert offset to hours and minutes (e.g., -480 minutes = GMT+8)
-    const offsetHours = Math.floor(Math.abs(timeZoneOffset) / 60);
-    const offsetMinutes = Math.abs(timeZoneOffset) % 60;
-
-    // Format the time zone as GMT+8, GMT-5, etc.
-    const timeZoneName = `GMT${sign}${String(offsetHours).padStart(
-      2,
-      "0"
-    )}${String(offsetMinutes).padStart(2, "0")}`;
-
-    // Format the date and time as e.g. '25/07/2024, 08:00 AM (GMT+8)'
-    const formattedDate = new Intl.DateTimeFormat("en-GB", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    }).format(dateObj);
-
-    return `${formattedDate} (${timeZoneName})`;
-  }
-
-  function displayDetailedData(results) {
-    const detailedDataContainer = document.getElementById("detailedData");
-
-    if (!results || results.length === 0) {
-      detailedDataContainer.innerHTML =
-        "<tr><td colspan='5'>No data available.</td></tr>";
-      return;
+      // Append both elements inside the div
+      div.appendChild(strengthSpan);
+      div.appendChild(groupSpan);
+      muscleLabels.appendChild(div);
     }
-
-    // Sort results by date (latest first)
-    results.sort((a, b) => new Date(b.test_date) - new Date(a.test_date));
-
-    detailedDataContainer.innerHTML = results
-      .map((result, index) => {
-        const formattedDate = formatDateWithTimeZone(result.test_date); // Use the formatDateWithTimeZone function here
-
-        return `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${result.test_name}</td>
-          <td>${result.time_taken} sec</td>
-          <td>${result.abrupt_percentage}%</td>
-          <td>${result.risk_level}</td>
-          <td>${formattedDate}</td>
-        </tr>
-      `;
-      })
-      .join("");
-  }
-
-  function populateFESTable(fesResults) {
-    const tableBody = document.getElementById("fesTableBody");
-    tableBody.innerHTML = ""; // Clear existing data
-
-    // Sort results by date (latest first)
-    fesResults.sort(
-      (a, b) => new Date(b.response_date) - new Date(a.response_date)
-    );
-
-    fesResults.forEach((result, index) => {
-      const formattedDate = formatDateWithTimeZone(result.response_date);
-      const riskLevel =
-        result.total_score <= 20
-          ? "High Risk"
-          : result.total_score <= 40
-          ? "Moderate Risk"
-          : "Low Risk";
-
-      const row = `
-        <tr>
-          <td>${index + 1}</td>
-          <td>Falls Efficacy Scale (FES)</td>
-          <td>${result.total_score}</td>
-          <td>${riskLevel}</td>
-          <td>${formattedDate}</td>
-        </tr>
-      `;
-      tableBody.innerHTML += row;
-    });
-  }
-
-  document
-    .getElementById("toggleDataView")
-    .addEventListener("click", function () {
-      const dataTableContainer = document.getElementById("dataTableContainer");
-      dataTableContainer.style.display =
-        dataTableContainer.style.display === "none" ? "block" : "none";
-      this.innerText =
-        dataTableContainer.style.display === "none"
-          ? "Show All Data"
-          : "Hide All Data";
-    });
-});
+  });
+}
