@@ -47,7 +47,13 @@ function renderQuestions() {
         <p style="margin: 0;" class="question-title">Q${question.id}: ${
       question.text
     }</p>
+          <button class="play-button" data-id="${question.id}" data-text="${
+      question.text
+    }" aria-label="Play text" style="background: none; border: none; cursor: pointer;">
+        <span role="img" aria-label="Speaker" style="font-size: 2.5em; cursor: pointer;">🔊</span>
+      </button>
       </div>
+      
       <div class="options d-flex justify-content-between mt-3">
         ${createOptionHTML(
           question.id,
@@ -155,7 +161,10 @@ function checkAllQuestionsAnswered() {
   submitButton.disabled = answeredQuestions < totalQuestions;
 }
 
-async function playTextToSpeech(text) {
+async function playTextToSpeech(text, button) {
+  const playButtons = document.querySelectorAll(".play-button");
+  playButtons.forEach((button) => (button.disabled = true)); // Disable all play buttons
+
   let targetLanguage = "en";
   const googtrans = document.cookie
     .split("; ")
@@ -168,8 +177,6 @@ async function playTextToSpeech(text) {
     targetLanguage = language;
     console.log(targetLanguage); // Output the final targetLanguage
   }
-
-  const playButtons = document.querySelectorAll(".play-button");
 
   try {
     let translatedText = text;
@@ -219,14 +226,16 @@ async function playTextToSpeech(text) {
     const audio = new Audio(audioUrl);
 
     audio.play();
+
+    // Enable button after audio finishes playing
     audio.addEventListener("ended", () => {
-      // Re-enable all play buttons after audio is done
-      playButtons.forEach((button) => (button.disabled = false));
+      const playButtons = document.querySelectorAll(".play-button");
+      playButtons.forEach((button) => (button.disabled = false)); // Disable all play buttons
     });
   } catch (error) {
     console.error("Error during TTS process:", error);
-    // Re-enable all play buttons in case of an error
-    playButtons.forEach((button) => (button.disabled = false));
+    const playButtons = document.querySelectorAll(".play-button");
+    playButtons.forEach((button) => (button.disabled = false)); // Disable all play buttons
   }
 }
 
@@ -322,6 +331,14 @@ document.addEventListener("DOMContentLoaded", () => {
         updateSelectionUI(input);
         checkAllQuestionsAnswered();
       }
+    }
+  });
+  // Add event listener for play buttons
+  document.addEventListener("click", (event) => {
+    const playButton = event.target.closest(".play-button");
+    if (playButton) {
+      const questionText = playButton.getAttribute("data-text");
+      playTextToSpeech(questionText, playButton);
     }
   });
 });

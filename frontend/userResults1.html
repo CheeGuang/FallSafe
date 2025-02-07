@@ -35,7 +35,7 @@
     <link rel="stylesheet" href="./css/style.css" />
 
     <!-- ######################################## INSERT PAGE'S CSS HERE \/ ########################################################### -->
-    <!-- <link rel="stylesheet" href="./css/" /> -->
+    <link rel="stylesheet" href="./css/userResults.css" />
     <!-- ######################################## END OF PAGE'S CSS ########################################################### -->
 
     <!-- Linking JS -->
@@ -101,11 +101,20 @@
               <h3 class="mt-4">Falls Efficacy Scale Results</h3>
               <div class="container">
                 <div class="row">
-                  <div class="col-md-6">
+                  <div
+                    class="col-md-4 d-flex justify-content-center align-items-center flex-column"
+                  >
                     <canvas id="fes-total-score"></canvas>
                   </div>
-                  <div class="col-md-6">
-                    <canvas id="fes-average-score"></canvas>
+                  <div
+                    class="col-md-4 d-flex justify-content-center align-items-center flex-column"
+                  >
+                    <canvas id="fes-second-latest-test-risk"></canvas>
+                  </div>
+                  <div
+                    class="col-md-4 d-flex justify-content-center align-items-center flex-column"
+                  >
+                    <canvas id="fes-latest-test-risk"></canvas>
                   </div>
                 </div>
                 <div class="container mt-5">
@@ -124,11 +133,32 @@
                   </select>
                 </div>
                 <div class="row mt-4">
-                  <div class="col-md-6">
+                  <div class="col-md-8">
                     <canvas id="fes-latest-question-scores"></canvas>
                   </div>
-                  <div class="col-md-6">
-                    <canvas id="fes-muscle-group-scores"></canvas>
+                  <!-- Custom Body Diagram for Muscle Group Strength -->
+                  <div
+                    class="col-md-4 d-flex justify-content-center align-items-center position-relative mt-2"
+                  >
+                    <h3
+                      class="mt-4 text-center"
+                      style="
+                        font-size: 24px !important;
+                        font-weight: bold !important;
+                        color: #555 !important;
+                        position: absolute !important;
+                        top: -30px;
+                      "
+                    >
+                      Muscle Strength Analysis
+                    </h3>
+                    <img
+                      src="./img/Human.png"
+                      class="img-fluid mt-5"
+                      alt="Human Body Diagram"
+                      style="max-width: 100%; height: auto"
+                    />
+                    <div id="muscle-strength-labels" class="mt-5"></div>
                   </div>
                 </div>
               </div>
