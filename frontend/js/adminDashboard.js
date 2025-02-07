@@ -117,6 +117,8 @@ function setupEventListeners() {
     const ageGroupSelector = document.getElementById('ageGroupSelector');
     const searchButton = document.getElementById('searchButton');
     const userIdInput = document.getElementById('individualSearch');
+    const suggestionDropdown = document.getElementById('suggestionDropdown');
+
 
     // Handle age group selection
     ageGroupSelector.addEventListener('change', function () {
@@ -150,21 +152,62 @@ function setupEventListeners() {
         }
     });
 
-    // Handle user ID search
-    searchButton.addEventListener('click', function () {
-        const userId = parseInt(userIdInput.value, 10);
+    // Handle name search and update dropdown dynamically
+    userIdInput.addEventListener('input', function () {
+        const userName = userIdInput.value.trim().toLowerCase();
         const selectedAgeGroup = ageGroupSelector.value;
 
         if (selectedAgeGroup === 'all') {
-            if (!isNaN(userId)) {
-                updateDashboard('user', userId);
+            if (userName !== '') {
+                const filteredUsers = dashboardData.users.filter(user => 
+                    user.name.toLowerCase().includes(userName) // Case-insensitive match
+                );
+                updateDropdown(filteredUsers);
             } else {
-                showCustomAlert('Please enter a valid User ID.');
+                suggestionDropdown.style.display = 'none'; // Hide dropdown if input is empty
             }
         } else {
-            showCustomAlert('Age range is selected. Search by User ID is disabled.');
+            suggestionDropdown.style.display = 'none'; // Hide dropdown when age group filter is active
         }
     });
+
+    // Handle the "Search" button click to search and update dashboard
+    searchButton.addEventListener('click', function () {
+        const userName = userIdInput.value.trim();
+        const selectedAgeGroup = ageGroupSelector.value;
+
+        if (selectedAgeGroup === 'all') {
+            if (userName !== '') {
+                updateDashboard('user', userName);
+            } else {
+                showCustomAlert('Please enter a valid name.');
+            }
+        } else {
+            showCustomAlert('Age range is selected. Search by Name is disabled.');
+        }
+    });
+
+    // Update the dropdown with filtered users
+    function updateDropdown(filteredUsers) {
+        suggestionDropdown.innerHTML = ''; // Clear previous suggestions
+
+        if (filteredUsers.length === 0) {
+            suggestionDropdown.style.display = 'none'; // Hide if no results
+        } else {
+            suggestionDropdown.style.display = 'block'; // Show dropdown
+            filteredUsers.forEach(user => {
+                const listItem = document.createElement('li');
+                listItem.classList.add('dropdown-item');
+                listItem.textContent = user.name;
+                listItem.onclick = function() {
+                    userIdInput.value = user.name; // Populate the input field with selected name
+                    suggestionDropdown.style.display = 'none'; // Hide dropdown after selection
+                };
+                suggestionDropdown.appendChild(listItem);
+            });
+        }
+    }
+
 }
 
 function updateDashboard(filterType, filterValue) {
@@ -184,9 +227,22 @@ function updateDashboard(filterType, filterValue) {
         }
     }
 
-    // Filter by User ID
+    // Filter by User Name (allowing partial match)
     else if (filterType === 'user') {
-        filteredUsers = dashboardData.users.filter(user => user.user_id === filterValue);
+        filteredUsers = dashboardData.users.filter(user => 
+            user.name.toLowerCase().includes(filterValue.toLowerCase()) // Case-insensitive partial match
+        );
+
+        if (filteredUsers.length > 1) {
+            showCustomAlert(`Multiple users found (${filteredUsers.length} matches). Please refine your search.`);
+        } else if (filteredUsers.length === 0) {
+            showCustomAlert('No user found. Please try a different name.');
+            return; // Stop further processing
+        } else {
+            // Show alert for the selected user
+            const selectedUser = filteredUsers[0];
+            showCustomAlert(`Showing results for: ${selectedUser.name} (User ID: ${selectedUser.user_id})`);
+        }
     }
 
     const userIds = filteredUsers.map(user => user.user_id);
@@ -242,12 +298,11 @@ function updateRadarChart(filteredResponses) { //FilteredResponses, gives the fi
     radarChart.update(); // Update the chart
 }
 
-// Chart update functions remain the same
 function updateAverageScoreChart(filteredResponses) {
     const monthlyAverages = {};
 
     filteredResponses.forEach(response => {
-        const month = response.response_date.slice(0, 7); // Extract "YYYY-MM"
+        const month = response.response_date.slice(5, 7) + '-' + response.response_date.slice(0, 4); // Format as "MM-YYYY"
         if (!monthlyAverages[month]) {
             monthlyAverages[month] = { totalScore: 0, count: 0 };
         }
@@ -258,10 +313,60 @@ function updateAverageScoreChart(filteredResponses) {
     const labels = Object.keys(monthlyAverages).sort();
     const data = labels.map(month => (monthlyAverages[month].totalScore / monthlyAverages[month].count).toFixed(2));
 
-    window.averageScoreChart.data.labels = labels;
-    window.averageScoreChart.data.datasets[0].data = data;
+    // Convert months to numeric x-values (index-based)
+    const xValues = labels.map((label, index) => index);
+    const yValues = data.map(Number); // Convert the average scores to numbers
+
+    // Calculate linear regression (slope and intercept) based on all available data
+    const { slope, intercept } = linearRegression(xValues, yValues);
+
+    // Find the latest month (last data point) and generate future months from there
+    const latestMonth = labels[labels.length - 1]; // Get the latest month
+    const futureMonthsCount = 6; // Predict for the next 6 months
+
+    const futureXValues = [];
+    const futureYValues = [];
+    const futureLabels = [];
+
+    // Calculate predictions for future months
+    for (let i = 1; i <= futureMonthsCount; i++) {
+        const futureMonth = getNextMonth(latestMonth, i);
+        futureXValues.push(xValues.length + i - 1);  // Generate next X-value index
+        futureYValues.push(slope * (xValues.length + i - 1) + intercept);
+        futureLabels.push(futureMonth);  // Add predicted future month labels
+    }
+
+    // Combine current data and future predictions for x and y values
+    const allXValues = [...xValues, ...futureXValues];
+    const allYValues = [...yValues, ...futureYValues];
+    const allLabels = [...labels, ...futureLabels];
+
+    // Prepare chart data
+    window.averageScoreChart.data.labels = allLabels;
+    window.averageScoreChart.data.datasets[0].data = yValues; // Only current data for the main dataset
+
+    // Ensure that datasets array exists
+    if (!window.averageScoreChart.data.datasets) {
+        window.averageScoreChart.data.datasets = [];
+    }
+
+    // Clear previous best fit line if exists
+    window.averageScoreChart.data.datasets = window.averageScoreChart.data.datasets.filter(dataset => dataset.label !== 'Best Fit Line'); 
+
+    // Add the best fit line (regression line) extending into the future with a dotted line
+    window.averageScoreChart.data.datasets.push({
+        label: 'Best Fit Line',
+        data: allYValues, // Both current and predicted values
+        borderColor: 'rgb(255, 99, 132)', // Different color for the regression line
+        borderWidth: 2,
+        borderDash: [5, 5], // Dotted line style
+        tension: 0.1,
+        fill: false
+    });
+
     window.averageScoreChart.update();
 }
+
 
 function updateDistributionChart(filteredResponses) {
     const latestResponses = {};
@@ -295,6 +400,27 @@ function updateDistributionChart(filteredResponses) {
     window.distributionChart.update();
 }
 
+// Linear regression function to calculate the slope and intercept
+function linearRegression(xValues, yValues) {
+    const n = xValues.length;
+    const sumX = xValues.reduce((a, b) => a + b, 0);
+    const sumY = yValues.reduce((a, b) => a + b, 0);
+    const sumXY = xValues.reduce((sum, x, idx) => sum + x * yValues[idx], 0);
+    const sumX2 = xValues.reduce((sum, x) => sum + x * x, 0);
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+
+    return { slope, intercept };
+}
+// Function to get the next month from the latest month
+function getNextMonth(latestMonth, monthsToAdd) {
+    const date = new Date(latestMonth.split('-')[1], parseInt(latestMonth.split('-')[0], 10) - 1, 1); // Convert "MM-YYYY" to Date
+    date.setMonth(date.getMonth() + monthsToAdd); // Add the required number of months
+    const options = { year: 'numeric', month: '2-digit' }; // Format the month as "MM-YYYY"
+    return date.toLocaleDateString('en-US', options).replace(/\//g, '-'); // Change the format to MM-YYYY
+}
+
 function initializeCharts() {
     // Average Score Chart
     const avgCtx = document.getElementById('averageScoreChart').getContext('2d');
@@ -322,7 +448,8 @@ function initializeCharts() {
             },
             scales: {
                 y: {
-                    beginAtZero: true,
+                    beginAtZero: false,
+                    min: 16,
                     max: 64,
                     title: {
                         display: true,

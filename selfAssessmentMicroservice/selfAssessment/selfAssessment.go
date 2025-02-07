@@ -779,7 +779,12 @@ func GetAllUserAvgScore(w http.ResponseWriter, r *http.Request) {
 	// Query to fetch all test session details
 	rows, err := db.Query(`
 		SELECT session_id, user_id, session_date, avg_score
-		FROM TestSession`)
+		FROM TestSession
+		WHERE session_id IS NOT NULL 
+		AND user_id IS NOT NULL 
+		AND session_date IS NOT NULL 
+		AND avg_score IS NOT NULL`)
+
 	if err != nil {
 		log.Printf("Error querying test session results: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -891,12 +896,24 @@ func GetUserOverallLatestRisk(w http.ResponseWriter, r *http.Request) {
 	// Slice to hold the results
 	var userRisks []UserRisk
 
-	// Query to get the latest session for each user and determine their overall risk level
+	// Query to get the latest session for each user and determine their overall risk level. Ignored any TestSession that is NULL
 	query := `
-		WITH LatestSession AS (
-			SELECT user_id, MAX(session_id) AS latest_session_id
+		WITH RankedSessions AS (
+			SELECT 
+				user_id, 
+				session_id, 
+				session_date, 
+				avg_score,
+				ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY session_id DESC) AS session_rank
 			FROM TestSession
-			GROUP BY user_id
+			WHERE user_id IS NOT NULL 
+				AND session_date IS NOT NULL 
+				AND avg_score IS NOT NULL
+		),
+		LatestSession AS (
+			SELECT user_id, session_id
+			FROM RankedSessions
+			WHERE session_rank = 1
 		),
 		RiskCount AS (
 			SELECT 
@@ -905,7 +922,7 @@ func GetUserOverallLatestRisk(w http.ResponseWriter, r *http.Request) {
 				SUM(CASE WHEN utr.risk_level = 'moderate' THEN 1 ELSE 0 END) AS moderate_count,
 				SUM(CASE WHEN utr.risk_level = 'high' THEN 1 ELSE 0 END) AS high_count
 			FROM LatestSession ls
-			JOIN UserTestResult utr ON ls.latest_session_id = utr.session_id
+			JOIN UserTestResult utr ON ls.session_id = utr.session_id
 			GROUP BY ls.user_id
 		)
 		SELECT 
@@ -916,6 +933,7 @@ func GetUserOverallLatestRisk(w http.ResponseWriter, r *http.Request) {
 				ELSE 'low'
 			END AS overall_risk_level
 		FROM RiskCount;
+
 	`
 
 	// Execute query
@@ -965,11 +983,27 @@ func GetAllFallAssesLatestResDate(w http.ResponseWriter, r *http.Request) {
 	// Define a slice to store the list of user responses
 	var userResponseList []FallAssesLastRes
 
-	// Query to fetch the user_id and last response date from FallAssessment table
+	// Query to fetch the user_id and last response date from FallAssessment table. Dont accept incomplete work
 	rows, err := db.Query(`
+		WITH RankedSessions AS (
+			SELECT 
+				user_id, 
+				session_date, 
+				ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY session_date DESC) AS session_rank
+			FROM TestSession
+			WHERE user_id IS NOT NULL
+				AND session_date IS NOT NULL 
+				AND avg_score IS NOT NULL
+		),
+		LatestSession AS (
+			SELECT user_id, session_date
+			FROM RankedSessions
+			WHERE session_rank = 1
+		)
 		SELECT user_id, MAX(session_date) AS last_response_date
-		FROM TestSession
+		FROM LatestSession
 		GROUP BY user_id;
+
 	`)
 	if err != nil {
 		log.Printf("Error querying fall assessment responses: %v", err)

@@ -421,3 +421,67 @@ func GetAllFESLatestResDate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 	
+
+//User and its latest risk level from result
+// Struct for User Response with Risk Level
+type UserLatestRiskLevel struct {
+	UserID    int    `json:"user_id"`  // User ID
+	RiskLevel string `json:"risk_level"` // Risk level (low, moderate, high)
+}
+func GetLatestUserRiskLevel(w http.ResponseWriter, r *http.Request) {
+	// Define a slice to store the list of user risk levels
+	var userRiskLevels []UserLatestRiskLevel
+
+	// Query to fetch the latest response for each user and calculate risk level
+	rows, err := db.Query(`
+		SELECT ur.user_id,
+               CASE 
+                   WHEN ur.total_score BETWEEN 16 AND 36 THEN 'low'
+                   WHEN ur.total_score BETWEEN 37 AND 48 THEN 'moderate'
+                   WHEN ur.total_score BETWEEN 49 AND 64 THEN 'high'
+                   ELSE 'invalid'
+               END AS risk_level
+        FROM UserResponse ur
+        JOIN (
+            SELECT user_id, MAX(response_date) AS latest_response_date
+            FROM UserResponse
+            GROUP BY user_id
+        ) latest ON ur.user_id = latest.user_id AND ur.response_date = latest.latest_response_date;
+	`)
+	if err != nil {
+		log.Printf("Error querying user risk levels: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// Iterate over the rows and scan the values into the userRiskLevels slice
+	for rows.Next() {
+		var userRisk UserLatestRiskLevel
+		if err := rows.Scan(
+			&userRisk.UserID,
+			&userRisk.RiskLevel,
+		); err != nil {
+			log.Printf("Error scanning user risk level row: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		userRiskLevels = append(userRiskLevels, userRisk)
+	}
+
+	// Check if there was an error while iterating over the rows
+	if err := rows.Err(); err != nil {
+		log.Printf("Error iterating over rows: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with the list of user risk levels as JSON
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(userRiskLevels)
+	if err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}

@@ -236,21 +236,61 @@ function setupEventListeners() {
         }
     });
 
-    // Handle user ID search
-    searchButton.addEventListener('click', function () {
-        const userId = parseInt(userIdInput.value, 10);
+    // Handle name search and update dropdown dynamically
+    userIdInput.addEventListener('input', function () {
+        const userName = userIdInput.value.trim().toLowerCase();
         const selectedAgeGroup = ageGroupSelector.value;
 
         if (selectedAgeGroup === 'all') {
-            if (!isNaN(userId)) {
-                updateDashboard('user', userId);
+            if (userName !== '') {
+                const filteredUsers = dashboardData.users.filter(user => 
+                    user.name.toLowerCase().includes(userName) // Case-insensitive match
+                );
+                updateDropdown(filteredUsers);
             } else {
-                showCustomAlert('Please enter a valid User ID.');
+                suggestionDropdown.style.display = 'none'; // Hide dropdown if input is empty
             }
         } else {
-            showCustomAlert('Age range is selected. Search by User ID is disabled.');
+            suggestionDropdown.style.display = 'none'; // Hide dropdown when age group filter is active
         }
     });
+
+    // Handle the "Search" button click to search and update dashboard
+    searchButton.addEventListener('click', function () {
+        const userName = userIdInput.value.trim();
+        const selectedAgeGroup = ageGroupSelector.value;
+
+        if (selectedAgeGroup === 'all') {
+            if (userName !== '') {
+                updateDashboard('user', userName);
+            } else {
+                showCustomAlert('Please enter a valid name.');
+            }
+        } else {
+            showCustomAlert('Age range is selected. Search by Name is disabled.');
+        }
+    });
+
+    // Update the dropdown with filtered users
+    function updateDropdown(filteredUsers) {
+        suggestionDropdown.innerHTML = ''; // Clear previous suggestions
+
+        if (filteredUsers.length === 0) {
+            suggestionDropdown.style.display = 'none'; // Hide if no results
+        } else {
+            suggestionDropdown.style.display = 'block'; // Show dropdown
+            filteredUsers.forEach(user => {
+                const listItem = document.createElement('li');
+                listItem.classList.add('dropdown-item');
+                listItem.textContent = user.name;
+                listItem.onclick = function() {
+                    userIdInput.value = user.name; // Populate the input field with selected name
+                    suggestionDropdown.style.display = 'none'; // Hide dropdown after selection
+                };
+                suggestionDropdown.appendChild(listItem);
+            });
+        }
+    }
 }
 
 function updateDashboard(filterType, filterValue) {
@@ -269,9 +309,22 @@ function updateDashboard(filterType, filterValue) {
         }
     }
 
-    // Filter by User ID
+    // Filter by User Name (allowing partial match)
     else if (filterType === 'user') {
-        filteredUsers = dashboardData.users.filter(user => user.user_id === filterValue);
+        filteredUsers = dashboardData.users.filter(user => 
+            user.name.toLowerCase().includes(filterValue.toLowerCase()) // Case-insensitive partial match
+        );
+
+        if (filteredUsers.length > 1) {
+            showCustomAlert(`Multiple users found (${filteredUsers.length} matches). Please refine your search.`);
+        } else if (filteredUsers.length === 0) {
+            showCustomAlert('No user found. Please try a different name.');
+            return; // Stop further processing
+        } else {
+            // Show alert for the selected user
+            const selectedUser = filteredUsers[0];
+            showCustomAlert(`Showing results for: ${selectedUser.name} (User ID: ${selectedUser.user_id})`);
+        }
     }
 
     const userIds = filteredUsers.map(user => user.user_id);
@@ -296,7 +349,7 @@ function updateDashboard(filterType, filterValue) {
 }
 
 
-function updateAverageScoreChart(filteredResponses){
+function updateAverageScoreChart(filteredResponses) {
     const monthlyAverages = {};
 
     // Iterate over each response to accumulate total score and count per month
@@ -316,10 +369,67 @@ function updateAverageScoreChart(filteredResponses){
         return parseFloat(average.toFixed(2)); // Ensure the average is rounded to 2 decimal places
     });
 
-    // Update the chart with the new data
-    window.averageSessionScoreChart.data.labels = labels;
-    window.averageSessionScoreChart.data.datasets[0].data = data;
+    // Convert months to numeric x-values (index-based) for linear regression
+    const xValues = labels.map((label, index) => index);
+    const yValues = data.map(Number); // Convert the average scores to numbers
+
+    // Perform linear regression to find the best fit line for historical data
+    const { slope, intercept } = linearRegression(xValues, yValues);
+
+    // Generate the best fit line (historical + predicted future months)
+    const bestFitLine = [];
+    const extendedMonths = [...labels];
+    const numMonthsToPredict = 6; // Predict next 6 months
+
+    // Generate future months
+    for (let i = 0; i < numMonthsToPredict; i++) {
+        const nextMonth = getNextMonth(extendedMonths[extendedMonths.length - 1], 1);
+        extendedMonths.push(nextMonth);
+    }
+
+    // Calculate best fit line values for both historical and future months
+    extendedMonths.forEach((month, index) => {
+        const predictedY = slope * (xValues.length + index) + intercept;
+        bestFitLine.push(predictedY);
+    });
+
+    // Update the chart data
+    window.averageSessionScoreChart.data.labels = extendedMonths;
+    window.averageSessionScoreChart.data.datasets[0].data = data; // Historical data
+    window.averageSessionScoreChart.data.datasets[1] = {
+        label: 'Best Fit Line',
+        data: bestFitLine,
+        borderColor: 'rgb(255, 99, 132)', // Red for best fit line
+        borderWidth: 2,
+        borderDash: [5, 5], // Dotted line
+        fill: false
+    };
+
     window.averageSessionScoreChart.update();
+}
+
+// Helper function for linear regression
+function linearRegression(xData, yData) {
+    const n = xData.length;
+    const xSum = xData.reduce((acc, x) => acc + x.getTime(), 0);
+    const ySum = yData.reduce((acc, y) => acc + y, 0);
+    const xySum = xData.reduce((acc, x, i) => acc + x.getTime() * yData[i], 0);
+    const xSquaredSum = xData.reduce((acc, x) => acc + x.getTime() * x.getTime(), 0);
+
+    const denominator = n * xSquaredSum - xSum * xSum;
+    const slope = (n * xySum - xSum * ySum) / denominator;
+    const intercept = (ySum * xSquaredSum - xSum * xySum) / denominator;
+
+    return { slope, intercept };
+}
+// Helper function to get the next month in "MM-YYYY" format
+function getNextMonth(currentMonth, monthsToAdd) {
+    const [month, year] = currentMonth.split('-').map(num => parseInt(num, 10)); // Split and parse month and year
+    const date = new Date(year, month - 1); // Create a Date object (month is 0-indexed)
+    date.setMonth(date.getMonth() + monthsToAdd); // Add the specified number of months
+    const nextMonth = date.getMonth() + 1; // Get the next month (1-indexed)
+    const nextYear = date.getFullYear(); // Get the year
+    return `${nextMonth.toString().padStart(2, '0')}-${nextYear}`; // Return in "MM-YYYY" format
 }
 
 function updateTimeTakenChart(filteredResponses) {
