@@ -48,3 +48,187 @@
     border-color: #4a90e2 !important;
     color: white !important;
 }
+
+#suggestionDropdown {
+    position: absolute;
+    top: 100%; /* Align dropdown below the input */
+    left: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 5px;
+    width: 270px;
+  }
+  .modal-content {
+    border: none !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+}
+
+.modal-header {
+    border-bottom: 1px solid #eef2f7 !important;
+    padding: 1.5rem !important;
+    background-color: #f8f9fa !important;
+}
+
+.modal-title {
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    color: #2c3e50 !important;
+}
+
+.modal-body {
+    padding: 1.5rem !important;
+}
+
+.modal-footer {
+    border-top: 1px solid #eef2f7 !important;
+    padding: 1rem 1.5rem !important;
+}
+
+/* Email Display Section */
+.email-display {
+    background-color: #f8f9fa !important;
+    padding: 1rem !important;
+    border-radius: 8px !important;
+    margin-bottom: 1.5rem !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+.email-display i {
+    color: #6c757d !important;
+}
+
+/* Modal Base Styles */
+.modal-content {
+    border: none !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+}
+
+.modal-header {
+    border-bottom: 1px solid #eef2f7 !important;
+    padding: 1.5rem !important;
+    background: linear-gradient(135deg, #4a90e2, #357abd) !important;
+    color: white !important;
+}
+
+.modal-title {
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    color: white !important;
+}
+
+.btn-close {
+    color: white !important;
+    opacity: 0.9 !important;
+    filter: brightness(0) invert(1) !important;  /* Makes the X white */
+}
+
+.modal-body {
+    padding: 1.5rem !important;
+    background-color: #f8f9fa !important;
+}
+
+.modal-footer {
+    border-top: 1px solid #eef2f7 !important;
+    padding: 1rem 1.5rem !important;
+    background-color: #f8f9fa !important;
+    justify-content: flex-end !important;  /* Since we only have one button now */
+}
+
+/* Email Display Section */
+.email-display {
+    background-color: white !important;
+    padding: 1rem !important;
+    border-radius: 8px !important;
+    margin-bottom: 1.5rem !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    border: 1px solid #e9ecef !important;
+}
+
+.email-display i {
+    color: #4a90e2 !important;  /* Changed to blue */
+}
+
+/* Assessment Options Section */
+.assessment-options {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+}
+
+.assessment-item {
+    background-color: white !important;
+    border: 1px solid #e9ecef !important;
+    border-radius: 8px !important;
+    padding: 1rem 1.25rem !important;
+    transition: all 0.2s ease !important;
+}
+
+.assessment-item:hover {
+    border-color: #4a90e2 !important;  /* Blue border on hover */
+    background-color: #f8f9fa !important;
+}
+
+/* Checkbox Styles */
+.form-check {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    position: relative !important;
+}
+
+.form-check-input {
+    width: 16px !important;
+    height: 16px !important;
+    margin: 0 !important;
+    margin-right: 12px !important;
+    margin-top: 3px !important;
+    cursor: pointer !important;
+    border: 2px solid #dee2e6 !important;
+    flex-shrink: 0 !important;
+    position: relative !important;
+}
+
+.form-check-input:checked {
+    background-color: #4a90e2 !important;
+    border-color: #4a90e2 !important;
+}
+
+.form-check-label {
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    font-weight: 500 !important;
+    color: #2c3e50 !important;
+    cursor: pointer !important;
+    flex-grow: 1 !important;
+    margin: 0 !important;
+    padding-top: 1px !important;
+}
+
+.last-date {
+    font-size: 12px !important;
+    color: #6c757d !important;
+    margin-top: 4px !important;
+    font-weight: normal !important;
+}
+
+/* Send Button Style */
+.btn-primary {
+    background: linear-gradient(135deg, #4a90e2, #357abd) !important;
+    border: none !important;
+    padding: 0.6rem 1.5rem !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-primary:hover {
+    opacity: 0.9 !important;
+    transform: translateY(-1px) !important;
+}

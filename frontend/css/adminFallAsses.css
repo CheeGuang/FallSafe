@@ -26,3 +26,13 @@
     border-color: #007bff !important;
     color: white !important;
 }
+
+#suggestionDropdown {
+    position: absolute;
+    top: 100%; /* Align dropdown below the input */
+    left: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 5px;
+    width: 270px;
+  }

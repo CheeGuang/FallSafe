@@ -7,9 +7,11 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
-	"time"
 	"net/smtp"
+	"os"
+	"strings"
+	"time"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 )
@@ -606,14 +608,16 @@ func CallFALastResDayForAllUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 type EmailRequestReminder struct {
-    Email string `json:"email"`
-    Type  string `json:"type"`
-    Days  string `json:"daysSinceLast"`
+	UserName      string `json:"userName"`
+	Email         string `json:"email"`
+	SelectedTests []struct {
+		TestType          string `json:"testType"`
+		LastCompletedDays string `json:"lastCompletedDays"`
+	} `json:"selectedTests"`
 }
 
-
 // SendEmail sends an email with reminder details
-func SendEmail(to, emailType, days string) error {
+func SendEmail(to, userName, selectedTestsSummary, selectedTestsTitle string) error {
 	// SMTP configuration from .env
 	smtpHost := "smtp.gmail.com"
 	smtpPort := "587"
@@ -622,65 +626,66 @@ func SendEmail(to, emailType, days string) error {
 
 	// Email content (HTML)
 	from := "FallSafe <" + smtpUser + ">"
-	subject := fmt.Sprintf("Reminder: %s Notification", emailType)
+	subject := "Reminder: " + selectedTestsTitle // Title for the email subject
+
+	// The body includes the summary of selected tests
 	body := fmt.Sprintf(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Reminder: %s</title>  <!-- Include selected test type in the title -->
+        <style>
+            :root {
+                --dark-blue: rgb(0, 51, 153);
+                --white: #ffffff;
+                --shadow-colour: rgba(0, 0, 0, 0.1);
+            }
 
-	<!DOCTYPE html>
-	<html lang="en">
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>%s Reminder</title>
-		<style>
-			:root {
-				--dark-blue: rgb(0, 51, 153);
-				--white: #ffffff;
-				--shadow-colour: rgba(0, 0, 0, 0.1);
-			}
-
-			body {
-				font-family: Arial, sans-serif;
-				background-color: var(--dark-blue);
-				color: var(--white);
-				margin: 0;
-				padding: 0;
-			}
-			.container {
-				width: 100%%;
-				max-width: 600px;
-				margin: 0 auto;
-				background: var(--white);
-				padding: 20px;
-				border-radius: 10px;
-				box-shadow: 0 4px 6px var(--shadow-colour);
-				color: var(--dark-blue);
-			}
-			h1 {
-				color: var(--dark-blue);
-			}
-			.footer {
-				margin-top: 20px;
-				font-size: 12px;
-				color: var(--dark-blue);
-			}
-		</style>
-	</head>
-	<body>
-		<div class="container">
-			<h1>%s Reminder</h1>
-			<p>Dear User,</p>
-			<p>This is a reminder for your <strong>%s</strong> self assessment.</p>
-			<p>It has been <strong>%s days</strong> since your last assessment.</p>
-			<p>Please login to FallSafe portal as soon as possible to maintain an active participation.</p>
-			<p>Best regards,</p>
-			<p>The FallSafe Team</p>
-			<div class="footer">
-				<p>FallSafe &copy; 2024. All Rights Reserved.</p>
-			</div>
-		</div>
-	</body>
-	</html>
-	`, emailType, emailType, emailType, days)
+            body {
+                font-family: Arial, sans-serif;
+                background-color: var(--dark-blue);
+                color: var(--white);
+                margin: 0;
+                padding: 0;
+            }
+            .container {
+                width: 100%%;
+                max-width: 600px;
+                margin: 0 auto;
+                background: var(--white);
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 6px var(--shadow-colour);
+                color: var(--dark-blue);
+            }
+            h1 {
+                color: var(--dark-blue);
+            }
+            .footer {
+                margin-top: 20px;
+                font-size: 12px;
+                color: var(--dark-blue);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>%s Reminder</h1> <!-- Include selected test type in the header -->
+            <p>Dear %s,</p>
+            <p>This is a reminder for your self-assessment(s):</p>
+            <p>%s</p>
+            <p>Please login to the FallSafe portal to maintain an active participation.</p>
+            <p>Best regards,</p>
+            <p>The FallSafe Team</p>
+            <div class="footer">
+                <p>FallSafe &copy; 2024. All Rights Reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `, selectedTestsTitle, selectedTestsTitle, userName, selectedTestsSummary)
 
 	// Combine headers and body
 	message := fmt.Sprintf(
@@ -710,8 +715,34 @@ func SendEmailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Call sendEmail function
-	err := SendEmail(req.Email, req.Type, req.Days)
+	// Check that there are selected tests
+	if len(req.SelectedTests) == 0 {
+		http.Error(w, "No selected tests provided", http.StatusBadRequest)
+		return
+	}
+
+	// Build the summary of selected tests for the email body
+	var selectedTestsSummary string
+	var selectedTestsTitle string
+	for _, test := range req.SelectedTests {
+		
+		// Check if test days is "not taken" and modify the message accordingly
+		// Inside the loop where we build the summary:
+		if strings.Contains(strings.ToLower(strings.TrimSpace(test.LastCompletedDays)), "not taken") {
+			selectedTestsSummary += fmt.Sprintf("<strong>%s</strong>: Not yet taken.<br>", test.TestType)
+		} else {
+			selectedTestsSummary += fmt.Sprintf("<strong>%s</strong>: %s days ago.<br>", test.TestType, test.LastCompletedDays)
+		}
+
+		if selectedTestsTitle == "" {
+			selectedTestsTitle = test.TestType // First test type for title
+		} else {
+			selectedTestsTitle += " & " + test.TestType // Append the next test type to the title
+		}
+	}
+
+	// Send a single email with all selected tests in the body
+	err := SendEmail(req.Email, req.UserName, selectedTestsSummary, selectedTestsTitle)
 	if err != nil {
 		http.Error(w, "Failed to send email", http.StatusInternalServerError)
 		return
@@ -721,4 +752,68 @@ func SendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	response := map[string]string{"message": "Email sent successfully"}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
+
+// Struct to represent User Risk Level with user_id and risk_level
+type UserRiskLevel struct {
+	UserID    int    `json:"user_id"`    // User ID
+	RiskLevel string `json:"risk_level"` // Risk level (low, moderate, high)
+}
+
+// Function to fetch user risk levels from the UserResponse API
+func CallFESUserRiskLevel(w http.ResponseWriter, r *http.Request) {
+	apiURL := "http://localhost:5300/api/v1/fes/getAllFESLatestRisk" // Replace with actual API URL
+
+	// Extract the Authorization header from the incoming request
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, "Authorization header missing", http.StatusUnauthorized)
+		return
+	}
+
+	// Create an HTTP GET request
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		log.Printf("Error creating request: %v", err)
+		http.Error(w, "Failed to create request", http.StatusInternalServerError)
+		return
+	}
+
+	// Set the Authorization header
+	req.Header.Set("Authorization", authHeader)
+
+	// Perform the request to the downstream microservice
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Error making request: %v", err)
+		http.Error(w, "Failed to contact User Risk Level microservice", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Check the status code of the response
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		http.Error(w, fmt.Sprintf("Microservice error: %s", string(body)), resp.StatusCode)
+		return
+	}
+
+	// Parse the response body into UserRiskLevel struct
+	var userRiskLevels []UserRiskLevel
+	err = json.NewDecoder(resp.Body).Decode(&userRiskLevels)
+	if err != nil {
+		log.Printf("Error decoding response: %v", err)
+		http.Error(w, "Failed to parse response from microservice", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond to the original client with the user risk levels data
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(userRiskLevels)
+	if err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Failed to send response to client", http.StatusInternalServerError)
+	}
 }

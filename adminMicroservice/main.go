@@ -103,6 +103,7 @@ func main() {
 	authenticated.HandleFunc("/api/v1/admin/getAllLastResFES", admin.CallFESLastResDayForAllUsers).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(admin.CallFESLastResDayForAllUsers)))
 	authenticated.HandleFunc("/api/v1/admin/getAllLastResFA", admin.CallFALastResDayForAllUsers).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(admin.CallFALastResDayForAllUsers)))
 	authenticated.HandleFunc("/api/v1/admin/sendEmailAssesRemind", admin.SendEmailHandler).Methods("POST").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(admin.SendEmailHandler)))
+	authenticated.HandleFunc("/api/v1/admin/getAllFESUserRisk", admin.CallFESUserRiskLevel).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(admin.CallFESUserRiskLevel)))
 
 	// Add CORS support
 	corsHandler := handlers.CORS(

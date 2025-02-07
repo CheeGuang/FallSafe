@@ -71,12 +71,11 @@
           <div id="customAlertContainer"></div>
 
           <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
+          <h1>Falls Efficacy Scale Analysis</h1>
           <!-- Dashboard Container -->
           <div class="dashboard-container">
             <!-- Dashboard Title -->
-            <h2 class="mb-4" style="text-align: left">
-              Falls Efficacy Scale Analysis
-            </h2>
+
 
             <!-- Filter Controls -->
             <div class="filter-controls mb-4">
@@ -92,28 +91,27 @@
                 <option value="80-90">80-90</option>
                 <option value="90+">90+</option>
               </select>
-
-              <!-- Individual Search -->
-              <div
-                class="input-group"
-                style="width: auto; display: inline-flex"
-              >
-                <input
-                  type="number"
-                  id="individualSearch"
-                  class="form-control"
-                  placeholder="Search by User ID"
-                  min="1"
-                  style="max-width: 270px"
-                />
-                <button
-                  class="btn btn-outline-secondary"
-                  type="button"
-                  id="searchButton"
-                >
+              
+            <!-- Individual Search --> 
+            <div class="input-group" style="width: auto; display: inline-flex; flex-direction: column;">
+              <div class="d-flex">
+                <input type="text" 
+                      id="individualSearch" 
+                      class="form-control" 
+                      placeholder="Search by Name"
+                      style="max-width: 270px;">
+                <button class="btn btn-outline-secondary" type="button" id="searchButton">
                   <i class="fas fa-search"></i>
                 </button>
               </div>
+              
+              <!-- Dropdown for Suggestions, positioned below the input field -->
+              <ul id="suggestionDropdown" class="dropdown-menu" style="display: none; width: auto; max-width: 270px; margin-top: 5px;">
+                <!-- Suggestions will appear here -->
+              </ul>
+            </div>
+
+
             </div>
 
             <!-- Dashboard Grid -->

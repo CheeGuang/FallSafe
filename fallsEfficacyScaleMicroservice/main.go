@@ -97,6 +97,7 @@ func main() {
 	authenticated.HandleFunc("/api/v1/fes/getAllIndividualRes", FES.GetAllFESIndividualRes).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(FES.GetAllFESIndividualRes)))
 	authenticated.HandleFunc("/api/v1/fes/getFESResults", FES.GetUserFESResults).Methods("GET").Handler(authenticateMiddleware([]string{"User"})(http.HandlerFunc(FES.GetUserFESResults)))
 	authenticated.HandleFunc("/api/v1/fes/getAllFESLastResDay", FES.GetAllFESLatestResDate).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(FES.GetAllFESLatestResDate)))
+	authenticated.HandleFunc("/api/v1/fes/getAllFESLatestRisk", FES.GetLatestUserRiskLevel).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(FES.GetLatestUserRiskLevel)))
 
 
 	// Speech generation endpoint
