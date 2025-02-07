@@ -30,7 +30,7 @@ const usersPerPage = 5;
     "session_id": 1,
     "user_id": 1,
     "session_date": "2022-07-27T00:00:00Z",
-    "avg_score": 22
+    "total_score": 22
 },
 //sample data for timeTakenChart
 {
@@ -358,7 +358,7 @@ function updateAverageScoreChart(filteredResponses) {
         if (!monthlyAverages[month]) {
             monthlyAverages[month] = { totalScore: 0, count: 0 };
         }
-        monthlyAverages[month].totalScore += response.avg_score; // Add the avg_score to the total for the month
+        monthlyAverages[month].totalScore += response.total_score; // Add the total_score to the total for the month
         monthlyAverages[month].count += 1; // Increment the count for the month
     });
 
@@ -409,27 +409,25 @@ function updateAverageScoreChart(filteredResponses) {
 }
 
 // Helper function for linear regression
-function linearRegression(xData, yData) {
-    const n = xData.length;
-    const xSum = xData.reduce((acc, x) => acc + x.getTime(), 0);
-    const ySum = yData.reduce((acc, y) => acc + y, 0);
-    const xySum = xData.reduce((acc, x, i) => acc + x.getTime() * yData[i], 0);
-    const xSquaredSum = xData.reduce((acc, x) => acc + x.getTime() * x.getTime(), 0);
+// Linear regression function to calculate the slope and intercept
+function linearRegression(xValues, yValues) {
+    const n = xValues.length;
+    const sumX = xValues.reduce((a, b) => a + b, 0);
+    const sumY = yValues.reduce((a, b) => a + b, 0);
+    const sumXY = xValues.reduce((sum, x, idx) => sum + x * yValues[idx], 0);
+    const sumX2 = xValues.reduce((sum, x) => sum + x * x, 0);
 
-    const denominator = n * xSquaredSum - xSum * xSum;
-    const slope = (n * xySum - xSum * ySum) / denominator;
-    const intercept = (ySum * xSquaredSum - xSum * xySum) / denominator;
+    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
 
     return { slope, intercept };
 }
-// Helper function to get the next month in "MM-YYYY" format
-function getNextMonth(currentMonth, monthsToAdd) {
-    const [month, year] = currentMonth.split('-').map(num => parseInt(num, 10)); // Split and parse month and year
-    const date = new Date(year, month - 1); // Create a Date object (month is 0-indexed)
-    date.setMonth(date.getMonth() + monthsToAdd); // Add the specified number of months
-    const nextMonth = date.getMonth() + 1; // Get the next month (1-indexed)
-    const nextYear = date.getFullYear(); // Get the year
-    return `${nextMonth.toString().padStart(2, '0')}-${nextYear}`; // Return in "MM-YYYY" format
+// Function to get the next month from the latest month
+function getNextMonth(latestMonth, monthsToAdd) {
+    const date = new Date(latestMonth.split('-')[1], parseInt(latestMonth.split('-')[0], 10) - 1, 1); // Convert "MM-YYYY" to Date
+    date.setMonth(date.getMonth() + monthsToAdd); // Add the required number of months
+    const options = { year: 'numeric', month: '2-digit' }; // Format the month as "MM-YYYY"
+    return date.toLocaleDateString('en-US', options).replace(/\//g, '-'); // Change the format to MM-YYYY
 }
 
 function updateTimeTakenChart(filteredResponses) {
