@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       testResults.self_assessment_results
     );
 
-    console.log(fesResults.fes_results);
+    console.log("testResults:", testResults);
 
     displayRiskResult(overallRisk);
     generateCharts(fesResults.fes_results);
@@ -122,7 +122,7 @@ function calculateOverallRisk(fesResults, testResults) {
   );
 
   // Normalize FES Score to percentage
-  const fesScore = (latestFES.total_score / 64) * 100;
+  const fesScore = ((latestFES.total_score - 16) / 64) * 100;
 
   // Convert risk level into a score
   const testRiskScore = getRiskScore(latestTest.risk_level) * 100; // Convert to percentage
@@ -325,9 +325,6 @@ function updateCharts(fesResults, selectedIndex) {
 
   // Update Muscle Strength Chart based on latest selected test
   updateMuscleStrengthChart(selectedTest);
-
-  console.log("Updated charts for Test:", testNumber);
-  console.log("Muscle Group Scores:", muscleGroupScores);
 }
 
 function createCategorizedBarChart(canvasId, title, labels, data) {
@@ -399,7 +396,7 @@ function fesCalculateOverallRisk(fesResults) {
   );
 
   // Normalize FES Score to percentage
-  const fesScore = (latestFES.total_score / 64) * 100;
+  const fesScore = ((latestFES.total_score - 16) / 64) * 100;
 
   return {
     percentage: fesScore,
@@ -414,9 +411,6 @@ function fesDetermineRiskLevel(percentage) {
 }
 
 function generateGaugeCharts(fesResults) {
-  console.log("Generating gauge charts...");
-  console.log("FES Results:", fesResults);
-
   if (!fesResults || fesResults.length < 2) {
     console.warn("Not enough FES test data for gauge charts.");
     return;
@@ -426,9 +420,6 @@ function generateGaugeCharts(fesResults) {
   const latestFES = fesResults[fesResults.length - 1];
   const secondLatestFES = fesResults[fesResults.length - 2];
 
-  console.log("Latest FES:", latestFES);
-  console.log("Second Latest FES:", secondLatestFES);
-
   if (!latestFES || !secondLatestFES) {
     console.warn("Missing FES test data for gauge charts.");
     return;
@@ -437,9 +428,6 @@ function generateGaugeCharts(fesResults) {
   // Calculate risk scores and log results
   const latestRisk = fesCalculateOverallRisk([latestFES]);
   const secondLatestRisk = fesCalculateOverallRisk([secondLatestFES]);
-
-  console.log("Latest Test Risk:", latestRisk);
-  console.log("Second Latest Test Risk:", secondLatestRisk);
 
   // Generate gauge charts
   createGaugeChart(
@@ -539,15 +527,11 @@ function updateMuscleStrengthChart(selectedTest) {
       .filter((q) => indices.includes(q.question_id))
       .map((q) => q.response_score);
 
-    const avgScore = scores.length
+    const totalScore = scores.length
       ? scores.reduce((sum, score) => sum + score, 0) / scores.length
       : 0;
-    const weakStrong = avgScore > 2 ? "Weak" : "Strong";
-    const color = avgScore > 2 ? "text-danger" : "text-success";
-
-    console.log(
-      `Muscle Group: ${group}, Avg Score: ${avgScore}, Status: ${weakStrong}`
-    );
+    const weakStrong = totalScore > 2 ? "Weak" : "Strong";
+    const color = totalScore > 2 ? "text-danger" : "text-success";
 
     const positionMap = {
       Legs: { top: "78%", left: "50%" },

@@ -286,7 +286,7 @@ type TestSessionUser struct {
 	SessionID   int       `json:"session_id"`   // Unique ID for the session
 	UserID      int       `json:"user_id"`      // Associated user ID
 	SessionDate time.Time `json:"session_date"` // Date and time of the session
-	AvgScore    int16     `json:"avg_score"`    // Average score for the session
+	TotalScore    int16     `json:"total_score"`    // Average score for the session
 }
 
 // Function to call selfAssessMicro, get all user with their dates and score

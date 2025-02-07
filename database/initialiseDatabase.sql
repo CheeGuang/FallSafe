@@ -162,7 +162,7 @@ CREATE TABLE TestSession (
     session_id SMALLINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,  -- Unique ID for the session
     user_id SMALLINT UNSIGNED NOT NULL,                                -- Associated user ID
     session_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                  -- Date and time of the session
-    avg_score SMALLINT UNSIGNED NULL,
+    total_score SMALLINT UNSIGNED NULL,
     session_notes TEXT NULL,                                           -- Optional notes about the session
     INDEX idx_user_session (user_id, session_date)                    -- Composite index for user ID and session date
 );
@@ -203,32 +203,6 @@ CREATE TABLE User (
     email VARCHAR(100) NOT NULL UNIQUE,                              -- Admin's email address
     role ENUM('Admin') DEFAULT 'Admin',                              -- Role fixed as Admin
     INDEX idx_email (email)                                          -- Index for email lookups
-);
-
-
--- **************************************************
--- DATABASE: ConsultationDB
--- PURPOSE: Handles all Whereby video call consultation data
--- **************************************************
-
--- Drop and recreate the ConsultationDB database
-DROP DATABASE IF EXISTS ConsultationDB;
-CREATE DATABASE ConsultationDB;
-USE ConsultationDB;
-
--- Create the Appointments table
--- PURPOSE: Stores details of video call consultations
-CREATE TABLE Appointments (
-    AppointmentID INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, -- Unique ID for the appointment
-    UserID INT UNSIGNED NOT NULL,                                 -- Associated member ID
-    AdminID INT UNSIGNED NOT NULL,                                  -- Associated admin ID
-    startDateTime NVARCHAR(40) NOT NULL,                           -- Start time of the appointment
-    endDateTime NVARCHAR(40) NOT NULL,                             -- End time of the appointment
-    ParticipantURL NVARCHAR(1000) NOT NULL,                        -- URL for the participant
-    HostRoomURL NVARCHAR(1000) NOT NULL,                           -- URL for the host (admin)
-    INDEX idx_member_id (MemberID),                                -- Index for quick lookup by MemberID
-    INDEX idx_admin_id (AdminID),                                  -- Index for quick lookup by AdminID
-    INDEX idx_start_datetime (startDateTime)                       -- Index to optimize queries by start time
 );
 
 -- **************************************************
@@ -347,7 +321,7 @@ INSERT INTO FallsEfficacyScale (question_text) VALUES
 -- Insert dummy data into UserResponse table
 INSERT INTO UserResponse (user_id, total_score, response_date) VALUES
 -- (6 months ago)
-(1, 32, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(1, 25, DATE_SUB(DATE_SUB(CURRENT_DATE, INTERVAL 6 MONTH), INTERVAL 7 DAY)),
 (2, 28, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
 (3, 35, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
 (4, 30, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
@@ -365,7 +339,7 @@ INSERT INTO UserResponse (user_id, total_score, response_date) VALUES
 (16, 64, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
 
 -- (12 months ago)
-(1, 31, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(1, 41, DATE_SUB(DATE_SUB(CURRENT_DATE, INTERVAL 12 MONTH), INTERVAL 7 DAY)),
 (2, 28, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (3, 36, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (4, 37, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
@@ -380,15 +354,22 @@ INSERT INTO UserResponse (user_id, total_score, response_date) VALUES
 (13, 56, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (14, 62, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (15, 62, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
-(16, 64, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH));
+(16, 64, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 
+
+-- (18 months ago)
+(1, 48, DATE_SUB(DATE_SUB(CURRENT_DATE, INTERVAL 18 MONTH), INTERVAL 7 DAY)),
+
+
+-- (24 months ago)
+(1, 53, DATE_SUB(DATE_SUB(CURRENT_DATE, INTERVAL 24 MONTH), INTERVAL 7 DAY));
 
 -- Insert dummy data into UserResponseDetails table
 INSERT INTO UserResponseDetails (response_id, question_id, response_score) VALUES
 -- User 1
-(1, 1, 2), (1, 2, 1), (1, 3, 2), (1, 4, 3), (1, 5, 1), (1, 6, 2),
-(1, 7, 3), (1, 8, 2), (1, 9, 2), (1, 10, 3), (1, 11, 2), (1, 12, 2),
-(1, 13, 3), (1, 14, 2), (1, 15, 1), (1, 16, 3),
+(1, 1, 2), (1, 2, 2), (1, 3, 2), (1, 4, 2), (1, 5, 2), (1, 6, 2),
+(1, 7, 1), (1, 8, 1), (1, 9, 1), (1, 10, 2), (1, 11, 1), (1, 12, 1),
+(1, 13, 1), (1, 14, 1), (1, 15, 2), (1, 16, 1),
 -- User 2
 (2, 1, 1), (2, 2, 1), (2, 3, 1), (2, 4, 2), (2, 5, 1), (2, 6, 1),
 (2, 7, 2), (2, 8, 1), (2, 9, 1), (2, 10, 2), (2, 11, 1), (2, 12, 1),
@@ -452,8 +433,8 @@ INSERT INTO UserResponseDetails (response_id, question_id, response_score) VALUE
 -- February results
 
 -- User 1
-(17, 1, 2), (17, 2, 1), (17, 3, 2), (17, 4, 3), (17, 5, 1), (17, 6, 2),
-(17, 7, 2), (17, 8, 2), (17, 9, 3), (17, 10, 3), (17, 11, 3), (17, 12, 1),
+(17, 1, 2), (17, 2, 4), (17, 3, 2), (17, 4, 3), (17, 5, 4), (17, 6, 2),
+(17, 7, 2), (17, 8, 2), (17, 9, 3), (17, 10, 3), (17, 11, 3), (17, 12, 4),
 (17, 13, 1), (17, 14, 2), (17, 15, 1), (17, 16, 2),
 -- User 2
 (18, 1, 2), (18, 2, 1), (18, 3, 1), (18, 4, 2), (18, 5, 2), (18, 6, 1),
@@ -514,7 +495,16 @@ INSERT INTO UserResponseDetails (response_id, question_id, response_score) VALUE
 -- User 16
 (32, 1, 4), (32, 2, 4), (32, 3, 4), (32, 4, 4), (32, 5, 4), (32, 6, 4),
 (32, 7, 4), (32, 8, 4), (32, 9, 4), (32, 10, 4), (32, 11, 4), (32, 12, 4),
-(32, 13, 4), (32, 14, 4), (32, 15, 4), (32, 16, 4);
+(32, 13, 4), (32, 14, 4), (32, 15, 4), (32, 16, 4),
+-- User 1, Response ID 33
+(33, 1, 3), (33, 2, 4), (33, 3, 3), (33, 4, 4), (33, 5, 2), (33, 6, 3),
+(33, 7, 4), (33, 8, 3), (33, 9, 4), (33, 10, 3), (33, 11, 4), (33, 12, 2),
+(33, 13, 2), (33, 14, 3), (33, 15, 2), (33, 16, 4),
+-- User 1, Response ID 34
+(34, 1, 4), (34, 2, 4), (34, 3, 3), (34, 4, 4), (34, 5, 3), (34, 6, 4),
+(34, 7, 4), (34, 8, 3), (34, 9, 4), (34, 10, 3), (34, 11, 4), (34, 12, 3),
+(34, 13, 3), (34, 14, 3), (34, 15, 2), (34, 16, 4);
+
 
 
 -- **************************************************
@@ -578,36 +568,37 @@ INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2
 );
 
 -- Insert TestSession data for 5 users (5 sessions each, every 6 months)
-INSERT INTO TestSession (user_id, session_date, avg_score, session_notes) VALUES
-(1, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '22.125', 'Routine assessment 2.5 years ago'),
-(1, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '20.000', 'Routine assessment 2 years ago'),
-(1, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '18.500', 'Routine assessment 1.5 years ago'),
-(1, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '16.375', 'Routine assessment 1 year ago'),
-(1, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '14.625', 'Routine assessment 6 months ago'),
+INSERT INTO TestSession (user_id, session_date, total_score, session_notes) VALUES
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '27', 'Routine assessment 2.5 years ago'),
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '35', 'Routine assessment 2 years ago'),
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '40', 'Routine assessment 1.5 years ago'),
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '67', 'Routine assessment 1 year ago'),
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '88', 'Routine assessment 6 months ago'),
 
-(2, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '18.750', 'Routine assessment 2.5 years ago'),
-(2, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '21.000', 'Routine assessment 2 years ago'),
-(2, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '23.250', 'Routine assessment 1.5 years ago'),
-(2, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '26.500', 'Routine assessment 1 year ago'),
-(2, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '29.000', 'Routine assessment 6 months ago'),
+(2, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '80', 'Routine assessment 2.5 years ago'),
+(2, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '84', 'Routine assessment 2 years ago'),
+(2, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '87', 'Routine assessment 1.5 years ago'),
+(2, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '93', 'Routine assessment 1 year ago'),
+(2, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '98', 'Routine assessment 6 months ago'),
 
-(3, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '25.750', 'Routine assessment 2.5 years ago'),
-(3, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '23.000', 'Routine assessment 2 years ago'),
-(3, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '20.500', 'Routine assessment 1.5 years ago'),
-(3, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '17.250', 'Routine assessment 1 year ago'),
-(3, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '13.750', 'Routine assessment 6 months ago'),
+(3, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '79', 'Routine assessment 2.5 years ago'),
+(3, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '70', 'Routine assessment 2 years ago'),
+(3, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '63', 'Routine assessment 1.5 years ago'),
+(3, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '53', 'Routine assessment 1 year ago'),
+(3, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '42', 'Routine assessment 6 months ago'),
 
-(4, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '16.750', 'Routine assessment 2.5 years ago'),
-(4, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '19.250', 'Routine assessment 2 years ago'),
-(4, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '21.500', 'Routine assessment 1.5 years ago'),
-(4, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '24.500', 'Routine assessment 1 year ago'),
-(4, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '28.250', 'Routine assessment 6 months ago'),
+(4, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '51', 'Routine assessment 2.5 years ago'),
+(4, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '59', 'Routine assessment 2 years ago'),
+(4, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '66', 'Routine assessment 1.5 years ago'),
+(4, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '75', 'Routine assessment 1 year ago'),
+(4, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '86', 'Routine assessment 6 months ago'),
 
-(5, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '23.000', 'Routine assessment 2.5 years ago'),
-(5, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '18.750', 'Routine assessment 2 years ago'),
-(5, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '25.750', 'Routine assessment 1.5 years ago'),
-(5, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '20.750', 'Routine assessment 1 year ago'),
-(5, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '22.000', 'Routine assessment 6 months ago');
+(5, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '70', 'Routine assessment 2.5 years ago'),
+(5, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '57', 'Routine assessment 2 years ago'),
+(5, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '79', 'Routine assessment 1.5 years ago'),
+(5, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '63', 'Routine assessment 1 year ago'),
+(5, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '67', 'Routine assessment 6 months ago');
+
 
 
 

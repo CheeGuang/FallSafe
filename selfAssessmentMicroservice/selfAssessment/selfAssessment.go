@@ -551,12 +551,9 @@ func SaveUserTestResult(testSessionID int, userID int, testID int, timeTaken flo
 		return nil
 	}
 
-	avgScore := totalScore / count
-	log.Printf("Calculated average score for session_id=%d: %f", testSessionID, avgScore)
-
 	// Update the TestSession with the calculated average score
-	updateQuery := `UPDATE TestSession SET avg_score = ? WHERE session_id = ?`
-	_, err = db.Exec(updateQuery, avgScore, testSessionID)
+	updateQuery := `UPDATE TestSession SET total_score = ? WHERE session_id = ?`
+	_, err = db.Exec(updateQuery, totalScore, testSessionID)
 	if err != nil {
 		log.Printf("Error updating average score in TestSession: %v", err)
 		return fmt.Errorf("failed to update average score: %v", err)
@@ -628,7 +625,7 @@ type TestSession struct {
 	SessionID    int              `json:"session_id"`
 	UserID       int              `json:"user_id"`
 	SessionDate  time.Time        `json:"session_date"`
-	AvgScore     sql.NullInt64    `json:"avg_score,omitempty"`
+	TotalScore     sql.NullInt64    `json:"total_score,omitempty"`
 	SessionNotes sql.NullString   `json:"session_notes,omitempty"`
 	TestResults  []UserTestResult `json:"test_results"`
 }
@@ -654,7 +651,7 @@ func GetTestSessions(w http.ResponseWriter, r *http.Request) {
 			session_id, 
 			user_id, 
 			CAST(session_date AS CHAR), -- Convert to string
-			avg_score, 
+			total_score, 
 			session_notes
 		FROM TestSession
 		WHERE user_id = ?
@@ -676,7 +673,7 @@ func GetTestSessions(w http.ResponseWriter, r *http.Request) {
 		var sessionDateStr string // Store as string before parsing
 
 		if err := rows.Scan(
-			&session.SessionID, &session.UserID, &sessionDateStr, &session.AvgScore, &session.SessionNotes,
+			&session.SessionID, &session.UserID, &sessionDateStr, &session.TotalScore, &session.SessionNotes,
 		); err != nil {
 			http.Error(w, fmt.Sprintf("Error scanning session row: %v", err), http.StatusInternalServerError)
 			return
@@ -769,7 +766,7 @@ type TestSessionUser struct {
 	SessionID   int       `json:"session_id"`   // Unique ID for the session
 	UserID      int       `json:"user_id"`      // Associated user ID
 	SessionDate time.Time `json:"session_date"` // Date and time of the session
-	AvgScore    int16     `json:"avg_score"`    // Average score for the session
+	TotalScore    int16     `json:"total_score"`    // Average score for the session
 }
 
 func GetAllUserAvgScore(w http.ResponseWriter, r *http.Request) {
@@ -778,7 +775,7 @@ func GetAllUserAvgScore(w http.ResponseWriter, r *http.Request) {
 
 	// Query to fetch all test session details
 	rows, err := db.Query(`
-		SELECT session_id, user_id, session_date, avg_score
+		SELECT session_id, user_id, session_date, total_score
 		FROM TestSession`)
 	if err != nil {
 		log.Printf("Error querying test session results: %v", err)
@@ -794,7 +791,7 @@ func GetAllUserAvgScore(w http.ResponseWriter, r *http.Request) {
 			&session.SessionID,
 			&session.UserID,
 			&session.SessionDate,
-			&session.AvgScore,
+			&session.TotalScore,
 		); err != nil {
 			log.Printf("Error scanning test session row: %v", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
