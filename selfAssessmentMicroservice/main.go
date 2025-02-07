@@ -103,7 +103,7 @@ func main() {
 	authenticated.Use(authenticateMiddleware([]string{"Admin", "User"}))
 
 	//Endpoints for Admin dashboard
-	authenticated.HandleFunc("/api/v1/selfAssessment/getAllAvgScore", selfAssessment.GetAllUserAvgScore).Methods("GET")
+	authenticated.HandleFunc("/api/v1/selfAssessment/getAllTotalScore", selfAssessment.GetAllUserTotalScore).Methods("GET")
 	authenticated.HandleFunc("/api/v1/selfAssessment/getAllAvgTime", selfAssessment.GetAllFATestWithAvgTime).Methods("GET")
 	authenticated.HandleFunc("/api/v1/selfAssessment/getAllUserRisk", selfAssessment.GetUserOverallLatestRisk).Methods("GET")
 	authenticated.HandleFunc("/api/v1/selfAssessment/getAllLastResDay", selfAssessment.GetAllFallAssesLatestResDate).Methods("GET")

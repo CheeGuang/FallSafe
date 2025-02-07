@@ -769,7 +769,8 @@ type TestSessionUser struct {
 	TotalScore    int16     `json:"total_score"`    // Average score for the session
 }
 
-func GetAllUserAvgScore(w http.ResponseWriter, r *http.Request) {
+// GetAllUserTotalScore fetches all test sessions with total scores
+func GetAllUserTotalScore(w http.ResponseWriter, r *http.Request) {
 	// Define a slice to store the list of test session user results
 	var sessionResults []TestSessionUser
 
@@ -816,7 +817,6 @@ func GetAllUserAvgScore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
 // Struct to represent avg_time with test name Result
 type FATestWithAvgTime struct {
 	ResultID    uint      `json:"result_id"`
