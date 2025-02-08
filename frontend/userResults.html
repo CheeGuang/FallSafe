@@ -93,314 +93,360 @@
                 <strong>Calculating...</strong>
               </p>
             </div>
-            <div class="mt-5 mb-5">
-              <h2>Actionable Insights</h2>
-              <div id="actionable-insights" class="text-start"></div>
-            </div>
-            <div class="mt-5 mb-5">
-              <h5
-                class="mt-4"
-                style="
-                  font-size: 24px !important;
-                  font-weight: bold !important;
-                  color: #555 !important;
-                "
-              >
-                Falls Efficacy Scale Results
-              </h5>
-              <div class="container">
-                <div class="row">
-                  <!-- Score Distribution Card -->
-                  <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                      <div class="card-header">
-                        <h5
-                          class="card-title mb-0"
-                          style="
-                            font-size: 24px !important;
-                            font-weight: bold !important;
-                            color: #555 !important;
-                          "
-                        >
-                          Total FES Score Over Time
-                        </h5>
-                      </div>
-                      <div
-                        class="card-body d-flex justify-content-center align-items-center flex-column"
-                      >
-                        <canvas id="fes-total-score"></canvas>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                      <div class="card-header">
-                        <h5
-                          class="card-title mb-0"
-                          style="
-                            font-size: 24px !important;
-                            font-weight: bold !important;
-                            color: #555 !important;
-                          "
-                        >
-                          Previous Test Fall Risk
-                        </h5>
-                      </div>
-                      <div
-                        class="card-body d-flex justify-content-center align-items-center flex-column"
-                      >
-                        <canvas id="fes-second-latest-test-risk"></canvas>
-                      </div>
-                    </div>
-                  </div>
 
-                  <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                      <div class="card-header">
-                        <h5
-                          class="card-title mb-0"
-                          style="
-                            font-size: 24px !important;
-                            font-weight: bold !important;
-                            color: #555 !important;
-                          "
-                        >
-                          Latest Test Fall Risk
-                        </h5>
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs mb-3" id="accountTabs">
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  id="actionable-tab"
+                  href="#actionable-insights"
+                  >Actionable Insights</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="fes-tab" href="#fes-results"
+                  >Falls Efficacy Scale Results</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="fas-tab" href="#self-assessment"
+                  >Self-Assessment Analysis</a
+                >
+              </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+              <div class="tab-pane fade show active" id="actionable-insights">
+                <div class="card p-4 text-start">
+                  <div
+                    id="actionable-insights-content"
+                    class="text-start"
+                  ></div>
+                </div>
+              </div>
+              <!-- Language Settings Tab Pane -->
+              <div class="tab-pane fade" id="fes-results">
+                <div class="card p-4 text-start">
+                  <div class="container">
+                    <div class="row">
+                      <!-- Score Distribution Card -->
+                      <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                          <div class="card-header">
+                            <h5
+                              class="card-title mb-0"
+                              style="
+                                font-size: 24px !important;
+                                font-weight: bold !important;
+                                color: #555 !important;
+                              "
+                            >
+                              Total FES Score Over Time
+                            </h5>
+                          </div>
+                          <div
+                            class="card-body d-flex justify-content-center align-items-center flex-column"
+                          >
+                            <canvas id="fes-total-score"></canvas>
+                          </div>
+                        </div>
                       </div>
-                      <div
-                        class="card-body d-flex justify-content-center align-items-center flex-column"
-                      >
-                        <canvas id="fes-latest-test-risk"></canvas>
+                      <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                          <div class="card-header">
+                            <h5
+                              class="card-title mb-0"
+                              style="
+                                font-size: 24px !important;
+                                font-weight: bold !important;
+                                color: #555 !important;
+                              "
+                            >
+                              Previous Test Fall Risk
+                            </h5>
+                          </div>
+                          <div
+                            class="card-body d-flex justify-content-center align-items-center flex-column"
+                          >
+                            <canvas id="fes-second-latest-test-risk"></canvas>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                          <div class="card-header">
+                            <h5
+                              class="card-title mb-0"
+                              style="
+                                font-size: 24px !important;
+                                font-weight: bold !important;
+                                color: #555 !important;
+                              "
+                            >
+                              Latest Test Fall Risk
+                            </h5>
+                          </div>
+                          <div
+                            class="card-body d-flex justify-content-center align-items-center flex-column"
+                          >
+                            <canvas id="fes-latest-test-risk"></canvas>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-                <div class="container mt-5">
-                  <label
-                    for="testDropdown"
-                    class="form-label"
-                    style="font-size: 18px"
-                    >Select a Test:</label
-                  >
-                  <select
-                    id="testDropdown"
-                    class="form-select"
-                    style="font-size: 16px"
-                  >
-                    <option value="" disabled selected>Loading tests...</option>
-                  </select>
-                </div>
-                <div class="row mt-4">
-                  <div class="col-md-8 mb-4">
-                    <div class="card h-100">
-                      <div class="card-header">
-                        <h5
-                          id="question-socres-in-title"
-                          class="card-title mb-0"
-                          style="
-                            font-size: 24px !important;
-                            font-weight: bold !important;
-                            color: #555 !important;
-                          "
-                        >
-                          Question Socres In Test ...
-                        </h5>
-                      </div>
-                      <div
-                        class="card-body d-flex justify-content-center align-items-center flex-column"
+                    <div class="container mt-5">
+                      <label
+                        for="testDropdown"
+                        class="form-label"
+                        style="font-size: 18px"
+                        >Select a Test:</label
                       >
-                        <canvas id="fes-latest-question-scores"></canvas>
-                      </div>
+                      <select
+                        id="testDropdown"
+                        class="form-select"
+                        style="font-size: 16px"
+                      >
+                        <option value="" disabled selected>
+                          Loading tests...
+                        </option>
+                      </select>
                     </div>
-                  </div>
-                  <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                      <div class="card-header">
-                        <h5
-                          class="card-title mb-0"
-                          style="
-                            font-size: 24px !important;
-                            font-weight: bold !important;
-                            color: #555 !important;
-                          "
-                          style="
-                            font-size: 24px !important;
-                            font-weight: bold !important;
-                            color: #555 !important;
-                          "
-                        >
-                          Muscle Strength Analysis
-                        </h5>
+                    <div class="row mt-4">
+                      <div class="col-md-8 mb-4">
+                        <div class="card h-100">
+                          <div class="card-header">
+                            <h5
+                              id="question-socres-in-title"
+                              class="card-title mb-0"
+                              style="
+                                font-size: 24px !important;
+                                font-weight: bold !important;
+                                color: #555 !important;
+                              "
+                            >
+                              Question Socres In Test ...
+                            </h5>
+                          </div>
+                          <div
+                            class="card-body d-flex justify-content-center align-items-center flex-column"
+                          >
+                            <canvas id="fes-latest-question-scores"></canvas>
+                          </div>
+                        </div>
                       </div>
-                      <!-- Custom Body Diagram for Muscle Group Strength -->
-                      <div
-                        class="card-body d-flex justify-content-center align-items-center position-relative mt-2"
-                      >
-                        <img
-                          src="./img/Human.png"
-                          class="img-fluid"
-                          alt="Human Body Diagram"
-                          style="max-width: 100%; height: auto"
-                        />
-                        <div id="muscle-strength-labels"></div>
+                      <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                          <div class="card-header">
+                            <h5
+                              class="card-title mb-0"
+                              style="
+                                font-size: 24px !important;
+                                font-weight: bold !important;
+                                color: #555 !important;
+                              "
+                              style="
+                                font-size: 24px !important;
+                                font-weight: bold !important;
+                                color: #555 !important;
+                              "
+                            >
+                              Muscle Strength Analysis
+                            </h5>
+                          </div>
+                          <!-- Custom Body Diagram for Muscle Group Strength -->
+                          <div
+                            class="card-body d-flex justify-content-center align-items-center position-relative mt-2"
+                          >
+                            <img
+                              src="./img/Human.png"
+                              class="img-fluid"
+                              alt="Human Body Diagram"
+                              style="max-width: 100%; height: auto"
+                            />
+                            <div id="muscle-strength-labels"></div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="mt-5 mb-5">
-              <h2 class="text-center mb-4">
-                Self-Assessment Performance Analysis
-              </h2>
-
-              <div class="row">
-                <!-- Total SA Score Over Time (Replaces Completion Time Comparison) -->
-                <div class="col-md-4 mb-4">
-                  <div class="card h-100">
-                    <div class="card-header">
-                      <h5
-                        class="mb-0"
-                        style="
-                          font-size: 24px !important;
-                          font-weight: bold !important;
-                          color: #555 !important;
-                        "
-                      >
-                        Total SA Score Over Time
-                      </h5>
+              <!-- Language Settings Tab Pane -->
+              <div class="tab-pane fade" id="self-assessment">
+                <div class="card p-4 text-start">
+                  <div class="row">
+                    <!-- Total SA Score Over Time (Replaces Completion Time Comparison) -->
+                    <div class="col-md-4 mb-4">
+                      <div class="card h-100">
+                        <div class="card-header">
+                          <h5
+                            class="mb-0"
+                            style="
+                              font-size: 24px !important;
+                              font-weight: bold !important;
+                              color: #555 !important;
+                            "
+                          >
+                            Total SA Score Over Time
+                          </h5>
+                        </div>
+                        <div
+                          class="card-body d-flex justify-content-center align-items-center flex-column"
+                        >
+                          <canvas id="FATestTotalSAScore"></canvas>
+                        </div>
+                      </div>
                     </div>
-                    <div
-                      class="card-body d-flex justify-content-center align-items-center flex-column"
-                    >
-                      <canvas id="FATestTotalSAScore"></canvas>
+
+                    <!-- 2nd Latest FAT Test Risk (Gauge Chart) -->
+                    <div class="col-md-4 mb-4">
+                      <div class="card h-100">
+                        <div class="card-header">
+                          <h5
+                            class="mb-0"
+                            style="
+                              font-size: 24px !important;
+                              font-weight: bold !important;
+                              color: #555 !important;
+                            "
+                          >
+                            Previous FAT Test Risk
+                          </h5>
+                        </div>
+                        <div
+                          class="card-body d-flex flex-column align-items-center"
+                        >
+                          <canvas id="FATest-second-latest-test-risk"></canvas>
+                          <div
+                            id="FATest-second-latest-test-risk-label"
+                            class="mt-3 fw-bold"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Latest FAT Test Risk (Gauge Chart) -->
+                    <div class="col-md-4 mb-4">
+                      <div class="card h-100">
+                        <div class="card-header">
+                          <h5
+                            class="mb-0"
+                            style="
+                              font-size: 24px !important;
+                              font-weight: bold !important;
+                              color: #555 !important;
+                            "
+                          >
+                            Latest FAT Test Risk
+                          </h5>
+                        </div>
+                        <div
+                          class="card-body d-flex flex-column align-items-center"
+                        >
+                          <canvas id="FATest-latest-test-risk"></canvas>
+                          <div
+                            id="FATest-latest-test-risk-label"
+                            class="mt-3 fw-bold"
+                          ></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <!-- 2nd Latest FAT Test Risk (Gauge Chart) -->
-                <div class="col-md-4 mb-4">
-                  <div class="card h-100">
-                    <div class="card-header">
-                      <h5
-                        class="mb-0"
-                        style="
-                          font-size: 24px !important;
-                          font-weight: bold !important;
-                          color: #555 !important;
-                        "
-                      >
-                        Previous FAT Test Risk
-                      </h5>
+                  <div class="row">
+                    <!-- Abrupt Percentage Trends -->
+                    <div class="col-md-6 mb-4">
+                      <div class="card h-100">
+                        <div class="card-header">
+                          <h5
+                            class="mb-0"
+                            style="
+                              font-size: 24px !important;
+                              font-weight: bold !important;
+                              color: #555 !important;
+                            "
+                          >
+                            Abrupt Percentage Trends
+                          </h5>
+                        </div>
+                        <div
+                          class="card-body d-flex justify-content-center align-items-center flex-column"
+                        >
+                          <canvas id="FATestAbruptPercentage"></canvas>
+                        </div>
+                      </div>
                     </div>
-                    <div
-                      class="card-body d-flex flex-column align-items-center"
-                    >
-                      <canvas id="FATest-second-latest-test-risk"></canvas>
-                      <div
-                        id="FATest-second-latest-test-risk-label"
-                        class="mt-3 fw-bold"
-                      ></div>
+                    <!-- Performance Improvement Radar -->
+                    <div class="col-md-6 mb-4">
+                      <div class="card h-100">
+                        <div class="card-header">
+                          <h5
+                            class="mb-0"
+                            style="
+                              font-size: 24px !important;
+                              font-weight: bold !important;
+                              color: #555 !important;
+                            "
+                          >
+                            Performance Improvement Radar
+                          </h5>
+                        </div>
+                        <div
+                          class="card-body d-flex justify-content-center align-items-center flex-column"
+                        >
+                          <canvas id="FATestComparisonBarChart"></canvas>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <!-- Latest FAT Test Risk (Gauge Chart) -->
-                <div class="col-md-4 mb-4">
-                  <div class="card h-100">
-                    <div class="card-header">
-                      <h5
-                        class="mb-0"
-                        style="
-                          font-size: 24px !important;
-                          font-weight: bold !important;
-                          color: #555 !important;
-                        "
+                  <div class="row">
+                    <!-- Add this dropdown inside the "Latest Test Performance Breakdown" section -->
+                    <div class="container mt-4">
+                      <label
+                        for="FATestDropdown"
+                        class="form-label"
+                        style="font-size: 18px"
+                        >Select a FAT Test:</label
                       >
-                        Latest FAT Test Risk
-                      </h5>
-                    </div>
-                    <div
-                      class="card-body d-flex flex-column align-items-center"
-                    >
-                      <canvas id="FATest-latest-test-risk"></canvas>
-                      <div
-                        id="FATest-latest-test-risk-label"
-                        class="mt-3 fw-bold"
-                      ></div>
+                      <select
+                        id="FATestDropdown"
+                        class="form-select"
+                        style="font-size: 16px"
+                      >
+                        <option value="" disabled selected>
+                          Loading tests...
+                        </option>
+                      </select>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              <div class="row">
-                <!-- Abrupt Percentage Trends -->
-                <div class="col-md-6 mb-4">
-                  <div class="card h-100">
-                    <div class="card-header">
-                      <h5
-                        class="mb-0"
-                        style="
-                          font-size: 24px !important;
-                          font-weight: bold !important;
-                          color: #555 !important;
-                        "
-                      >
-                        Abrupt Percentage Trends
-                      </h5>
-                    </div>
-                    <div
-                      class="card-body d-flex justify-content-center align-items-center flex-column"
-                    >
-                      <canvas id="FATestAbruptPercentage"></canvas>
-                    </div>
-                  </div>
-                </div>
-                <!-- Performance Improvement Radar -->
-                <div class="col-md-6 mb-4">
-                  <div class="card h-100">
-                    <div class="card-header">
-                      <h5
-                        class="mb-0"
-                        style="
-                          font-size: 24px !important;
-                          font-weight: bold !important;
-                          color: #555 !important;
-                        "
-                      >
-                        Performance Improvement Radar
-                      </h5>
-                    </div>
-                    <div
-                      class="card-body d-flex justify-content-center align-items-center flex-column"
-                    >
-                      <canvas id="FATestComparisonBarChart"></canvas>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="row">
-                <!-- Latest Test Performance Breakdown -->
-                <div class="col-md-12 mb-4">
-                  <div class="card h-100">
-                    <div class="card-header">
-                      <h5
-                        class="mb-0"
-                        style="
-                          font-size: 24px !important;
-                          font-weight: bold !important;
-                          color: #555 !important;
-                        "
-                      >
-                        Latest Test Performance Breakdown
-                      </h5>
-                    </div>
-                    <div
-                      class="card-body d-flex justify-content-center align-items-center flex-column"
-                    >
-                      <canvas id="FATestLatestTestBreakdown"></canvas>
+                  <div class="row mt-4">
+                    <!-- Latest Test Performance Breakdown -->
+                    <div class="col-md-12 mb-4">
+                      <div class="card h-100">
+                        <div class="card-header">
+                          <h5
+                            id="FATestPerformanceBreakdownTitle"
+                            class="mb-0"
+                            style="
+                              font-size: 24px !important;
+                              font-weight: bold !important;
+                              color: #555 !important;
+                            "
+                          >
+                            Latest Test Performance Breakdown
+                          </h5>
+                        </div>
+                        <div
+                          class="card-body d-flex justify-content-center align-items-center flex-column"
+                        >
+                          <canvas id="FATestLatestTestBreakdown"></canvas>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

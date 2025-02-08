@@ -570,7 +570,7 @@ INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2
 -- Insert TestSession data for 5 users (5 sessions each, every 6 months)
 INSERT INTO TestSession (user_id, session_date, total_score, session_notes) VALUES
 (1, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '88', 'Routine assessment 6 months ago'),
-(1, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '67', 'Routine assessment 1 year ago'),
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '57', 'Routine assessment 1 year ago'),
 (1, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '40', 'Routine assessment 1.5 years ago'),
 (1, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '35', 'Routine assessment 2 years ago'),
 (1, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '27', 'Routine assessment 2.5 years ago'),
@@ -610,7 +610,7 @@ INSERT INTO UserTestResult (user_id, session_id, test_id, time_taken, abrupt_per
 (1, 5, 1, 15.000, 10, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
 (1, 5, 2, 28.500, 20, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
 (1, 5, 3, 28.000, 5, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
-(1, 5, 4, 38.000, 30, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(1, 5, 4, 42.000, 10, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
 
 (1, 4, 1, 20.000, 40, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 (1, 4, 2, 36.000, 40, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),

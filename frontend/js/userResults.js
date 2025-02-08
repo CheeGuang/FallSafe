@@ -24,6 +24,14 @@ document.addEventListener("DOMContentLoaded", async function () {
       return;
     }
 
+    $(".nav-link").click(function (e) {
+      e.preventDefault();
+      $(".nav-link").removeClass("active");
+      $(this).addClass("active");
+      $(".tab-pane").removeClass("show active");
+      $($(this).attr("href")).addClass("show active");
+    });
+
     displayActionableInsights(
       fesResults.actionable_insights.response,
       testResults.actionable_insights.response
@@ -45,15 +53,20 @@ document.addEventListener("DOMContentLoaded", async function () {
       fesResults.fes_results.length - 1
     );
 
-    // Generate self-assessment test performance charts
-    const latestSession = testResults.self_assessment_results[0];
-    const allSessions = testResults.self_assessment_results;
+    const allSessions = testResults.self_assessment_results.sort(
+      (a, b) => new Date(b.session_date) - new Date(a.session_date)
+    );
+
+    populateFATestDropdown(allSessions); // Populate the new dropdown
+
+    if (allSessions.length > 0) {
+      updateLatestTestBreakdown(allSessions, 0); // Default to the latest test
+    }
 
     generateSATotalScoreChart(allSessions);
     generateAbruptPercentageChart(allSessions);
     generateFATGaugeCharts(allSessions);
     generateTotalScoreChart(allSessions);
-    generateLatestTestBreakdown(latestSession);
     generateComparisonBarChart(testResults.self_assessment_results);
   } catch (error) {
     console.error("Error: ", error);
@@ -107,7 +120,7 @@ function displayActionableInsights(fesInsights, testInsights) {
       .replace(/\n/g, "") // Remove all newlines
       .replace(/(?<!<br>\s*)\b([2-9]|[1-9][0-9]+)\)/g, "<br>$1)"); // Add <br> if missing before numbers 2+)
 
-  document.getElementById("actionable-insights").innerHTML = `
+  document.getElementById("actionable-insights-content").innerHTML = `
     <h3>FES Recommendations:</h3><p>${formatText(fesInsights)}</p><br>
     <h3>Self-Assessment Recommendations:</h3><p>${formatText(testInsights)}</p>
   `;
@@ -547,9 +560,9 @@ function updateMuscleStrengthChart(selectedTest) {
 
     const positionMap = {
       Legs: { top: "78%", left: "50%" },
-      Glutes: { top: "58%", left: "50%" },
-      Arms: { top: "52%", left: "74%" },
-      Shoulders: { top: "30%", left: "50%" },
+      Glutes: { top: "56%", left: "50%" },
+      Arms: { top: "50%", left: "74%" },
+      Shoulders: { top: "28%", left: "50%" },
       Core: { top: "43%", left: "50%" },
     };
 
@@ -582,9 +595,6 @@ function updateMuscleStrengthChart(selectedTest) {
 }
 // 📊 Total Self-Assessment Score Over Time (Sorted by session_date in Ascending Order)
 function generateSATotalScoreChart(data) {
-  // Sort data by session_date in ascending order
-  data.sort((a, b) => new Date(a.session_date) - new Date(b.session_date));
-
   const labels = data.map((session) =>
     new Date(session.session_date).toLocaleDateString()
   );
@@ -673,7 +683,7 @@ function generateAbruptPercentageChart(data) {
   });
 }
 
-// 📊 Generate FAT Fall Risk Level Gauge Charts
+// Generate FAT Fall Risk Level Gauge Charts
 function generateFATGaugeCharts(data) {
   if (!data || data.length < 2) {
     console.warn("Not enough FAT test data for gauge charts.");
@@ -689,26 +699,37 @@ function generateFATGaugeCharts(data) {
     return;
   }
 
-  // Calculate risk scores and log results
-  const latestRisk = calculateFATRiskScore(latestFAT);
-  const secondLatestRisk = calculateFATRiskScore(secondLatestFAT);
+  // Calculate adjusted risk scores
+  const latestRiskScore = 100 - calculateFATRiskScore(latestFAT).percentage;
+  const secondLatestRiskScore =
+    100 - calculateFATRiskScore(secondLatestFAT).percentage;
 
-  // Generate gauge charts
+  // Determine risk levels
+  const latestRiskLevel =
+    latestRiskScore < 40 ? "Low" : latestRiskScore < 60 ? "Moderate" : "High";
+  const secondLatestRiskLevel =
+    secondLatestRiskScore < 40
+      ? "Low"
+      : secondLatestRiskScore < 60
+      ? "Moderate"
+      : "High";
+
+  // Generate gauge charts with the new risk scores and levels
   createFATGaugeChart(
     "FATest-latest-test-risk",
     "Latest FAT Test Risk",
-    latestRisk.percentage,
-    latestRisk.level
+    latestRiskScore,
+    latestRiskLevel
   );
   createFATGaugeChart(
     "FATest-second-latest-test-risk",
     "2nd Latest FAT Test Risk",
-    secondLatestRisk.percentage,
-    secondLatestRisk.level
+    secondLatestRiskScore,
+    secondLatestRiskLevel
   );
 }
 
-// 📊 Create FAT Gauge Chart (Similar to FES)
+// Create FAT Gauge Chart (Similar to FES)
 function createFATGaugeChart(canvasId, title, value, level) {
   const ctx = document.getElementById(canvasId).getContext("2d");
 
@@ -717,9 +738,9 @@ function createFATGaugeChart(canvasId, title, value, level) {
 
   // Map risk level to colors
   const colorMapping = {
-    low: "rgba(134, 255, 148, 0.8)", // Green
-    moderate: "rgba(255, 234, 117, 0.8)", // Yellow
-    high: "rgba(253, 82, 108, 0.8)", // Red
+    Low: "rgba(134, 255, 148, 0.8)", // Green
+    Moderate: "rgba(255, 234, 117, 0.8)", // Yellow
+    High: "rgba(253, 82, 108, 0.8)", // Red
   };
 
   const color = colorMapping[level] || "rgba(200, 200, 200, 0.8)";
@@ -846,10 +867,15 @@ function calculateScore(timeTaken, abruptPercentage, testName) {
   return Math.round(timeScore * 0.7 + abruptScore * 0.3);
 }
 
+// Function to generate the latest test performance breakdown chart
 function generateLatestTestBreakdown(session) {
-  const ctx = document
-    .getElementById("FATestLatestTestBreakdown")
-    .getContext("2d");
+  const canvas = document.getElementById("FATestLatestTestBreakdown");
+  const ctxCanvas = canvas.getContext("2d");
+
+  // Adjusted canvas size
+  canvas.width = 1200;
+  canvas.height = 500;
+
   const latestTestResults = session.test_results.map((test) => {
     const score = calculateScore(
       test.time_taken,
@@ -865,11 +891,6 @@ function generateLatestTestBreakdown(session) {
     };
   });
 
-  const canvas = document.getElementById("FATestLatestTestBreakdown");
-  const ctxCanvas = canvas.getContext("2d");
-  canvas.width = 1050;
-  canvas.height = 400;
-
   function drawGradientBar(ctx, x, y, width, height, min, max, value, status) {
     const gradient = ctx.createLinearGradient(x, y, x + width, y);
     gradient.addColorStop(0, "red");
@@ -879,30 +900,34 @@ function generateLatestTestBreakdown(session) {
     ctx.fillStyle = gradient;
     ctx.fillRect(x, y, width, height);
 
+    // Adjust arrow position based on the updated canvas size
     const arrowX = x + ((value - min) / (max - min)) * width;
+    const arrowSize = Math.max(10, width * 0.005); // Make arrow size responsive
+
     ctx.fillStyle = "black";
     ctx.beginPath();
-    ctx.moveTo(arrowX, y + height + 5);
-    ctx.lineTo(arrowX - 5, y + height + 15);
-    ctx.lineTo(arrowX + 5, y + height + 15);
+    ctx.moveTo(arrowX, y + height + arrowSize);
+    ctx.lineTo(arrowX - arrowSize, y + height + 2 * arrowSize);
+    ctx.lineTo(arrowX + arrowSize, y + height + 2 * arrowSize);
     ctx.fill();
 
     ctx.fillStyle = "black";
     ctx.textAlign = "left";
-    ctx.fillText(`${value} (${status})`, x + width + 15, y + height - 5);
+    ctx.fillText(`${value} (${status})`, x + width + 20, y + height - 5);
   }
 
   ctxCanvas.clearRect(0, 0, canvas.width, canvas.height);
-  ctxCanvas.font = "14px Arial";
+  ctxCanvas.font = "16px Arial";
   ctxCanvas.fillStyle = "black";
-  let yOffset = 40;
-  const barWidth = 750;
-  const barHeight = 20;
-  const startX = 50;
+
+  let yOffset = 50;
+  const barWidth = 900;
+  const barHeight = 30;
+  const startX = 100;
 
   latestTestResults.forEach((test) => {
     ctxCanvas.textAlign = "left";
-    ctxCanvas.fillText(test.name, startX, yOffset - 10);
+    ctxCanvas.fillText(test.name, startX, yOffset - 15);
     drawGradientBar(
       ctxCanvas,
       startX,
@@ -914,7 +939,7 @@ function generateLatestTestBreakdown(session) {
       test.score,
       test.status
     );
-    yOffset += 80;
+    yOffset += 100; // Increased spacing for better readability
   });
 }
 
@@ -924,15 +949,10 @@ function generateComparisonBarChart(data) {
     return;
   }
 
-  // Sort test results in ascending order based on test name
-  data.forEach((session) => {
-    session.test_results.sort((a, b) => b.test_name.localeCompare(a.test_name));
-  });
-
   console.log("Sorted test results for comparison:", data);
 
-  const latest = data[0].test_results;
-  const previous = data[1].test_results;
+  const latest = data[data.length - 1].test_results;
+  const previous = data[data.length - 2].test_results;
 
   console.log("Latest test results:", latest);
   console.log("Previous test results:", previous);
@@ -972,4 +992,59 @@ function generateComparisonBarChart(data) {
       },
     },
   });
+}
+
+// Function to populate the FAT test dropdown
+function populateFATestDropdown(allSessions) {
+  const dropdown = document.getElementById("FATestDropdown");
+  dropdown.innerHTML = "";
+
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.textContent = "Select a Test";
+  dropdown.appendChild(defaultOption);
+
+  allSessions.forEach((test, index) => {
+    const testNumber = index + 1;
+    const dateObj = new Date(test.session_date);
+    const formattedDate = dateObj.toLocaleDateString("en-GB", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    const formattedTime = dateObj.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    const option = document.createElement("option");
+    option.value = index;
+    option.textContent = `Test ${testNumber} - ${formattedDate}, ${formattedTime}`;
+    dropdown.appendChild(option);
+  });
+
+  // Select the latest test by default
+  if (allSessions.length > 0) {
+    dropdown.value = allSessions.length - 1;
+    updateLatestTestBreakdown(allSessions, allSessions.length - 1);
+  }
+
+  dropdown.addEventListener("change", function () {
+    if (this.value !== "") {
+      updateLatestTestBreakdown(allSessions, this.value);
+    }
+  });
+}
+
+// Update the performance breakdown when a new test is selected
+function updateLatestTestBreakdown(allSessions, selectedIndex) {
+  const selectedTest = allSessions[selectedIndex];
+
+  document.getElementById(
+    "FATestPerformanceBreakdownTitle"
+  ).textContent = `Test ${parseInt(selectedIndex) + 1} Performance Breakdown`;
+
+  generateLatestTestBreakdown(selectedTest);
 }
