@@ -973,7 +973,7 @@ async function handleSendVoucherEmail() {
 async function sendVoucherEmail(email, voucherCount) {
   try {
     const response = await fetch(
-      `http://127.0.0.1:5100/api/v1/user/sendVoucherEmail`,
+      `https://8l5ekaokyh.execute-api.ap-southeast-1.amazonaws.com/prod/sendVoucherEmail`,
       {
         method: "POST",
         headers: {

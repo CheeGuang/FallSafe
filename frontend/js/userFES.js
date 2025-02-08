@@ -316,8 +316,7 @@ async function submitResponses() {
     // Check if user is eligible for a voucher
     if (eligibleForVoucher) {
       showCustomAlert(
-        "🎉 Congratulations! A $10 NTUC Voucher will be emailed to you.",
-        "userFESResults.html"
+        "🎉 Congratulations! A $10 NTUC Voucher will be emailed to you."
       );
 
       // Call the voucher email API
@@ -334,7 +333,7 @@ async function submitResponses() {
 async function sendVoucherEmail(email, voucherCount) {
   try {
     const response = await fetch(
-      `http://127.0.0.1:5100/api/v1/user/sendVoucherEmail`,
+      `https://8l5ekaokyh.execute-api.ap-southeast-1.amazonaws.com/prod/sendVoucherEmail`,
       {
         method: "POST",
         headers: {
