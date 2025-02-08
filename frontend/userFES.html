@@ -75,36 +75,41 @@
             <div class="start-content">
               <p id="subtitle" class="lead text-muted">
                 Please rate your confidence in completing each of the 16 tasks
-                listed below. These tasks assess your confidence in avoiding falls
-                in various situations.
+                listed below. These tasks assess your confidence in avoiding
+                falls in various situations.
               </p>
-              
+
               <div class="info-box mb-4">
                 <h3>Last Assessment Details</h3>
-                <div id="last-assessment-info">
-                  <p>Date: <span id="last-taken-date">Loading...</span></p>
-                  <p>Score: <span id="last-score">Loading...</span></p>
+                <div id="last-assessment-info" class="d-flex align-items-center">
+                  <p>Taken on: <span id="last-taken-date">Loading...</span> 
+                  <p id="months-days-ago" style="margin-left: 10px;"></p>
                 </div>
                 <div id="countdown-timer" class="countdown">
                   <p>Recommended time until next assessment:</p>
                   <div class="timer">
                     <span id="months">0</span>months
-                    <span id="days">0</span>days
-                    <span id="hours">0</span>hours
+                    <span id="days">0</span>days <span id="hours">
                   </div>
                 </div>
-                <div id="voucher-status" class="mt-3" style="display: none;">
+                <div id="voucher-status" class="mt-3" style="display: none">
                   <div class="alert alert-success">
                     <p>🎉 You are eligible for a voucher!</p>
-                    <img src="https://media.karousell.com/media/photos/products/2023/7/12/ntuc_fairprice_vouchers_500_10_1689182795_77c98d5b" alt="Voucher" class="img-fluid" style="max-width: 200px;">
+                    <img
+                      src="./img/voucher.jpg"
+                      alt="Voucher"
+                      class="img-fluid"
+                      style="max-width: 200px"
+                    />
                   </div>
                 </div>
               </div>
 
               <div class="recommendation-box mb-4">
                 <p class="recommendation">
-                  💡 It is recommended to take this assessment <strong>ONCE EVERY 6 MONTHS</strong> to:
-               </p>               
+                  💡 It is recommended to take this assessment
+                  <strong>Once Every 6 Months</strong> to:
+                </p>
                 <ul class="text-start">
                   <li>Track your progress over time</li>
                   <li>Earn rewards</li>
@@ -117,9 +122,9 @@
               </button>
             </div>
           </div>
-          
-          <div id="questions-screen" style="display: none;"></div>
-            <h2 style="padding-top: 1em; padding-bottom: 1em">
+
+          <div id="questions-screen" style="display: none">
+            <h2 id="fes-header" style="padding-top: 1em; padding-bottom: 1em">
               How Confident are you in the following:
             </h2>
             <div id="questions-container"></div>
@@ -134,11 +139,16 @@
                 Submit
               </button>
             </div>
-            
-            <div id="loading-spinner" class="spinner-border text-primary" role="status" style="display: none">
+
+            <div
+              id="loading-spinner"
+              class="spinner-border text-primary"
+              role="status"
+              style="display: none"
+            >
               <span class="visually-hidden">Loading...</span>
             </div>
-        </div>
+          </div>
           <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
         </div>
       </div>

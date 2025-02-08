@@ -3,11 +3,14 @@ package profile
 import (
 	"bytes"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
+	"net/smtp"
 	"os"
 	"time"
 
@@ -457,3 +460,153 @@ func CallSelfAssessmentForInsights(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(responseData)
 }
 
+
+// ProcessVoucherEmail handles sending a voucher email when called.
+func ProcessVoucherEmail(w http.ResponseWriter, r *http.Request) {
+	log.Println("[DEBUG] Handling /process-voucher-email request...")
+
+	// Parse the incoming request
+	var request struct {
+		Email        string `json:"email"`
+		VoucherCount int    `json:"voucher_count"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		log.Printf("[ERROR] Error parsing request body: %v", err)
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+	log.Printf("[DEBUG] Parsed request - Email: %s, VoucherCount: %d", request.Email, request.VoucherCount)
+
+	// Validate input
+	if request.Email == "" || request.VoucherCount <= 0 {
+		log.Println("[ERROR] Invalid email or voucher count")
+		http.Error(w, "Invalid email or voucher count", http.StatusBadRequest)
+		return
+	}
+
+	// Send the voucher email
+	log.Printf("[DEBUG] Sending voucher email to %s...", request.Email)
+	err = deliverVoucherEmail(request.Email, request.VoucherCount)
+	if err != nil {
+		log.Printf("[ERROR] Failed to send voucher email: %v", err)
+		http.Error(w, "Failed to send voucher email", http.StatusInternalServerError)
+		return
+	}
+	log.Println("[DEBUG] Voucher email sent successfully.")
+
+	// Respond with success
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message": "Voucher email sent successfully"}`))
+}
+
+// deliverVoucherEmail sends an email with a voucher image attachment.
+func deliverVoucherEmail(to string, voucherCount int) error {
+	// Hardcoded SMTP Configuration
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+	smtpUser := os.Getenv("SMTP_USER")
+	smtpPassword := os.Getenv("SMTP_PASSWORD")
+
+	// Validate SMTP configuration
+	if smtpUser == "" || smtpPassword == "" {
+		log.Println("[ERROR] SMTP credentials are missing")
+		return fmt.Errorf("SMTP credentials are missing")
+	}
+
+	// Fetch and encode image
+	imageURL := "https://media.karousell.com/media/photos/products/2023/7/12/ntuc_fairprice_vouchers_500_10_1689182795_77c98d5b"
+	imageData, err := fetchImage(imageURL)
+	if err != nil {
+		log.Printf("[ERROR] Failed to fetch voucher image: %v", err)
+		return err
+	}
+	log.Println("[DEBUG] Voucher image fetched successfully.")
+
+	// Sender Name
+	senderName := "FallSafe"
+	fromEmail := fmt.Sprintf("%s <%s>", senderName, smtpUser)
+
+	// Create email headers
+	var emailBuffer bytes.Buffer
+	writer := multipart.NewWriter(&emailBuffer)
+
+	headers := fmt.Sprintf(
+		"From: %s\r\nTo: %s\r\nSubject: Your NTUC Voucher\r\nMIME-Version: 1.0\r\nContent-Type: multipart/mixed; boundary=%s\r\n\r\n",
+		fromEmail, to, writer.Boundary(),
+	)
+	emailBuffer.WriteString(headers)
+
+	// HTML Email Body
+	body := fmt.Sprintf(`--%s
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Voucher Email</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { padding: 20px; max-width: 600px; margin: auto; background-color: #f7f7f7; border-radius: 10px; }
+        h1 { color: #003399; }
+        .voucher { font-size: 18px; font-weight: bold; color: #003399; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Congratulations!</h1>
+        <p>Dear User,</p>
+        <p>You have received <span class="voucher">%d NTUC $10 voucher(s)</span>.</p>
+        <p>Please find the attached voucher image for your reference.</p>
+        <p>Best regards,</p>
+        <p>The FallSafe Team</p>
+    </div>
+</body>
+</html>
+
+--%s
+`, writer.Boundary(), voucherCount, writer.Boundary())
+	emailBuffer.WriteString(body)
+
+	// Image Attachment
+	imagePartHeader := fmt.Sprintf("Content-Type: image/jpeg\r\nContent-Transfer-Encoding: base64\r\nContent-Disposition: attachment; filename=\"voucher.jpg\"\r\n\r\n")
+	emailBuffer.WriteString(imagePartHeader)
+	emailBuffer.WriteString(base64.StdEncoding.EncodeToString(imageData))
+	emailBuffer.WriteString(fmt.Sprintf("\r\n--%s--", writer.Boundary()))
+
+	// Authentication
+	auth := smtp.PlainAuth("", smtpUser, smtpPassword, smtpHost)
+
+	// Send the email
+	log.Println("[DEBUG] Sending email via SMTP...")
+	err = smtp.SendMail(smtpHost+":"+smtpPort, auth, smtpUser, []string{to}, emailBuffer.Bytes())
+	if err != nil {
+		log.Printf("[ERROR] Failed to send email: %v", err)
+		return err
+	}
+
+	log.Println("[DEBUG] Voucher email sent successfully.")
+	return nil
+}
+
+// fetchImage retrieves the voucher image from the given URL and returns its byte data.
+func fetchImage(imageURL string) ([]byte, error) {
+	log.Printf("[DEBUG] Fetching voucher image from: %s", imageURL)
+	resp, err := http.Get(imageURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch image: %v", err)
+	}
+	defer resp.Body.Close()
+
+	imageData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read image data: %v", err)
+	}
+
+	log.Println("[DEBUG] Image fetched and read successfully.")
+	return imageData, nil
+}

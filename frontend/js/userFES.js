@@ -5,6 +5,7 @@ let questions = [];
 let currentPage = 1;
 const questionsPerPage = 4;
 let userAnswers = {}; //store user responses in userAnwsers object
+let eligibleForVoucher = false; // Track eligibility before test
 
 async function fetchQuestions() {
   try {
@@ -116,23 +117,34 @@ function updatePaginationButtons() {
 }
 
 function handlePageChange(direction) {
-  savePageAnswers(); // Save answers before page change
+  if (direction === "next") {
+    // Ensure all questions on the current page are answered before proceeding
+    const startIndex = (currentPage - 1) * questionsPerPage;
+    const endIndex = Math.min(startIndex + questionsPerPage, questions.length);
+    const currentQuestions = questions.slice(startIndex, endIndex);
 
-  if (
-    direction === "next" &&
-    currentPage * questionsPerPage < questions.length
-  ) {
-    currentPage++;
+    const allAnswered = currentQuestions.every(
+      (question) => userAnswers[question.id] !== undefined
+    );
+
+    if (!allAnswered) {
+      showCustomAlert("Please answer all questions before proceeding.");
+      return;
+    }
+
+    if (currentPage * questionsPerPage < questions.length) {
+      currentPage++;
+    }
   } else if (direction === "back" && currentPage > 1) {
     currentPage--;
   }
 
   renderQuestions();
 
-  // Scroll to the subtitle after page change
-  const subtitle = document.getElementById("subtitle");
-  if (subtitle) {
-    subtitle.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Scroll to the FES header after page change
+  const fesHeader = document.getElementById("fes-header");
+  if (fesHeader) {
+    fesHeader.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 }
 
@@ -261,8 +273,27 @@ async function submitResponses() {
     return;
   }
 
+  // Decode JWT token to get user email
+  const token = localStorage.getItem("token");
+  if (!token) {
+    showCustomAlert("Authentication required. Please log in again.");
+    submitButton.disabled = false;
+    return;
+  }
+
+  const tokenPayload = JSON.parse(atob(token.split(".")[1])); // Decode JWT
+  const userEmail = tokenPayload.email; // Extract user email
+
+  if (!userEmail) {
+    showCustomAlert(
+      "Unable to retrieve email from session. Please log in again."
+    );
+    submitButton.disabled = false;
+    return;
+  }
+
   const payload = {
-    user_id: 1,
+    user_id: tokenPayload.user_id, // Extracted from token
     responses,
   };
 
@@ -271,7 +302,7 @@ async function submitResponses() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(payload),
     });
@@ -281,11 +312,47 @@ async function submitResponses() {
     }
 
     const result = await response.json();
-    showCustomAlert(result.message, "userFESResults.html");
+
+    // Check if user is eligible for a voucher
+    if (eligibleForVoucher) {
+      showCustomAlert(
+        "🎉 Congratulations! A $10 NTUC Voucher will be emailed to you.",
+        "userFESResults.html"
+      );
+
+      // Call the voucher email API
+      await sendVoucherEmail(userEmail, 1); // Sending 1 NTUC $10 voucher
+    } else {
+      showCustomAlert(result.message, "userFESResults.html");
+    }
   } catch (error) {
     console.error(error);
     showCustomAlert("Error submitting responses. Please try again.");
     submitButton.disabled = false; // Re-enable submit button only if submission fails
+  }
+}
+async function sendVoucherEmail(email, voucherCount) {
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:5100/api/v1/user/sendVoucherEmail`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          email: email,
+          voucher_count: voucherCount,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to send voucher email");
+    }
+  } catch (error) {
+    console.error("Error sending voucher email:", error);
   }
 }
 
@@ -331,8 +398,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document
-  .getElementById("submit-button")
-  .addEventListener("click", submitResponses);
+    .getElementById("submit-button")
+    .addEventListener("click", submitResponses);
 
   // Handle option selection
   document.addEventListener("click", (event) => {
@@ -366,7 +433,7 @@ async function fetchLastAssessmentDate() {
     }
 
     // Decode JWT token to get user ID
-    const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+    const tokenPayload = JSON.parse(atob(token.split(".")[1]));
     const userId = tokenPayload.user_id;
 
     if (!userId) {
@@ -374,18 +441,21 @@ async function fetchLastAssessmentDate() {
     }
 
     // Add user_id as a query parameter
-    const response = await fetch(`${API_FES_URL}/getLastAssessment?user_id=${userId}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await fetch(
+      `${API_FES_URL}/fes/getLastAssessment?user_id=${userId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     if (!response.ok) {
       if (response.status === 404) {
         // No previous assessment found - this is a valid case
         return {
-          message: "No assessments found for this user"
+          message: "No assessments found for this user",
         };
       }
       throw new Error("Failed to fetch last assessment date");
@@ -397,7 +467,7 @@ async function fetchLastAssessmentDate() {
     console.error("Error fetching last assessment date:", error);
     // Return a structured response even in case of error
     return {
-      message: "No assessments found for this user"
+      message: "No assessments found for this user",
     };
   }
 }
@@ -406,20 +476,51 @@ function updateCountdown(assessmentData) {
   const lastAssessmentInfo = document.getElementById("last-assessment-info");
   const countdownTimer = document.getElementById("countdown-timer");
   const voucherStatus = document.getElementById("voucher-status");
-  
-  if (!assessmentData || assessmentData.message === "No assessments found for this user") {
+  const monthsDaysAgoElement = document.getElementById("months-days-ago");
+
+  if (
+    !assessmentData ||
+    assessmentData.message === "No assessments found for this user"
+  ) {
     lastAssessmentInfo.innerHTML = "<p>No previous assessment found</p>";
     countdownTimer.style.display = "none";
     voucherStatus.style.display = "none";
     return;
   }
 
-  // Parse the ISO date string from the time.Time JSON
+  // Parse the ISO date string from the JSON response
   const lastTaken = new Date(assessmentData.response_date);
-  document.getElementById("last-taken-date").textContent = lastTaken.toLocaleDateString();
-  document.getElementById("last-score").textContent = assessmentData.total_score;
+  document.getElementById("last-taken-date").textContent =
+    lastTaken.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
 
-  // calculate next time user should take test
+  // Calculate the time difference in months and days
+  const today = new Date();
+  let monthsAgo =
+    today.getMonth() -
+    lastTaken.getMonth() +
+    12 * (today.getFullYear() - lastTaken.getFullYear());
+  let daysAgo = today.getDate() - lastTaken.getDate();
+
+  eligibleForVoucher = monthsAgo >= 6;
+
+  if (daysAgo < 0) {
+    monthsAgo -= 1;
+    const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0); // Last day of previous month
+    daysAgo += prevMonth.getDate();
+  }
+
+  // Display "Today" if the assessment was taken today
+  if (monthsAgo === 0 && daysAgo === 0) {
+    monthsDaysAgoElement.innerHTML = "<span> (Today)</span>";
+  } else {
+    monthsDaysAgoElement.innerHTML = `<span>(${monthsAgo} months, ${daysAgo} days ago)</span>`;
+  }
+
+  // Calculate the next recommended assessment date
   const nextAssessment = new Date(lastTaken);
   nextAssessment.setMonth(nextAssessment.getMonth() + 6);
 
@@ -428,25 +529,24 @@ function updateCountdown(assessmentData) {
     const difference = nextAssessment - now;
 
     if (difference <= 0) {
-      countdownTimer.innerHTML = '<p class="text-success">✓ You can now take a new assessment</p>';
       voucherStatus.style.display = "block";
       return;
     }
 
-    // hide voucher status if not eligible
+    // Hide voucher status if not eligible
     voucherStatus.style.display = "none";
 
-    const months = Math.floor(difference / (1000 * 60 * 60 * 24 * 30));
-    const days = Math.floor((difference % (1000 * 60 * 60 * 24 * 30)) / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const remainingMonths = Math.floor(difference / (1000 * 60 * 60 * 24 * 30));
+    const remainingDays = Math.floor(
+      (difference % (1000 * 60 * 60 * 24 * 30)) / (1000 * 60 * 60 * 24)
+    );
 
-    document.getElementById("months").textContent = months;
-    document.getElementById("days").textContent = days;
-    document.getElementById("hours").textContent = hours;
+    document.getElementById("months").textContent = remainingMonths;
+    document.getElementById("days").textContent = remainingDays;
   }
 
   updateTimer();
-  setInterval(updateTimer, 1000 * 60 * 60); // update every hour
+  setInterval(updateTimer, 1000 * 60 * 60); // Update every hour
 }
 
 // Function to update the UI based on the selection

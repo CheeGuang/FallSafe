@@ -215,7 +215,7 @@ USE FallSafe_AuthenticationDB;
 INSERT INTO User (email, password, verification_code)
 VALUES
     -- Ages 60–69
-    ('user1@example.com', '$2a$10$.kXKDW80biUED2npeuui7uZf3wgj0uyVOzC/7XshKWJbtH/jzQnpi', '234567'),
+    ('jeffreyleetino@gmail.com', '$2a$10$.kXKDW80biUED2npeuui7uZf3wgj0uyVOzC/7XshKWJbtH/jzQnpi', '234567'),
     ('ben.lim@example.com', '$2a$10$.kXKDW80biUED2npeuui7uZf3wgj0uyVOzC/7XshKWJbtH/jzQnpi', '345678'),
     ('clara.ng@example.com', '$2a$10$.kXKDW80biUED2npeuui7uZf3wgj0uyVOzC/7XshKWJbtH/jzQnpi', '456789'),
     ('daniel.teo@example.com', '$2a$10$.kXKDW80biUED2npeuui7uZf3wgj0uyVOzC/7XshKWJbtH/jzQnpi', '567890'),
@@ -262,7 +262,7 @@ USE FallSafe_UserDB;
 -- Insert dummy data into the User table
 INSERT INTO User (name, email, age, address, phone_number) VALUES
 -- Ages 60–69 (5 users)
-('Alice Tan', 'user1@example.com', 61, '11 Maple Lane', '9012345601'),
+('Jeffrey Lee', 'jeffreyleetino@gmail.com', 61, '11 Maple Lane', '9012345601'),
 ('Ben Lim', 'ben.lim@example.com', 65, '22 Oak Avenue', '9123456702'),
 ('Clara Ng', 'clara.ng@example.com', 68, '33 Pine Street', '9234567803'),
 ('Daniel Teo', 'daniel.teo@example.com', 63, '44 Birch Road', '9345678904'),

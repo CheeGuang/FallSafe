@@ -95,6 +95,7 @@ func main() {
 	authenticated.HandleFunc("/api/v1/user/getAllUser", profile.GetAllUser).Methods("GET").Handler(authenticateMiddleware([]string{"Admin"})(http.HandlerFunc(profile.GetAllUser)))
 	authenticated.HandleFunc("/api/v1/user/getAUserFESResults", profile.CallFESForActionableInsights).Methods("GET").Handler(authenticateMiddleware([]string{"User"})(http.HandlerFunc(profile.CallFESForActionableInsights)))
 	authenticated.HandleFunc("/api/v1/user/getAUserTestResults", profile.CallSelfAssessmentForInsights).Methods("GET").Handler(authenticateMiddleware([]string{"User"})(http.HandlerFunc(profile.CallSelfAssessmentForInsights)))
+	authenticated.HandleFunc("/api/v1/user/sendVoucherEmail", profile.ProcessVoucherEmail).Methods("POST").Handler(authenticateMiddleware([]string{"User"})(http.HandlerFunc(profile.ProcessVoucherEmail)))
 
 	//
 

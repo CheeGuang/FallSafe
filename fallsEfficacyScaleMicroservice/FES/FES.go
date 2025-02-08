@@ -3,6 +3,7 @@ package FES
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -493,6 +494,7 @@ type LastAssessment struct {
 }
 
 func GetLastAssessment(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("hi")
     // Extract userID from query parameters
     userIDStr := r.URL.Query().Get("user_id")
     if userIDStr == "" {
