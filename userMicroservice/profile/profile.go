@@ -517,7 +517,7 @@ func deliverVoucherEmail(to string, voucherCount int) error {
 	}
 
 	// Fetch and encode image
-	imageURL := "https://media.karousell.com/media/photos/products/2023/7/12/ntuc_fairprice_vouchers_500_10_1689182795_77c98d5b"
+	imageURL := "https://fallsafe.s3.ap-southeast-1.amazonaws.com/misc/voucher.jpg"
 	imageData, err := fetchImage(imageURL)
 	if err != nil {
 		log.Printf("[ERROR] Failed to fetch voucher image: %v", err)
