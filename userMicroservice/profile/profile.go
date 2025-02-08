@@ -368,10 +368,14 @@ func CallSelfAssessmentForInsights(w http.ResponseWriter, r *http.Request) {
 
 	// Parse the response body
 	var sessions []struct {
-		SessionID     int       `json:"session_id"`
-		UserID       int       `json:"user_id"`
-		SessionDate  time.Time `json:"session_date"`
-		TestResults  []UserTestResult `json:"test_results"`
+		SessionID    int       `json:"session_id"`
+		UserID      int       `json:"user_id"`
+		SessionDate time.Time `json:"session_date"`
+		TotalScore  struct {
+			Int64 int  `json:"Int64"`
+			Valid bool `json:"Valid"`
+		} `json:"total_score"`
+		TestResults []UserTestResult `json:"test_results"`
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&sessions)
@@ -444,7 +448,7 @@ func CallSelfAssessmentForInsights(w http.ResponseWriter, r *http.Request) {
 	// Prepare the combined response
 	responseData := map[string]interface{}{
 		"self_assessment_results": sessions,
-		"actionable_insights": aiResponse,
+		"actionable_insights":    aiResponse,
 	}
 
 	// Respond to the original client with both Self-Assessment results and AI-generated insights
@@ -452,3 +456,4 @@ func CallSelfAssessmentForInsights(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(responseData)
 }
+

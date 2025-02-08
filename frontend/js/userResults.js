@@ -44,6 +44,17 @@ document.addEventListener("DOMContentLoaded", async function () {
       fesResults.fes_results,
       fesResults.fes_results.length - 1
     );
+
+    // Generate self-assessment test performance charts
+    const latestSession = testResults.self_assessment_results[0];
+    const allSessions = testResults.self_assessment_results;
+
+    generateSATotalScoreChart(allSessions);
+    generateAbruptPercentageChart(allSessions);
+    generateFATGaugeCharts(allSessions);
+    generateTotalScoreChart(allSessions);
+    generateLatestTestBreakdown(latestSession);
+    generateRadarComparisonChart(allSessions);
   } catch (error) {
     console.error("Error: ", error);
     alert("An error occurred while fetching data.");
@@ -125,11 +136,12 @@ function calculateOverallRisk(fesResults, testResults) {
   const fesScore = ((latestFES.total_score - 16) / 64) * 100;
 
   // Convert risk level into a score
-  const testRiskScore = getRiskScore(latestTest.risk_level) * 100; // Convert to percentage
+  const testRiskScore = latestTest.total_score.Int64; // Convert to percentage
 
   // Calculate overall risk percentage (weighted average)
   const overallRiskPercentage = (fesScore + testRiskScore) / 2;
 
+  getRiskScore(overallRiskPercentage);
   return {
     percentage: overallRiskPercentage,
     level: determineRiskLevel(overallRiskPercentage),
@@ -567,4 +579,231 @@ function updateMuscleStrengthChart(selectedTest) {
       muscleLabels.appendChild(div);
     }
   });
+}
+// 📊 Total Self-Assessment Score Over Time (Replaces Completion Time Comparison)
+function generateSATotalScoreChart(data) {
+  const labels = data.map((session) =>
+    new Date(session.session_date).toLocaleDateString()
+  );
+  const totalScores = data.map((session) => session.total_score.Int64);
+
+  new Chart(document.getElementById("FATestTotalSAScore"), {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Total SA Score",
+          data: totalScores,
+          borderColor: "blue",
+          fill: false,
+        },
+      ],
+    },
+    options: { responsive: true },
+  });
+}
+
+function generateAbruptPercentageChart(data) {
+  const labels = data.map((session) =>
+    new Date(session.session_date).toLocaleDateString()
+  );
+  const datasets = data[0].test_results.map((test) => ({
+    label: test.test_name,
+    data: data.map(
+      (session) =>
+        session.test_results.find((t) => t.test_id === test.test_id)
+          .abrupt_percentage
+    ),
+    backgroundColor: getRandomColor(0.5),
+  }));
+
+  new Chart(document.getElementById("FATestAbruptPercentage"), {
+    type: "bar",
+    data: { labels, datasets },
+    options: { responsive: true },
+  });
+}
+
+// 📊 Generate FAT Fall Risk Level Gauge Charts
+function generateFATGaugeCharts(data) {
+  if (!data || data.length < 2) {
+    console.warn("Not enough FAT test data for gauge charts.");
+    return;
+  }
+
+  // Ensure we get the latest and second latest FAT results
+  const latestFAT = data[0];
+  const secondLatestFAT = data[1];
+
+  if (!latestFAT || !secondLatestFAT) {
+    console.warn("Missing FAT test data for gauge charts.");
+    return;
+  }
+
+  // Calculate risk scores and log results
+  const latestRisk = calculateFATRiskScore(latestFAT);
+  const secondLatestRisk = calculateFATRiskScore(secondLatestFAT);
+
+  // Generate gauge charts
+  createFATGaugeChart(
+    "FATest-latest-test-risk",
+    "Latest FAT Test Risk",
+    latestRisk.percentage,
+    latestRisk.level
+  );
+  createFATGaugeChart(
+    "FATest-second-latest-test-risk",
+    "2nd Latest FAT Test Risk",
+    secondLatestRisk.percentage,
+    secondLatestRisk.level
+  );
+}
+
+// 📊 Create FAT Gauge Chart (Similar to FES)
+function createFATGaugeChart(canvasId, title, value, level) {
+  const ctx = document.getElementById(canvasId).getContext("2d");
+
+  // Define standard size for all charts
+  const chartSize = 300;
+
+  // Map risk level to colors
+  const colorMapping = {
+    low: "rgba(134, 255, 148, 0.8)", // Green
+    moderate: "rgba(255, 234, 117, 0.8)", // Yellow
+    high: "rgba(253, 82, 108, 0.8)", // Red
+  };
+
+  const color = colorMapping[level] || "rgba(200, 200, 200, 0.8)";
+
+  // Generate the chart
+  new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      datasets: [
+        {
+          data: [value, 100 - value],
+          backgroundColor: [color, "#E0E0E0"],
+          borderWidth: 0,
+        },
+      ],
+    },
+    options: {
+      responsive: false,
+      maintainAspectRatio: false,
+      width: chartSize,
+      height: chartSize,
+      rotation: -90,
+      circumference: 180,
+      cutout: "70%",
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false },
+      },
+    },
+  });
+
+  // Add risk level text below the chart
+  const chartContainer = document.getElementById(canvasId).parentElement;
+  let riskLabel = document.getElementById(`${canvasId}-risk-label`);
+
+  if (!riskLabel) {
+    riskLabel = document.createElement("div");
+    riskLabel.id = `${canvasId}-risk-label`;
+    riskLabel.style.textAlign = "center";
+    riskLabel.style.fontSize = "18px";
+    riskLabel.style.fontWeight = "bold";
+    riskLabel.style.marginTop = "10px";
+    chartContainer.appendChild(riskLabel);
+  }
+
+  riskLabel.textContent = `${level.toUpperCase()} FALL RISK`;
+}
+
+// 📊 Calculate FAT Risk Score
+function calculateFATRiskScore(session) {
+  const totalScore = session.total_score.Int64;
+  const percentage = (totalScore / 100) * 100;
+
+  return {
+    percentage: percentage,
+    level: determineRiskLevel(percentage),
+  };
+}
+
+// 🎨 Utility Function for Risk Level Determination
+function determineRiskLevel(percentage) {
+  if (percentage < 30) return "low";
+  if (percentage < 60) return "moderate";
+  return "high";
+}
+
+function generateTotalScoreChart(data) {
+  const labels = data.map((session) =>
+    new Date(session.session_date).toLocaleDateString()
+  );
+  const totalScores = data.map((session) => session.total_score.Int64);
+
+  new Chart(document.getElementById("FATestTotalScore"), {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Total Score",
+          data: totalScores,
+          borderColor: "blue",
+          fill: false,
+        },
+      ],
+    },
+    options: { responsive: true },
+  });
+}
+
+function generateLatestTestBreakdown(session) {
+  const labels = session.test_results.map((test) => test.test_name);
+  const values = session.test_results.map((test) => test.time_taken);
+
+  new Chart(document.getElementById("FATestLatestTestBreakdown"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        { label: "Time Taken (s)", data: values, backgroundColor: "blue" },
+      ],
+    },
+    options: { responsive: true },
+  });
+}
+
+function generateRadarComparisonChart(data) {
+  if (data.length < 2) return;
+  const latest = data[0].test_results;
+  const previous = data[1].test_results;
+
+  new Chart(document.getElementById("FATestRadarComparison"), {
+    type: "radar",
+    data: {
+      labels: latest.map((t) => t.test_name),
+      datasets: [
+        {
+          label: "Latest",
+          data: latest.map((t) => t.time_taken),
+          backgroundColor: "rgba(0,0,255,0.3)",
+        },
+        {
+          label: "Previous",
+          data: previous.map((t) => t.time_taken),
+          backgroundColor: "rgba(255,0,0,0.3)",
+        },
+      ],
+    },
+  });
+}
+
+function getRandomColor(opacity = 1) {
+  return `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${
+    Math.random() * 255
+  }, ${opacity})`;
 }
