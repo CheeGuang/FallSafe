@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     generateFATGaugeCharts(allSessions);
     generateTotalScoreChart(allSessions);
     generateLatestTestBreakdown(latestSession);
-    generateRadarComparisonChart(allSessions);
+    generateComparisonBarChart(testResults.self_assessment_results);
   } catch (error) {
     console.error("Error: ", error);
     alert("An error occurred while fetching data.");
@@ -580,8 +580,11 @@ function updateMuscleStrengthChart(selectedTest) {
     }
   });
 }
-// 📊 Total Self-Assessment Score Over Time (Replaces Completion Time Comparison)
+// 📊 Total Self-Assessment Score Over Time (Sorted by session_date in Ascending Order)
 function generateSATotalScoreChart(data) {
+  // Sort data by session_date in ascending order
+  data.sort((a, b) => new Date(a.session_date) - new Date(b.session_date));
+
   const labels = data.map((session) =>
     new Date(session.session_date).toLocaleDateString()
   );
@@ -595,33 +598,78 @@ function generateSATotalScoreChart(data) {
         {
           label: "Total SA Score",
           data: totalScores,
-          borderColor: "blue",
-          fill: false,
+          borderColor: "rgba(100, 149, 237, 0.8)", // Light Cornflower Blue
+          backgroundColor: "rgba(173, 216, 230, 0.3)", // Light Blue
+          fill: true,
         },
       ],
     },
-    options: { responsive: true },
+
+    options: {
+      width: 300,
+      height: 900,
+      scales: {
+        y: {
+          min: 0,
+          max: 100,
+          ticks: { font: { size: 16 } },
+        },
+        x: {
+          ticks: { font: { size: 16 } },
+        },
+      },
+    },
   });
 }
 
 function generateAbruptPercentageChart(data) {
+  const pastelColors = [
+    "rgba(255, 150, 160, 0.8)", // Darker Pastel Pink
+    "rgba(255, 200, 150, 0.8)", // Darker Pastel Orange
+    "rgba(255, 245, 150, 0.8)", // Darker Pastel Yellow
+    "rgba(150, 230, 170, 0.8)", // Darker Pastel Green
+    "rgba(150, 200, 255, 0.8)", // Darker Pastel Blue
+    "rgba(170, 170, 255, 0.8)", // Darker Pastel Purple
+  ];
+
   const labels = data.map((session) =>
     new Date(session.session_date).toLocaleDateString()
   );
-  const datasets = data[0].test_results.map((test) => ({
+
+  const datasets = data[0].test_results.map((test, index) => ({
     label: test.test_name,
     data: data.map(
       (session) =>
         session.test_results.find((t) => t.test_id === test.test_id)
           .abrupt_percentage
     ),
-    backgroundColor: getRandomColor(0.5),
+    backgroundColor: pastelColors[index % pastelColors.length],
+    borderColor: pastelColors[index % pastelColors.length].replace("0.7", "1"),
+    borderWidth: 1,
   }));
 
   new Chart(document.getElementById("FATestAbruptPercentage"), {
     type: "bar",
-    data: { labels, datasets },
-    options: { responsive: true },
+    data: {
+      labels,
+      datasets,
+      borderColor: "rgba(100, 149, 237, 0.8)", // Light Cornflower Blue
+      backgroundColor: "rgba(173, 216, 230, 0.3)", // Light Blue
+      fill: true,
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          min: 0,
+          max: 100,
+          ticks: { font: { size: 16 } },
+        },
+        x: {
+          ticks: { font: { size: 16 } },
+        },
+      },
+    },
   });
 }
 
@@ -761,49 +809,167 @@ function generateTotalScoreChart(data) {
   });
 }
 
-function generateLatestTestBreakdown(session) {
-  const labels = session.test_results.map((test) => test.test_name);
-  const values = session.test_results.map((test) => test.time_taken);
+function calculateScore(timeTaken, abruptPercentage, testName) {
+  const tolerances = {
+    "Timed Up and Go Test": { TimeTolerance: 20, AbruptTolerance: 30 },
+    "Five Times Sit to Stand Test": { TimeTolerance: 25, AbruptTolerance: 40 },
+    "Dynamic Gait Index (DGI)": { TimeTolerance: 25, AbruptTolerance: 20 },
+    "4 Stage Balance Test": { TimeTolerance: 40, AbruptTolerance: 15 },
+  };
 
-  new Chart(document.getElementById("FATestLatestTestBreakdown"), {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [
-        { label: "Time Taken (s)", data: values, backgroundColor: "blue" },
-      ],
-    },
-    options: { responsive: true },
+  const tolerance = tolerances[testName] || {
+    TimeTolerance: 12,
+    AbruptTolerance: 50,
+  };
+
+  const timeScore =
+    timeTaken <= tolerance.TimeTolerance
+      ? 100
+      : Math.max(
+          0,
+          100 -
+            ((timeTaken - tolerance.TimeTolerance) / tolerance.TimeTolerance) *
+              100
+        );
+
+  const abruptScore =
+    abruptPercentage <= tolerance.AbruptTolerance
+      ? 100
+      : Math.max(
+          0,
+          100 -
+            ((abruptPercentage - tolerance.AbruptTolerance) /
+              tolerance.AbruptTolerance) *
+              100
+        );
+
+  return Math.round(timeScore * 0.7 + abruptScore * 0.3);
+}
+
+function generateLatestTestBreakdown(session) {
+  const ctx = document
+    .getElementById("FATestLatestTestBreakdown")
+    .getContext("2d");
+  const latestTestResults = session.test_results.map((test) => {
+    const score = calculateScore(
+      test.time_taken,
+      test.abrupt_percentage,
+      test.test_name
+    );
+    return {
+      name: test.test_name,
+      score: score,
+      min: 0,
+      max: 100,
+      status: score >= 80 ? "Healthy" : score >= 50 ? "Moderate" : "Unhealthy",
+    };
+  });
+
+  const canvas = document.getElementById("FATestLatestTestBreakdown");
+  const ctxCanvas = canvas.getContext("2d");
+  canvas.width = 1050;
+  canvas.height = 400;
+
+  function drawGradientBar(ctx, x, y, width, height, min, max, value, status) {
+    const gradient = ctx.createLinearGradient(x, y, x + width, y);
+    gradient.addColorStop(0, "red");
+    gradient.addColorStop(0.5, "yellow");
+    gradient.addColorStop(1, "green");
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x, y, width, height);
+
+    const arrowX = x + ((value - min) / (max - min)) * width;
+    ctx.fillStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(arrowX, y + height + 5);
+    ctx.lineTo(arrowX - 5, y + height + 15);
+    ctx.lineTo(arrowX + 5, y + height + 15);
+    ctx.fill();
+
+    ctx.fillStyle = "black";
+    ctx.textAlign = "left";
+    ctx.fillText(`${value} (${status})`, x + width + 15, y + height - 5);
+  }
+
+  ctxCanvas.clearRect(0, 0, canvas.width, canvas.height);
+  ctxCanvas.font = "14px Arial";
+  ctxCanvas.fillStyle = "black";
+  let yOffset = 40;
+  const barWidth = 750;
+  const barHeight = 20;
+  const startX = 50;
+
+  latestTestResults.forEach((test) => {
+    ctxCanvas.textAlign = "left";
+    ctxCanvas.fillText(test.name, startX, yOffset - 10);
+    drawGradientBar(
+      ctxCanvas,
+      startX,
+      yOffset,
+      barWidth,
+      barHeight,
+      test.min,
+      test.max,
+      test.score,
+      test.status
+    );
+    yOffset += 80;
   });
 }
 
-function generateRadarComparisonChart(data) {
-  if (data.length < 2) return;
+function generateComparisonBarChart(data) {
+  if (data.length < 2) {
+    console.warn("Not enough test data for comparison chart.");
+    return;
+  }
+
+  // Sort test results in ascending order based on test name
+  data.forEach((session) => {
+    session.test_results.sort((a, b) => b.test_name.localeCompare(a.test_name));
+  });
+
+  console.log("Sorted test results for comparison:", data);
+
   const latest = data[0].test_results;
   const previous = data[1].test_results;
 
-  new Chart(document.getElementById("FATestRadarComparison"), {
-    type: "radar",
+  console.log("Latest test results:", latest);
+  console.log("Previous test results:", previous);
+
+  new Chart(document.getElementById("FATestComparisonBarChart"), {
+    type: "bar",
     data: {
       labels: latest.map((t) => t.test_name),
       datasets: [
         {
-          label: "Latest",
-          data: latest.map((t) => t.time_taken),
-          backgroundColor: "rgba(0,0,255,0.3)",
+          label: "Previous",
+          data: previous.map((t) =>
+            calculateScore(t.time_taken, t.abrupt_percentage, t.test_name)
+          ),
+          backgroundColor: "rgba(255,0,0,0.7)",
         },
         {
-          label: "Previous",
-          data: previous.map((t) => t.time_taken),
-          backgroundColor: "rgba(255,0,0,0.3)",
+          label: "Latest",
+          data: latest.map((t) =>
+            calculateScore(t.time_taken, t.abrupt_percentage, t.test_name)
+          ),
+          backgroundColor: "rgba(0,0,255,0.7)",
         },
       ],
     },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          min: 0,
+          max: 100,
+          ticks: { font: { size: 14 } },
+        },
+        x: {
+          ticks: { font: { size: 14 } },
+        },
+      },
+    },
   });
-}
-
-function getRandomColor(opacity = 1) {
-  return `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${
-    Math.random() * 255
-  }, ${opacity})`;
 }

@@ -569,11 +569,11 @@ INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2
 
 -- Insert TestSession data for 5 users (5 sessions each, every 6 months)
 INSERT INTO TestSession (user_id, session_date, total_score, session_notes) VALUES
-(1, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '27', 'Routine assessment 2.5 years ago'),
-(1, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '35', 'Routine assessment 2 years ago'),
-(1, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '40', 'Routine assessment 1.5 years ago'),
-(1, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '67', 'Routine assessment 1 year ago'),
 (1, DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH), '88', 'Routine assessment 6 months ago'),
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH), '67', 'Routine assessment 1 year ago'),
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH), '40', 'Routine assessment 1.5 years ago'),
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '35', 'Routine assessment 2 years ago'),
+(1, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '27', 'Routine assessment 2.5 years ago'),
 
 (2, DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH), '80', 'Routine assessment 2.5 years ago'),
 (2, DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH), '84', 'Routine assessment 2 years ago'),
@@ -606,30 +606,31 @@ INSERT INTO TestSession (user_id, session_date, total_score, session_notes) VALU
 
 -- User 1: Gradual improvement in performance
 INSERT INTO UserTestResult (user_id, session_id, test_id, time_taken, abrupt_percentage, risk_level, test_date) VALUES
-(1, 1, 1, 25.500, 30, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 1
-(1, 1, 2, 20.000, 40, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 2
-(1, 1, 3, 15.000, 20, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),    -- Test 3 (Good performance)
-(1, 1, 4, 30.000, 50, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), -- Test 4
 
-(1, 2, 1, 23.000, 25, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
-(1, 2, 2, 18.500, 35, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
-(1, 2, 3, 13.000, 15, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
-(1, 2, 4, 27.500, 45, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(1, 5, 1, 15.000, 10, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(1, 5, 2, 28.500, 20, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(1, 5, 3, 28.000, 5, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+(1, 5, 4, 38.000, 30, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
+
+(1, 4, 1, 20.000, 40, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(1, 4, 2, 36.000, 40, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(1, 4, 3, 35.000, 60, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(1, 4, 4, 22.500, 40, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
 
 (1, 3, 1, 20.000, 20, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (1, 3, 2, 17.000, 30, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (1, 3, 3, 12.000, 10, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 (1, 3, 4, 25.000, 40, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -18 MONTH)),
 
-(1, 4, 1, 18.000, 15, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
-(1, 4, 2, 15.000, 25, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
-(1, 4, 3, 10.000, 5, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
-(1, 4, 4, 22.500, 35, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -12 MONTH)),
+(1, 2, 1, 23.000, 25, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(1, 2, 2, 18.500, 35, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(1, 2, 3, 13.000, 15, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
+(1, 2, 4, 27.500, 45, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -24 MONTH)),
 
-(1, 5, 1, 15.000, 10, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
-(1, 5, 2, 12.500, 20, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
-(1, 5, 3, 9.000, 5, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH)),
-(1, 5, 4, 20.000, 30, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -6 MONTH));
+(1, 1, 1, 25.500, 30, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), 
+(1, 1, 2, 20.000, 40, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)), 
+(1, 1, 3, 15.000, 20, 'low', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH)),   
+(1, 1, 4, 30.000, 50, 'moderate', DATE_ADD(CURRENT_DATE, INTERVAL -30 MONTH));
 
 -- User 2: Gradual decline in performance
 INSERT INTO UserTestResult (user_id, session_id, test_id, time_taken, abrupt_percentage, risk_level, test_date) VALUES
