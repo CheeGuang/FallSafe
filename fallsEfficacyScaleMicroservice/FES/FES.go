@@ -226,7 +226,6 @@ func GetAllUserResponse(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetUserFESResults retrieves Falls Efficacy Scale test results for a given userID
-// GetUserFESResults retrieves Falls Efficacy Scale test results for a given userID
 func GetUserFESResults(w http.ResponseWriter, r *http.Request) {
 	// Extract userID from query parameters
 	userIDStr := r.URL.Query().Get("user_id")
@@ -420,7 +419,6 @@ func GetAllFESLatestResDate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-	
 
 //User and its latest risk level from result
 // Struct for User Response with Risk Level
@@ -484,4 +482,65 @@ func GetLatestUserRiskLevel(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+}
+	
+// LastAssessment represents the most recent Falls Efficacy Scale assessment for a user
+type LastAssessment struct {
+    ResponseID    uint16    `json:"response_id"`
+    UserID        uint16    `json:"user_id"`
+    TotalScore    uint16    `json:"total_score"`
+    ResponseDate  time.Time    `json:"response_date"`
+}
+
+func GetLastAssessment(w http.ResponseWriter, r *http.Request) {
+    // Extract userID from query parameters
+    userIDStr := r.URL.Query().Get("user_id")
+    if userIDStr == "" {
+        http.Error(w, "user_id is required", http.StatusBadRequest)
+        return
+    }
+
+    userID, err := strconv.Atoi(userIDStr)
+    if err != nil {
+        http.Error(w, "Invalid user_id", http.StatusBadRequest)
+        return
+    }
+
+    // Query to get the most recent assessment for the user
+    var assessment LastAssessment
+    err = db.QueryRow(`
+        SELECT response_id, user_id, total_score, response_date
+        FROM UserResponse 
+        WHERE user_id = ? 
+        ORDER BY response_date DESC 
+        LIMIT 1`, userID).Scan(
+        &assessment.ResponseID,
+        &assessment.UserID,
+        &assessment.TotalScore,
+        &assessment.ResponseDate,
+    )
+
+    if err == sql.ErrNoRows {
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusNotFound)
+        json.NewEncoder(w).Encode(map[string]string{
+            "message": "No assessments found for this user",
+        })
+        return
+    }
+
+    if err != nil {
+        log.Printf("Database query error: %v", err)
+        http.Error(w, "Failed to fetch last assessment", http.StatusInternalServerError)
+        return
+    }
+
+    // Send response as JSON
+    w.Header().Set("Content-Type", "application/json")
+    err = json.NewEncoder(w).Encode(assessment)
+    if err != nil {
+        log.Printf("Error encoding JSON response: %v", err)
+        http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+        return
+    }
 }
