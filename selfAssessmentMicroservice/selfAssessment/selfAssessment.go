@@ -553,7 +553,7 @@ func SaveUserTestResult(testSessionID int, userID int, testID int, timeTaken flo
 
 	// Update the TestSession with the calculated average score
 	updateQuery := `UPDATE TestSession SET total_score = ? WHERE session_id = ?`
-	_, err = db.Exec(updateQuery, totalScore, testSessionID)
+	_, err = db.Exec(updateQuery, totalScore/4, testSessionID)
 	if err != nil {
 		log.Printf("Error updating average score in TestSession: %v", err)
 		return fmt.Errorf("failed to update average score: %v", err)
@@ -566,46 +566,64 @@ func SaveUserTestResult(testSessionID int, userID int, testID int, timeTaken flo
 
 // calculateScore calculates the final score based on time taken and abrupt percentage
 func calculateScore(timeTaken, abruptPercentage float64, testName string) int {
+	// Define test-specific tolerances
 	tolerances := map[string]struct {
 		TimeTolerance   float64
 		AbruptTolerance float64
 	}{
-		"Timed Up and Go Test":         {TimeTolerance: 20, AbruptTolerance: 30},
-		"Five Times Sit to Stand Test": {TimeTolerance: 25, AbruptTolerance: 40},
-		"Dynamic Gait Index (DGI)":     {TimeTolerance: 25, AbruptTolerance: 20},
+		"Timed Up and Go Test":         {TimeTolerance: 12, AbruptTolerance: 20},
+		"Five Times Sit to Stand Test": {TimeTolerance: 14, AbruptTolerance: 20},
+		"Dynamic Gait Index (DGI)":     {TimeTolerance: 20, AbruptTolerance: 20},
 		"4 Stage Balance Test":         {TimeTolerance: 40, AbruptTolerance: 15},
 	}
 
-	// Default tolerances
-	tolerance := tolerances[testName]
-	if tolerance == (struct {
-		TimeTolerance   float64
-		AbruptTolerance float64
-	}{}) {
+	// Default tolerance values
+	tolerance, exists := tolerances[testName]
+	if !exists {
 		tolerance = struct {
 			TimeTolerance   float64
 			AbruptTolerance float64
-		}{TimeTolerance: 12, AbruptTolerance: 50}
+		}{TimeTolerance: 12, AbruptTolerance: 50} // Default values
 	}
 
-	// Calculate time score
-	timeScore := 0
-	if timeTaken <= tolerance.TimeTolerance {
-		timeScore = 100
-	} else {
-		timeScore = int(math.Max(0, 100-((timeTaken-tolerance.TimeTolerance)/tolerance.TimeTolerance)*100))
+	var timeScore float64
+
+	// Scoring logic based on test type
+	switch testName {
+	case "Timed Up and Go Test", "Five Times Sit to Stand Test", "Dynamic Gait Index (DGI)":
+		// Lower time is better; scale based on time tolerance
+		if timeTaken <= tolerance.TimeTolerance {
+			timeScore = 100
+		} else {
+			timeScore = math.Max(0, 100-((timeTaken-tolerance.TimeTolerance)/tolerance.TimeTolerance)*100)
+		}
+	case "4 Stage Balance Test":
+		// Higher time is better; score decreases as timeTaken decreases
+		if timeTaken <= 0 {
+			timeScore = 0
+		} else {
+			timeScore = math.Min(100, (timeTaken/tolerance.TimeTolerance)*100)
+		}
+	default:
+		fmt.Println("Unknown test type:", testName)
+		timeScore = 50 // Default score
 	}
 
-	// Calculate abrupt score
-	abruptScore := 0
+	// Calculate abrupt movement score
+	var abruptScore float64
 	if abruptPercentage <= tolerance.AbruptTolerance {
 		abruptScore = 100
 	} else {
-		abruptScore = int(math.Max(0, 100-((abruptPercentage-tolerance.AbruptTolerance)/tolerance.AbruptTolerance)*100))
+		abruptScore = math.Max(0, 100-((abruptPercentage-tolerance.AbruptTolerance)/tolerance.AbruptTolerance)*100)
 	}
 
-	// Weighted average
-	finalScore := int(math.Round(float64(timeScore)*0.7 + float64(abruptScore)*0.3))
+	// Weighted average (70% time, 30% abruptness)
+	finalScore := int(math.Round(timeScore*0.7 + abruptScore*0.3))
+
+	// Debugging output
+	fmt.Printf("Test: %s, Time Taken: %.2f, Abrupt Percentage: %.2f, Time Score: %.2f, Abrupt Score: %.2f, Final Score: %d\n",
+		testName, timeTaken, abruptPercentage, timeScore, abruptScore, finalScore)
+
 	return finalScore
 }
 

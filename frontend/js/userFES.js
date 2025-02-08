@@ -529,6 +529,13 @@ function updateCountdown(assessmentData) {
     const difference = nextAssessment - now;
 
     if (difference <= 0) {
+      document.getElementById("voucher-status").style.display = "block";
+      document.getElementById("countdown-timer").innerHTML =
+        "<p>It's time for your next assessment!";
+      return;
+    }
+
+    if (difference <= 0) {
       voucherStatus.style.display = "block";
       return;
     }

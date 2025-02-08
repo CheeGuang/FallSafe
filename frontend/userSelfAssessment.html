@@ -83,28 +83,88 @@
           <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
 
           <h1 id="title">Self Assessment</h1>
-          <!-- p Subtitle -->
-          <p id="subtitle" class="mb-3">
-            Assess your fall risk easily at home.
-          </p>
-
-          <p id="subtitle2" class="mb-4">
-            You will take <strong>4 simple tests</strong>. Each test is scored
-            between <strong>0 and 100</strong>. A
-            <strong>higher score</strong> means better performance. At the end,
-            you’ll receive an evaluation of your <strong>fall risk</strong>.
-            Each test includes a <strong>video demonstration</strong> and
-            <strong>step-by-step instructions</strong> for easy follow-along.
-          </p>
-
+          <p id="subtitle2"></p>
+          <!-- Start Screen Layout -->
           <div
             id="test-container"
             class="d-flex align-items-center justify-content-center w-100 flex-column"
           >
-            <button id="startTestButton" class="btn btn-primary">
-              Continue
-            </button>
-            <div id="connectionStatus" class="mt-3"></div>
+            <div class="start-content">
+              <p id="subtitle" class="lead text-muted">
+                Take this self-assessment to evaluate your fall risk and track
+                your progress.
+              </p>
+
+              <div class="info-box mb-4">
+                <h3>Last Assessment Details</h3>
+                <div
+                  id="last-assessment-info"
+                  class="d-flex align-items-center"
+                >
+                  <p>Taken on: <span id="last-taken-date">Loading...</span></p>
+                  <p id="months-days-ago" style="margin-left: 10px"></p>
+                </div>
+                <div id="countdown-timer" class="countdown">
+                  <p>Recommended time until next assessment:</p>
+                  <div class="timer">
+                    <span id="months">0</span> months
+                    <span id="days">0</span> days
+                  </div>
+                </div>
+                <div id="voucher-status" class="mt-3" style="display: none">
+                  <div class="alert alert-success">
+                    <p>
+                      🎉 You are eligible for a voucher! <br />You can get 2 x
+                      $10 NTUC Vouchers upon completion.
+                    </p>
+                    <div
+                      style="position: relative; width: 200px; height: 120px"
+                    >
+                      <img
+                        src="./img/voucher.jpg"
+                        alt="Voucher"
+                        style="
+                          position: absolute;
+                          top: 0;
+                          left: 0;
+                          max-width: 200px;
+                          z-index: 2;
+                        "
+                      />
+                      <img
+                        src="./img/voucher.jpg"
+                        alt="Voucher"
+                        style="
+                          position: absolute;
+                          top: 10px;
+                          left: 20px;
+                          max-width: 200px;
+                          opacity: 0.8;
+                          z-index: 1;
+                        "
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="recommendation-box mb-4">
+                <p class="recommendation">
+                  💡 It is recommended to take this assessment
+                  <strong>Once Every 6 Months</strong> to:
+                </p>
+                <ul class="text-start">
+                  <li>Monitor your fall risk over time</li>
+                  <li>Receive personalised recommendations</li>
+                  <li>Earn rewards for regular assessments</li>
+                </ul>
+              </div>
+
+              <button id="startTestButton" class="btn btn-primary">
+                Continue
+              </button>
+              <div id="connectionStatus" class="mt-3"></div>
+            </div>
           </div>
 
           <!-- Self-Assessment Layout -->

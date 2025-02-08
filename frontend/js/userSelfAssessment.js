@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
+  let eligibleForVoucher = false; // Track eligibility before test
+
   const startTestButton = document.getElementById("startTestButton");
   const selfAssessmentContainer = document.getElementById(
     "selfAssessmentContainer"
@@ -35,6 +37,8 @@ document.addEventListener("DOMContentLoaded", function () {
       return null;
     }
   }
+
+  fetchUserAssessmentResults();
 
   startTestButton.addEventListener("click", async () => {
     if (startTestButton.textContent.trim() === "Continue") {
@@ -151,8 +155,6 @@ document.addEventListener("DOMContentLoaded", function () {
             currentTestIndex = 0;
             displayTest(allTests[currentTestIndex]);
           }
-
-          document.getElementById("test-container").style.display = "none";
           selfAssessmentContainer.style.display = "block";
         } else {
           console.error("Failed to start test session:", await response.text());
@@ -199,6 +201,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function displayTest(test) {
     startTestButton.remove();
+    $("#test-container").remove();
     testNameElement.textContent = `Test ${test.test_id}: ` + test.test_name;
     testDescriptionElement.textContent = test.description;
     riskMetricsElement.textContent = test.risk_metric;
@@ -817,7 +820,177 @@ document.addEventListener("DOMContentLoaded", function () {
   // Trigger results display when "View Results" is clicked
   nextTestButton.addEventListener("click", () => {
     if (nextTestButton.textContent === "View Results") {
-      displayResults();
+      handleSendVoucherEmail();
+      // displayResults();
     }
   });
 });
+
+async function fetchUserAssessmentResults() {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    // Decode JWT to get user ID
+    const tokenPayload = JSON.parse(atob(token.split(".")[1]));
+    const userId = tokenPayload.user_id;
+
+    if (!userId) {
+      throw new Error("User ID not found in token");
+    }
+
+    // Fetch user results
+    const response = await fetch(
+      `http://127.0.0.1:5250/api/v1/selfAssessment/getUserResults?user_id=${userId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch user assessment results");
+    }
+
+    const data = await response.json();
+
+    if (!data || data.length === 0) {
+      document.getElementById("last-assessment-info").innerHTML =
+        "<p>No previous assessment found</p>";
+      document.getElementById("countdown-timer").style.display = "none";
+      document.getElementById("voucher-status").style.display = "none";
+      return;
+    }
+
+    // Get the latest assessment based on session_date
+    const latestAssessment = data.reduce((latest, current) => {
+      return new Date(current.session_date) > new Date(latest.session_date)
+        ? current
+        : latest;
+    });
+
+    // Display the latest assessment date
+    const lastTakenDate = new Date(latestAssessment.session_date);
+    document.getElementById("last-taken-date").textContent =
+      lastTakenDate.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
+
+    // Calculate the time difference in months and days
+    const today = new Date();
+    let monthsAgo =
+      today.getMonth() -
+      lastTakenDate.getMonth() +
+      12 * (today.getFullYear() - lastTakenDate.getFullYear());
+    let daysAgo = today.getDate() - lastTakenDate.getDate();
+
+    // Determine voucher eligibility
+    eligibleForVoucher = monthsAgo >= 6;
+
+    if (daysAgo < 0) {
+      monthsAgo -= 1;
+      const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+      daysAgo += prevMonth.getDate();
+    }
+
+    // Display time since last assessment
+    document.getElementById("months-days-ago").innerHTML =
+      monthsAgo === 0 && daysAgo === 0
+        ? "<span>(Today)</span>"
+        : `<span>(${monthsAgo} months, ${daysAgo} days ago)</span>`;
+
+    // Calculate the next recommended assessment date
+    const nextAssessment = new Date(lastTakenDate);
+    nextAssessment.setMonth(nextAssessment.getMonth() + 6);
+
+    function updateTimer() {
+      const now = new Date();
+      const difference = nextAssessment - now;
+
+      if (difference <= 0) {
+        document.getElementById("voucher-status").style.display = "block";
+        document.getElementById("countdown-timer").innerHTML =
+          "<p>It's time for your next assessment!</p>";
+        return;
+      }
+
+      document.getElementById("voucher-status").style.display = "none";
+
+      const remainingMonths = Math.floor(
+        difference / (1000 * 60 * 60 * 24 * 30)
+      );
+      const remainingDays = Math.floor(
+        (difference % (1000 * 60 * 60 * 24 * 30)) / (1000 * 60 * 60 * 24)
+      );
+
+      document.getElementById("months").textContent = remainingMonths;
+      document.getElementById("days").textContent = remainingDays;
+
+      if (remainingMonths === 0 && remainingDays === 0) {
+        document.getElementById("countdown-timer").innerHTML =
+          "<p>It's time for your next assessment! 🎉 Take it now to stay on track!</p>";
+      }
+    }
+
+    updateTimer();
+    setInterval(updateTimer, 1000 * 60 * 60);
+
+    // Show NTUC voucher eligibility message if assessment is older than 6 months
+    if (monthsAgo >= 6) {
+      document.getElementById("voucher-status").style.display = "block";
+    }
+  } catch (error) {
+    console.error("Error fetching user assessment results:", error);
+  }
+}
+
+async function handleSendVoucherEmail() {
+  if (eligibleForVoucher) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("Authentication token not found.");
+      return;
+    }
+
+    const tokenPayload = JSON.parse(atob(token.split(".")[1]));
+    const userEmail = tokenPayload.email;
+
+    showCustomAlert(
+      "🎉 Congratulations! A $10 NTUC Voucher will be emailed to you.",
+      "userFATResults.html"
+    );
+
+    await sendVoucherEmail(userEmail, 2); // Sending 2 vouchers
+  }
+}
+
+async function sendVoucherEmail(email, voucherCount) {
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:5100/api/v1/user/sendVoucherEmail`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          email: email,
+          voucher_count: voucherCount,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to send voucher email");
+    }
+  } catch (error) {
+    console.error("Error sending voucher email:", error);
+  }
+}

@@ -47,3 +47,59 @@
   justify-content: center;
   gap: 20px; /* Space between buttons */
 }
+.start-screen {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.start-content {
+  text-align: left;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.info-box {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.countdown {
+  margin-top: 1rem;
+}
+
+.timer {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #0d6efd;
+}
+
+.timer span {
+  margin: 0 0.5rem;
+}
+
+.recommendation-box {
+  background-color: #e7f3ff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #0d6efd;
+}
+
+.recommendation ul {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+.recommendation li {
+  margin-bottom: 0.5rem;
+}
+#startTestButton {
+  width: 100%;
+  margin-top: 2rem;
+  padding: 1rem;
+  font-size: 1.2rem;
+}

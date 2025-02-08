@@ -10,64 +10,33 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   try {
     const user_id = decodeToken(token).user_id;
-    const [fesResults, testResults] = await Promise.all([
-      fetchData(
-        `http://127.0.0.1:5100/api/v1/user/getAUserFESResults?user_id=${user_id}`
-      ),
-      fetchData(
-        `http://127.0.0.1:5100/api/v1/user/getAUserTestResults?user_id=${user_id}`
-      ),
-    ]);
+    const testResults = await fetchData(
+      `http://127.0.0.1:5100/api/v1/user/getAUserTestResults?user_id=${user_id}`
+    );
 
-    if (!fesResults || !testResults) {
+    if (!testResults) {
       alert("Error fetching data");
       return;
     }
 
-    $(".nav-link").click(function (e) {
-      e.preventDefault();
-      $(".nav-link").removeClass("active");
-      $(this).addClass("active");
-      $(".tab-pane").removeClass("show active");
-      $($(this).attr("href")).addClass("show active");
-    });
-
-    displayActionableInsights(
-      fesResults.actionable_insights.response,
-      testResults.actionable_insights.response
-    );
-    const overallRisk = calculateOverallRisk(
-      fesResults.fes_results,
-      testResults.self_assessment_results
-    );
-
     console.log("testResults:", testResults);
 
-    displayRiskResult(overallRisk);
-    generateCharts(fesResults.fes_results);
-    generateGaugeCharts(fesResults.fes_results);
-    populateDropdown(fesResults.fes_results);
-    updateCharts(fesResults.fes_results, fesResults.fes_results.length - 1);
-    updateMuscleStrengthChart(
-      fesResults.fes_results,
-      fesResults.fes_results.length - 1
-    );
-
+    const latestSession = testResults.self_assessment_results[0];
     const allSessions = testResults.self_assessment_results.sort(
       (a, b) => new Date(b.session_date) - new Date(a.session_date)
     );
 
-    populateFATestDropdown(allSessions); // Populate the new dropdown
+    // Calculate and display risk result
+    const overallRisk = calculateOverallRisk(allSessions);
+    displayRiskResult(overallRisk);
 
-    if (allSessions.length > 0) {
-      updateLatestTestBreakdown(allSessions, 0); // Default to the latest test
-    }
+    displayActionableInsights(testResults.actionable_insights.response);
 
     generateSATotalScoreChart(allSessions);
     generateAbruptPercentageChart(allSessions);
     generateFATGaugeCharts(allSessions);
-    generateTotalScoreChart(allSessions);
-    generateComparisonBarChart(testResults.self_assessment_results);
+    generateLatestTestBreakdown(latestSession);
+    generateComparisonBarChart(allSessions);
   } catch (error) {
     console.error("Error: ", error);
     alert("An error occurred while fetching data.");
@@ -112,7 +81,7 @@ async function fetchData(url) {
   }
 }
 
-function displayActionableInsights(fesInsights, testInsights) {
+function displayActionableInsights(testInsights) {
   const formatText = (text) =>
     text
       .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // Bold formatting
@@ -120,44 +89,37 @@ function displayActionableInsights(fesInsights, testInsights) {
       .replace(/\n/g, "") // Remove all newlines
       .replace(/(?<!<br>\s*)\b([2-9]|[1-9][0-9]+)\)/g, "<br>$1)"); // Add <br> if missing before numbers 2+)
 
-  document.getElementById("actionable-insights-content").innerHTML = `
-    <h3>FES Recommendations:</h3><p>${formatText(fesInsights)}</p><br>
+  document.getElementById("actionable-insights").innerHTML = `
     <h3>Self-Assessment Recommendations:</h3><p>${formatText(testInsights)}</p>
   `;
 
-  console.log(formatText(fesInsights));
   console.log(formatText(testInsights));
 }
 
-function calculateOverallRisk(fesResults, testResults) {
-  if (!fesResults.length || !testResults.length) {
+function calculateOverallRisk(testResults) {
+  if (!testResults.length) {
     console.warn("Insufficient data for risk calculation.");
     return { percentage: 0, level: "low" };
   }
 
-  // Get the latest FES result based on response date
-  const latestFES = fesResults.reduce((prev, curr) =>
-    new Date(prev.response_date) > new Date(curr.response_date) ? prev : curr
+  // Get the latest test result based on test date
+  const latestTest = testResults[0];
+
+  console.log("Latest test selected:", latestTest);
+
+  // Extract risk score from the latest test
+  const testRiskScore = latestTest.total_score?.Int64 ?? 0;
+
+  console.log("Test risk score:", testRiskScore);
+
+  console.log(
+    "determineRiskLevel(100 - testRiskScore)",
+    determineRiskLevel(100 - testRiskScore)
   );
 
-  // Get the latest Test result based on test date
-  const latestTest = testResults.reduce((prev, curr) =>
-    new Date(prev.test_date) > new Date(curr.test_date) ? prev : curr
-  );
-
-  // Normalize FES Score to percentage
-  const fesScore = ((latestFES.total_score - 16) / 64) * 100;
-
-  // Convert risk level into a score
-  const testRiskScore = latestTest.total_score.Int64; // Convert to percentage
-
-  // Calculate overall risk percentage (weighted average)
-  const overallRiskPercentage = (fesScore + testRiskScore) / 2;
-
-  getRiskScore(overallRiskPercentage);
   return {
-    percentage: overallRiskPercentage,
-    level: determineRiskLevel(overallRiskPercentage),
+    percentage: 100 - testRiskScore,
+    level: determineRiskLevel(100 - testRiskScore),
   };
 }
 
@@ -167,6 +129,7 @@ function getRiskScore(riskLevel) {
 }
 
 function determineRiskLevel(percentage) {
+  console.log("percentage", percentage);
   if (percentage < 30) return "low";
   if (percentage < 60) return "moderate";
   return "high";
@@ -192,407 +155,6 @@ function displayRiskResult({ percentage, level }) {
   )}% Risk`;
 }
 
-function generateCharts(fesResults) {
-  const labels = fesResults.map((res) =>
-    new Date(res.response_date).toLocaleDateString()
-  );
-  const totalScores = fesResults.map((res) => res.total_score);
-  const averageScores = fesResults.map(
-    (res) =>
-      res.response_details.reduce((sum, q) => sum + q.response_score, 0) /
-      res.response_details.length
-  );
-
-  const questionScores = fesResults[fesResults.length - 1].response_details.map(
-    (q) => q.response_score
-  );
-  const questionLabels = Array.from({ length: 16 }, (_, i) => `Q${i + 1}`);
-
-  createLineChart(
-    "fes-total-score",
-    "Total FES Score Over Time",
-    labels,
-    totalScores,
-    "Total Score"
-  );
-
-  createCategorizedBarChart(
-    "fes-latest-question-scores",
-    "Question Scores in Latest Test",
-    questionLabels,
-    questionScores
-  );
-}
-
-function createLineChart(canvasId, title, labels, data, label) {
-  const ctx = document.getElementById(canvasId).getContext("2d");
-
-  new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          label: label,
-          data: data,
-          borderColor: "rgba(100, 149, 237, 0.8)", // Light Cornflower Blue
-          backgroundColor: "rgba(173, 216, 230, 0.3)", // Light Blue
-          fill: true,
-        },
-      ],
-    },
-    options: {
-      width: 300,
-      height: 900,
-      scales: {
-        y: {
-          min: 16,
-          max: 64,
-          ticks: { font: { size: 16 } },
-        },
-        x: {
-          ticks: { font: { size: 16 } },
-        },
-      },
-    },
-  });
-}
-
-function populateDropdown(fesResults) {
-  const dropdown = document.getElementById("testDropdown");
-  dropdown.innerHTML = "";
-
-  // Sort tests by date (oldest first)
-  fesResults.sort(
-    (a, b) => new Date(a.response_date) - new Date(b.response_date)
-  );
-
-  // Create "Select a Test" option
-  const defaultOption = document.createElement("option");
-  defaultOption.value = "";
-  defaultOption.textContent = "Select a Test";
-  dropdown.appendChild(defaultOption);
-
-  // Add test options
-  fesResults.forEach((test, index) => {
-    const testNumber = index + 1; // Oldest test is Test 1, increments
-    const dateObj = new Date(test.response_date);
-
-    // Format date as "DDDD MMMM YYYY" and time as "h:mm a"
-    const formattedDate = dateObj.toLocaleDateString("en-GB", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-    const formattedTime = dateObj
-      .toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      })
-      .toLowerCase(); // Ensures "am/pm" is lowercase
-
-    const option = document.createElement("option");
-    option.value = index;
-    option.textContent = `Test ${testNumber} - ${formattedDate}, ${formattedTime}`;
-    dropdown.appendChild(option);
-  });
-
-  // Automatically select the latest test if available
-  if (fesResults.length > 0) {
-    dropdown.value = fesResults.length - 1;
-    updateCharts(fesResults, fesResults.length - 1);
-  }
-
-  dropdown.addEventListener("change", function () {
-    if (this.value !== "") {
-      updateCharts(fesResults, this.value);
-    }
-  });
-}
-
-function updateCharts(fesResults, selectedIndex) {
-  const selectedTest = fesResults[selectedIndex];
-  const questionScores = selectedTest.response_details.map(
-    (q) => q.response_score
-  );
-  const questionLabels = Array.from({ length: 16 }, (_, i) => `Q${i + 1}`);
-
-  const muscleGroups = {
-    Legs: [7, 8, 11, 13, 14, 15],
-    Glutes: [6],
-    Arms: [9, 10, 1, 2, 3],
-    Shoulders: [4],
-    Core: [5, 12, 16],
-  };
-
-  const muscleGroupScores = {};
-  Object.keys(muscleGroups).forEach((group) => {
-    const scores = muscleGroups[group].map(
-      (qIndex) =>
-        selectedTest.response_details.find((q) => q.question_id === qIndex)
-          ?.response_score || 0
-    );
-    muscleGroupScores[group] =
-      scores.reduce((sum, score) => sum + score, 0) / scores.length;
-  });
-
-  // Get the new test numbering
-  const testNumber = parseInt(selectedIndex) + 1;
-
-  createCategorizedBarChart(
-    "fes-latest-question-scores",
-    `Question Scores in Test ${testNumber}`,
-    questionLabels,
-    questionScores
-  );
-
-  // Update Muscle Strength Chart based on latest selected test
-  updateMuscleStrengthChart(selectedTest);
-}
-
-function createCategorizedBarChart(canvasId, title, labels, data) {
-  const ctx = document.getElementById(canvasId).getContext("2d");
-
-  // Destroy the existing chart before creating a new one
-  if (canvasId === "fes-latest-question-scores" && latestQuestionChart) {
-    latestQuestionChart.destroy();
-  }
-  if (canvasId === "fes-muscle-group-scores" && muscleGroupChart) {
-    muscleGroupChart.destroy();
-  }
-
-  const colors = data.map((value) => {
-    if (value <= 2) return "rgba(134, 255, 148, 0.8)"; // Light Blue
-    if (value <= 3) return "rgba(255, 234, 117, 0.8)"; // Peach
-    return "rgba(253, 82, 108, 0.8)"; // Light Pink
-  });
-
-  const chart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          label: "Score",
-          data: data,
-          backgroundColor: colors,
-          borderColor: "rgba(200, 200, 200, 0.5)",
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: {
-          min: 0,
-          max: 4,
-          ticks: { font: { size: 16 } },
-        },
-        x: {
-          ticks: { font: { size: 16 } },
-        },
-      },
-    },
-  });
-
-  // Store the chart instance globally
-  if (canvasId === "fes-latest-question-scores") {
-    latestQuestionChart = chart;
-  }
-  if (canvasId === "fes-muscle-group-scores") {
-    muscleGroupChart = chart;
-  }
-
-  document.getElementById("question-socres-in-title").textContent = title;
-}
-
-function fesCalculateOverallRisk(fesResults) {
-  if (!fesResults || fesResults.length === 0) {
-    console.warn("Insufficient data for risk calculation.");
-    return { percentage: 0, level: "low" };
-  }
-
-  // Get the latest FES result based on response date
-  const latestFES = fesResults.reduce((prev, curr) =>
-    new Date(prev.response_date) > new Date(curr.response_date) ? prev : curr
-  );
-
-  // Normalize FES Score to percentage
-  const fesScore = ((latestFES.total_score - 16) / 64) * 100;
-
-  return {
-    percentage: fesScore,
-    level: fesDetermineRiskLevel(fesScore),
-  };
-}
-
-function fesDetermineRiskLevel(percentage) {
-  if (percentage < 30) return "low";
-  if (percentage < 60) return "moderate";
-  return "high";
-}
-
-function generateGaugeCharts(fesResults) {
-  if (!fesResults || fesResults.length < 2) {
-    console.warn("Not enough FES test data for gauge charts.");
-    return;
-  }
-
-  // Ensure we get the latest and second latest FES results
-  const latestFES = fesResults[fesResults.length - 1];
-  const secondLatestFES = fesResults[fesResults.length - 2];
-
-  if (!latestFES || !secondLatestFES) {
-    console.warn("Missing FES test data for gauge charts.");
-    return;
-  }
-
-  // Calculate risk scores and log results
-  const latestRisk = fesCalculateOverallRisk([latestFES]);
-  const secondLatestRisk = fesCalculateOverallRisk([secondLatestFES]);
-
-  // Generate gauge charts
-  createGaugeChart(
-    "fes-latest-test-risk",
-    "Latest Test Risk",
-    latestRisk.percentage,
-    latestRisk.level
-  );
-  createGaugeChart(
-    "fes-second-latest-test-risk",
-    "2nd Latest Test Risk",
-    secondLatestRisk.percentage,
-    secondLatestRisk.level
-  );
-}
-
-function createGaugeChart(canvasId, title, value, level) {
-  const ctx = document.getElementById(canvasId).getContext("2d");
-
-  // Define standard size for all charts
-  const chartSize = 300; // Ensures uniformity
-
-  // Map risk level to colors
-  const colorMapping = {
-    low: "rgba(134, 255, 148, 0.8)", // Green
-    moderate: "rgba(255, 234, 117, 0.8)", // Yellow
-    high: "rgba(253, 82, 108, 0.8)", // Red
-  };
-
-  const color = colorMapping[level] || "rgba(200, 200, 200, 0.8)";
-
-  // Generate the chart
-  new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      datasets: [
-        {
-          data: [value, 100 - value],
-          backgroundColor: [color, "#E0E0E0"], // Main color + grey
-          borderWidth: 0,
-        },
-      ],
-    },
-    options: {
-      responsive: false, // Fixed size
-      maintainAspectRatio: false, // Prevents distortion
-      width: chartSize,
-      height: chartSize,
-      rotation: -90, // Starts from bottom
-      circumference: 180, // Half-circle (180 degrees)
-      cutout: "70%", // Adjusts thickness of the gauge
-      plugins: {
-        legend: { display: false },
-        tooltip: { enabled: false },
-      },
-    },
-  });
-
-  // Add risk level text below the chart
-  const chartContainer = document.getElementById(canvasId).parentElement;
-  let riskLabel = document.getElementById(`${canvasId}-risk-label`);
-
-  if (!riskLabel) {
-    riskLabel = document.createElement("div");
-    riskLabel.id = `${canvasId}-risk-label`;
-    riskLabel.style.textAlign = "center";
-    riskLabel.style.fontSize = "18px";
-    riskLabel.style.fontWeight = "bold";
-    riskLabel.style.marginTop = "10px";
-    chartContainer.appendChild(riskLabel);
-  }
-
-  riskLabel.textContent = `${level.toUpperCase()} FALL RISK`;
-}
-
-function updateMuscleStrengthChart(selectedTest) {
-  if (!selectedTest || !selectedTest.response_details) {
-    console.error("Invalid test data provided:", selectedTest);
-    return;
-  }
-
-  const muscleGroups = {
-    Legs: [7, 8, 11, 13, 14, 15],
-    Glutes: [6],
-    Arms: [9, 10, 1, 2, 3],
-    Shoulders: [4],
-    Core: [5, 12, 16],
-  };
-
-  const muscleLabels = document.getElementById("muscle-strength-labels");
-  muscleLabels.innerHTML = "";
-
-  Object.keys(muscleGroups).forEach((group) => {
-    const indices = muscleGroups[group];
-
-    const scores = selectedTest.response_details
-      .filter((q) => indices.includes(q.question_id))
-      .map((q) => q.response_score);
-
-    const totalScore = scores.length
-      ? scores.reduce((sum, score) => sum + score, 0) / scores.length
-      : 0;
-    const weakStrong = totalScore > 2 ? "Weak" : "Strong";
-    const color = totalScore > 2 ? "text-danger" : "text-success";
-
-    const positionMap = {
-      Legs: { top: "78%", left: "50%" },
-      Glutes: { top: "56%", left: "50%" },
-      Arms: { top: "50%", left: "74%" },
-      Shoulders: { top: "28%", left: "50%" },
-      Core: { top: "43%", left: "50%" },
-    };
-
-    const pos = positionMap[group];
-    if (pos) {
-      const div = document.createElement("div");
-      div.className = `muscle-status position-absolute ${color} text-center`;
-      div.style.top = pos.top;
-      div.style.left = pos.left;
-      div.style.transform = "translate(-50%, -50%)"; // Center the element
-      div.style.fontWeight = "bold";
-      div.style.fontSize = "24px";
-
-      // Create a span for strength label (Weak/Strong)
-      const strengthSpan = document.createElement("span");
-      strengthSpan.textContent = weakStrong;
-
-      // Create a div for group name
-      const groupSpan = document.createElement("div");
-      groupSpan.textContent = group;
-      groupSpan.style.fontSize = "16px";
-      groupSpan.style.fontWeight = "normal";
-
-      // Append both elements inside the div
-      div.appendChild(strengthSpan);
-      div.appendChild(groupSpan);
-      muscleLabels.appendChild(div);
-    }
-  });
-}
 // Total Self-Assessment Score Over Time (Sorted by session_date in Ascending Order)
 function generateSATotalScoreChart(data) {
   // Sort data by session_date in ascending order
@@ -803,13 +365,6 @@ function calculateFATRiskScore(session) {
   };
 }
 
-// 🎨 Utility Function for Risk Level Determination
-function determineRiskLevel(percentage) {
-  if (percentage < 30) return "low";
-  if (percentage < 60) return "moderate";
-  return "high";
-}
-
 function generateTotalScoreChart(data) {
   const labels = data.map((session) =>
     new Date(session.session_date).toLocaleDateString()
@@ -903,7 +458,6 @@ function calculateScore(timeTaken, abruptPercentage, testName) {
   return finalScore;
 }
 
-// Function to generate the latest test performance breakdown chart
 function generateLatestTestBreakdown(session) {
   const canvas = document.getElementById("FATestLatestTestBreakdown");
   const ctxCanvas = canvas.getContext("2d");
