@@ -8,7 +8,7 @@ if (!token) {
 // Store the fetched data globally for use in filtering and rendering
 let dashboardData = {
     users: [],
-    avgScoreList: [],
+    totalScoreList: [],
     TimeTakenList: [],
     tableDatafullList:[], //original data set to be compared
     tableDatafilteredList: [], //will used this as the global one for filtered
@@ -25,7 +25,7 @@ const usersPerPage = 5;
     "email" ""
     "age": "61"
 },
-//sample data for avgScoreTestSession
+//sample data for totalScoreTestSession
 {
     "session_id": 1,
     "user_id": 1,
@@ -62,11 +62,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function initializeDashboard() {
     try {
-        const [users, avgScoreList, TimeTakenList, latestOverallRisk ] = await Promise.all([fetchUsersFromAPI(), fetchFAAvgScoreFromAPI(), fetchFAAvgTimeFromAPI(), fetchAllUserRiskFromAPI()]);
+        const [users, totalScoreList, TimeTakenList, latestOverallRisk ] = await Promise.all([fetchUsersFromAPI(), fetchFATotalScoreFromAPI(), fetchFAAvgTimeFromAPI(), fetchAllUserRiskFromAPI()]);
 
         // Store the fetched data
         dashboardData.users = users;
-        dashboardData.avgScoreList = avgScoreList;
+        dashboardData.totalScoreList = totalScoreList;
         dashboardData.TimeTakenList = TimeTakenList;
 
         const mergedList = mergeUserRiskData(users, latestOverallRisk);
@@ -127,10 +127,10 @@ async function fetchUsersFromAPI() {
 }
 
 // Function to fetch average scores from API
-async function fetchFAAvgScoreFromAPI() {
+async function fetchFATotalScoreFromAPI() {
     try {
         console.log(token);
-        const response = await fetch('http://localhost:5200/api/v1/admin/getAllFAAvgScore', {
+        const response = await fetch('http://localhost:5200/api/v1/admin/getAllFATotalScore', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -178,7 +178,7 @@ async function fetchFAAvgTimeFromAPI() {
 // Function to fetch all user risk levels, latest
 async function fetchAllUserRiskFromAPI() {
     try {
-        const response = await fetch('http://localhost:5250/api/v1/selfAssessment/getAllUserRisk', {
+        const response = await fetch('http://localhost:5200//api/v1/admin/getAllFAUserRisk', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -249,6 +249,7 @@ function setupEventListeners() {
                 updateDropdown(filteredUsers);
             } else {
                 suggestionDropdown.style.display = 'none'; // Hide dropdown if input is empty
+                updateDashboard('all'); // Reset dashboard when input is empty
             }
         } else {
             suggestionDropdown.style.display = 'none'; // Hide dropdown when age group filter is active
@@ -328,7 +329,7 @@ function updateDashboard(filterType, filterValue) {
     }
 
     const userIds = filteredUsers.map(user => user.user_id);
-    const filteredResponsesAvgScore = dashboardData.avgScoreList.filter(response => userIds.includes(response.user_id));
+    const filteredResponsesTotalScore = dashboardData.totalScoreList.filter(response => userIds.includes(response.user_id));
     const filteredResponsesAvgTime = dashboardData.TimeTakenList.filter(response => userIds.includes(response.user_id));
     //filtering of TABLE
     const riskLevels = {
@@ -343,73 +344,95 @@ function updateDashboard(filterType, filterValue) {
 
     dashboardData.tableDatafilteredList = givenListTable; //save as global, will be referencing to this
     console.log(givenListTable);
-    updateAverageScoreChart(filteredResponsesAvgScore);
+    updateAverageScoreChart(filteredResponsesTotalScore);
     updateTimeTakenChart(filteredResponsesAvgTime);
     renderTable(givenListTable);
 }
 
 
 function updateAverageScoreChart(filteredResponses) {
+    if (!Array.isArray(filteredResponses) || filteredResponses.length === 0) {
+        console.warn("No data available. Clearing the chart.");
+
+        // Clear the chart data
+        window.averageSessionScoreChart.data.labels = [];
+        window.averageSessionScoreChart.data.datasets.forEach(dataset => {
+            dataset.data = [];
+        });
+
+        // Update the chart to reflect the cleared state
+        window.averageSessionScoreChart.update();
+        return;
+    }
     const monthlyAverages = {};
 
-    // Iterate over each response to accumulate total score and count per month
+    // Aggregate total scores and count per month
     filteredResponses.forEach(response => {
-        const month = response.session_date.slice(0, 7); // Extract "YYYY-MM"
+        const month = response.session_date.slice(5, 7) + '-' + response.session_date.slice(0, 4); // "MM-YYYY"
         if (!monthlyAverages[month]) {
             monthlyAverages[month] = { totalScore: 0, count: 0 };
         }
-        monthlyAverages[month].totalScore += response.total_score; // Add the total_score to the total for the month
-        monthlyAverages[month].count += 1; // Increment the count for the month
+        monthlyAverages[month].totalScore += response.total_score;
+        monthlyAverages[month].count += 1;
     });
 
-    // Sort the months (labels) and calculate the average score for each month
+    // Generate sorted labels (months) and compute averages
     const labels = Object.keys(monthlyAverages).sort();
-    const data = labels.map(month => {
-        const average = monthlyAverages[month].totalScore / monthlyAverages[month].count;
-        return parseFloat(average.toFixed(2)); // Ensure the average is rounded to 2 decimal places
-    });
+    const data = labels.map(month => (monthlyAverages[month].totalScore / monthlyAverages[month].count).toFixed(2));
 
-    // Convert months to numeric x-values (index-based) for linear regression
-    const xValues = labels.map((label, index) => index);
-    const yValues = data.map(Number); // Convert the average scores to numbers
+    // Convert labels to index-based x-values for linear regression
+    const xValues = labels.map((_, index) => index);
+    const yValues = data.map(Number); // Convert averages to numbers
 
-    // Perform linear regression to find the best fit line for historical data
+    // Compute linear regression
     const { slope, intercept } = linearRegression(xValues, yValues);
 
-    // Generate the best fit line (historical + predicted future months)
-    const bestFitLine = [];
-    const extendedMonths = [...labels];
-    const numMonthsToPredict = 6; // Predict next 6 months
+    // Generate predicted future months
+    const numMonthsToPredict = 6;
+    const futureLabels = [];
+    const futureXValues = [];
+    const futureYValues = [];
 
-    // Generate future months
-    for (let i = 0; i < numMonthsToPredict; i++) {
-        const nextMonth = getNextMonth(extendedMonths[extendedMonths.length - 1], 1);
-        extendedMonths.push(nextMonth);
+    let lastMonth = labels[labels.length - 1];
+
+    for (let i = 1; i <= numMonthsToPredict; i++) {
+        lastMonth = getNextMonth(lastMonth, 1); // Get next month in "MM-YYYY" format
+        futureLabels.push(lastMonth);
+        futureXValues.push(xValues.length + i - 1); // Continue indexing from last known x-value
+        futureYValues.push(slope * (xValues.length + i - 1) + intercept);
     }
 
-    // Calculate best fit line values for both historical and future months
-    extendedMonths.forEach((month, index) => {
-        const predictedY = slope * (xValues.length + index) + intercept;
-        bestFitLine.push(predictedY);
-    });
+    // Combine historical and future data
+    const allLabels = [...labels, ...futureLabels];
+    const bestFitLine = [...yValues, ...futureYValues]; // Best fit line for historical & predicted data
 
-    // Update the chart data
-    window.averageSessionScoreChart.data.labels = extendedMonths;
-    window.averageSessionScoreChart.data.datasets[0].data = data; // Historical data
+    // Update chart labels
+    window.averageSessionScoreChart.data.labels = allLabels;
+
+    // Update historical dataset
+    window.averageSessionScoreChart.data.datasets[0].data = yValues;
+
+    // Ensure that datasets exist before updating
+    if (!window.averageSessionScoreChart.data.datasets[1]) {
+        window.averageSessionScoreChart.data.datasets.push({});
+    }
+
+    // Update or create best fit line dataset
     window.averageSessionScoreChart.data.datasets[1] = {
-        label: 'Best Fit Line',
+        label: "Best Fit Line",
         data: bestFitLine,
-        borderColor: 'rgb(255, 99, 132)', // Red for best fit line
+        borderColor: "rgb(255, 99, 132)", // Red for best fit line
         borderWidth: 2,
         borderDash: [5, 5], // Dotted line
         fill: false
     };
 
+    // Update the chart
     window.averageSessionScoreChart.update();
 }
 
-// Helper function for linear regression
-// Linear regression function to calculate the slope and intercept
+
+// Linear Regression Function
 function linearRegression(xValues, yValues) {
     const n = xValues.length;
     const sumX = xValues.reduce((a, b) => a + b, 0);
@@ -422,6 +445,7 @@ function linearRegression(xValues, yValues) {
 
     return { slope, intercept };
 }
+
 // Function to get the next month from the latest month
 function getNextMonth(latestMonth, monthsToAdd) {
     const date = new Date(latestMonth.split('-')[1], parseInt(latestMonth.split('-')[0], 10) - 1, 1); // Convert "MM-YYYY" to Date
@@ -429,6 +453,7 @@ function getNextMonth(latestMonth, monthsToAdd) {
     const options = { year: 'numeric', month: '2-digit' }; // Format the month as "MM-YYYY"
     return date.toLocaleDateString('en-US', options).replace(/\//g, '-'); // Change the format to MM-YYYY
 }
+
 
 function updateTimeTakenChart(filteredResponses) {
     // Compute average time taken per test name
@@ -471,7 +496,7 @@ function initializeCharts() {
         data: {
             labels: [],
             datasets: [{
-                label: 'Average Session Score',
+                label: 'Total Session Score',
                 data: [],
                 borderColor: 'rgb(75, 192, 192)',
                 tension: 0.1,
@@ -481,7 +506,7 @@ function initializeCharts() {
         options: {
             responsive: true,
             scales: {
-                y: { title: { display: true, text: 'Avg Score' } },
+                y: { title: { display: true, text: 'Total Score' } },
                 x: { title: { display: true, text: 'Date' } }
             },
             plugins: {
@@ -498,7 +523,7 @@ function initializeCharts() {
                     max: 100,
                     title: {
                         display: true,
-                        text: 'Avg Score'
+                        text: 'Total Score'
                     }
                 },
                 x: {

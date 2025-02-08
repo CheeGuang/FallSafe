@@ -895,12 +895,12 @@ func GetUserOverallLatestRisk(w http.ResponseWriter, r *http.Request) {
 				user_id, 
 				session_id, 
 				session_date, 
-				avg_score,
+				total_score,
 				ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY session_id DESC) AS session_rank
 			FROM TestSession
 			WHERE user_id IS NOT NULL 
 				AND session_date IS NOT NULL 
-				AND avg_score IS NOT NULL
+				AND total_score IS NOT NULL
 		),
 		LatestSession AS (
 			SELECT user_id, session_id
@@ -985,7 +985,7 @@ func GetAllFallAssesLatestResDate(w http.ResponseWriter, r *http.Request) {
 			FROM TestSession
 			WHERE user_id IS NOT NULL
 				AND session_date IS NOT NULL 
-				AND avg_score IS NOT NULL
+				AND total_score IS NOT NULL
 		),
 		LatestSession AS (
 			SELECT user_id, session_date

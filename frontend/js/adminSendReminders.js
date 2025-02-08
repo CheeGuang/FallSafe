@@ -283,6 +283,7 @@ function setupEventListeners() {
               updateDropdown(filteredUsers);
           } else {
               suggestionDropdown.style.display = 'none'; // Hide dropdown if input is empty
+              updateDashboard('all'); // Reset dashboard when input is empty
           }
       } else {
           suggestionDropdown.style.display = 'none'; // Hide dropdown when age group filter is active
