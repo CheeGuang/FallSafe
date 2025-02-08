@@ -70,37 +70,75 @@
 
           <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
           <!-- Page Content -->
-          <h1>Falls Efficacy Scale</h1>
-          <p id="subtitle" class="lead text-muted">
-            Please rate your confidence in completing each of the 16 tasks
-            listed below. These tasks assess your confidence in avoiding falls
-            in various situations.
-          </p>
+          <div id="start-screen" class="start-screen">
+            <h1>Falls Efficacy Scale</h1>
+            <div class="start-content">
+              <p id="subtitle" class="lead text-muted">
+                Please rate your confidence in completing each of the 16 tasks
+                listed below. These tasks assess your confidence in avoiding falls
+                in various situations.
+              </p>
+              
+              <div class="info-box mb-4">
+                <h3>Last Assessment Details</h3>
+                <div id="last-assessment-info">
+                  <p>Date: <span id="last-taken-date">Loading...</span></p>
+                  <p>Score: <span id="last-score">Loading...</span></p>
+                </div>
+                <div id="countdown-timer" class="countdown">
+                  <p>Recommended time until next assessment:</p>
+                  <div class="timer">
+                    <span id="months">0</span>months
+                    <span id="days">0</span>days
+                    <span id="hours">0</span>hours
+                  </div>
+                </div>
+                <div id="voucher-status" class="mt-3" style="display: none;">
+                  <div class="alert alert-success">
+                    <p>🎉 You are eligible for a voucher!</p>
+                    <img src="https://media.karousell.com/media/photos/products/2023/7/12/ntuc_fairprice_vouchers_500_10_1689182795_77c98d5b" alt="Voucher" class="img-fluid" style="max-width: 200px;">
+                  </div>
+                </div>
+              </div>
 
-          <h2 style="padding-top: 1em; padding-bottom: 1em">
-            How Confident are you in the following:
-          </h2>
-          <div id="questions-container"></div>
-          <div class="d-flex justify-content-between mt-4">
-            <button id="back-button" class="btn btn-secondary" disabled>
-              Back
-            </button>
-            <button id="next-button" class="btn btn-secondary">Next</button>
-          </div>
-          <div class="d-flex justify-content-center mt-3">
-            <button id="submit-button" class="btn btn-primary" disabled>
-              Submit
-            </button>
-          </div>
-          <div
-            id="loading-spinner"
-            class="spinner-border text-primary"
-            role="status"
-            style="display: none"
-          >
-            <span class="visually-hidden">Loading...</span>
-          </div>
+              <div class="recommendation-box mb-4">
+                <p class="recommendation">
+                  💡 It is recommended to take this assessment <strong>ONCE EVERY 6 MONTHS</strong> to:
+               </p>               
+                <ul class="text-start">
+                  <li>Track your progress over time</li>
+                  <li>Earn rewards</li>
+                  <li>Identify areas that need attention</li>
+                </ul>
+              </div>
 
+              <button id="start-button" class="btn btn-primary btn-lg">
+                Continue
+              </button>
+            </div>
+          </div>
+          
+          <div id="questions-screen" style="display: none;"></div>
+            <h2 style="padding-top: 1em; padding-bottom: 1em">
+              How Confident are you in the following:
+            </h2>
+            <div id="questions-container"></div>
+            <div class="d-flex justify-content-between mt-4">
+              <button id="back-button" class="btn btn-secondary" disabled>
+                Back
+              </button>
+              <button id="next-button" class="btn btn-secondary">Next</button>
+            </div>
+            <div class="d-flex justify-content-center mt-3">
+              <button id="submit-button" class="btn btn-primary" disabled>
+                Submit
+              </button>
+            </div>
+            
+            <div id="loading-spinner" class="spinner-border text-primary" role="status" style="display: none">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
           <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
         </div>
       </div>

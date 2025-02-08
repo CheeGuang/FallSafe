@@ -281,7 +281,7 @@ async function submitResponses() {
     }
 
     const result = await response.json();
-    showCustomAlert(result.message, "userHome.html");
+    showCustomAlert(result.message, "userFESResults.html");
   } catch (error) {
     console.error(error);
     showCustomAlert("Error submitting responses. Please try again.");
@@ -311,8 +311,16 @@ async function generateResponse(prompt) {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  fetchQuestions();
+document.addEventListener("DOMContentLoaded", async () => {
+  const lastTakenDate = await fetchLastAssessmentDate();
+  updateCountdown(lastTakenDate);
+
+  // Start button event listener
+  document.getElementById("start-button").addEventListener("click", () => {
+    document.getElementById("start-screen").style.display = "none";
+    document.getElementById("questions-screen").style.display = "block";
+    fetchQuestions(); // Only fetch questions when starting the assessment
+  });
 
   document.getElementById("next-button").addEventListener("click", () => {
     handlePageChange("next");
@@ -323,8 +331,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document
-    .getElementById("submit-button")
-    .addEventListener("click", submitResponses);
+  .getElementById("submit-button")
+  .addEventListener("click", submitResponses);
+
   // Handle option selection
   document.addEventListener("click", (event) => {
     const label = event.target.closest(".option label");
@@ -347,6 +356,98 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+async function fetchLastAssessmentDate() {
+  try {
+    // Get JWT token and decode it to get user ID
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    // Decode JWT token to get user ID
+    const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+    const userId = tokenPayload.user_id;
+
+    if (!userId) {
+      throw new Error("User ID not found in token");
+    }
+
+    // Add user_id as a query parameter
+    const response = await fetch(`${API_FES_URL}/getLastAssessment?user_id=${userId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        // No previous assessment found - this is a valid case
+        return {
+          message: "No assessments found for this user"
+        };
+      }
+      throw new Error("Failed to fetch last assessment date");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching last assessment date:", error);
+    // Return a structured response even in case of error
+    return {
+      message: "No assessments found for this user"
+    };
+  }
+}
+
+function updateCountdown(assessmentData) {
+  const lastAssessmentInfo = document.getElementById("last-assessment-info");
+  const countdownTimer = document.getElementById("countdown-timer");
+  const voucherStatus = document.getElementById("voucher-status");
+  
+  if (!assessmentData || assessmentData.message === "No assessments found for this user") {
+    lastAssessmentInfo.innerHTML = "<p>No previous assessment found</p>";
+    countdownTimer.style.display = "none";
+    voucherStatus.style.display = "none";
+    return;
+  }
+
+  // Parse the ISO date string from the time.Time JSON
+  const lastTaken = new Date(assessmentData.response_date);
+  document.getElementById("last-taken-date").textContent = lastTaken.toLocaleDateString();
+  document.getElementById("last-score").textContent = assessmentData.total_score;
+
+  // calculate next time user should take test
+  const nextAssessment = new Date(lastTaken);
+  nextAssessment.setMonth(nextAssessment.getMonth() + 6);
+
+  function updateTimer() {
+    const now = new Date();
+    const difference = nextAssessment - now;
+
+    if (difference <= 0) {
+      countdownTimer.innerHTML = '<p class="text-success">✓ You can now take a new assessment</p>';
+      voucherStatus.style.display = "block";
+      return;
+    }
+
+    // hide voucher status if not eligible
+    voucherStatus.style.display = "none";
+
+    const months = Math.floor(difference / (1000 * 60 * 60 * 24 * 30));
+    const days = Math.floor((difference % (1000 * 60 * 60 * 24 * 30)) / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+    document.getElementById("months").textContent = months;
+    document.getElementById("days").textContent = days;
+    document.getElementById("hours").textContent = hours;
+  }
+
+  updateTimer();
+  setInterval(updateTimer, 1000 * 60 * 60); // update every hour
+}
 
 // Function to update the UI based on the selection
 function updateSelectionUI(selectedInput) {
