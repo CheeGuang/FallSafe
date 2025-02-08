@@ -550,11 +550,32 @@ function openEmailModal(button) {
   const lastFESDay = button.getAttribute("data-lastFESDay") || "Not Available";
   const userName = button.getAttribute('data-user');
 
-
   // Set the modal content
+
+  const modalFESParent = document.querySelector("#fesCheck + .form-check-label .last-date");
+  const modalFAParent = document.querySelector("#faCheck + .form-check-label .last-date");
+  
+  if (lastFESDay.includes("not taken")) {
+    modalFESParent.innerHTML = `Last completed: <span id="modalFES"> Not taken before</span>`;
+  } else {
+    modalFESParent.innerHTML = `Last completed: <span id="modalFES">${lastFESDay}</span> days ago`;
+  }
+  
+  // Re-fetch modalFES after modification
+  //const modalFES = document.getElementById("modalFES");
+  
+  if (lastFADay.includes("not taken")) {
+    modalFAParent.innerHTML = `Last completed: <span id="modalFA"> Not taken before</span>`;
+  } else {
+    modalFAParent.innerHTML = `Last completed: <span id="modalFA">${lastFADay}</span> days ago`;
+  }
+  
+  // Re-fetch modalFA after modification
+  const modalFA = document.getElementById("modalFA");
+
   document.getElementById("modalEmail").textContent = email;
-  document.getElementById("modalFES").textContent = lastFESDay;
-  document.getElementById("modalFA").textContent = lastFADay;
+  //document.getElementById("modalFES").textContent = lastFESDay;
+  //document.getElementById("modalFA").textContent = lastFADay;
   document.getElementById('userNameDisplay').textContent = userName;
 
 
