@@ -82,6 +82,50 @@ On the **admin side**:
 
 ---
 
+## Features
+
+### **Falls Efficacy Scale**
+
+- Integrated with **Google Translate** and **OpenAI**, allowing users to take this **internationally recognised fall risk assessment** easily.
+- Supports multiple languages, ensuring accessibility for diverse user groups.
+
+### **Physical Self-Assessment**
+
+- Uses **AWS IoT Core** to track real-time **body movements** and assess balance and coordination.
+- Provides instant feedback and personalised recommendations for fall prevention.
+
+### **NTUC Voucher Gamification**
+
+- Users receive **$10 NTUC vouchers** upon completing the fall risk assessment with a 6 months cool down.
+- Encourages engagement through **gamification mechanics**, increasing participation rates.
+- Enables **repeat assessments** for continuous fall risk monitoring, ensuring seniors stay proactive in maintaining their health.
+
+### **Elderly Fall Risk Analysis Dashboard**
+
+- **Powered by OpenAI**, offering **actionable insights** based on assessment results.
+- Uses **Chart.js** to present **comprehensive charts** for a clear visual representation of fall risks.
+- Helps seniors **track progress** over time and make informed health decisions.
+
+### **Teleconsultation with a Doctor**
+
+- Seamless integration with **Calendly, Google Calendar, and Google Meet**.
+- Enables users to **book virtual consultations** with doctors for further assessment.
+- Ensures timely medical intervention for high-risk users.
+
+### **Admin Dashboard for Elderly Fall Risk Analysis**
+
+- Provides an **overview of all seniors' fall risk levels**.
+- Enables administrators to **track test completion rates** and identify **high-risk cases**.
+- Supports **data-driven decision-making** for elderly care organisations.
+
+### **Admin Reminder System**
+
+- Allows admins to **send reminders** to elderly users to take their fall risk assessments.
+- Ensures higher engagement and completion rates for the self-assessment tests.
+- Supports **SMS and email notifications** for convenience.
+
+---
+
 ## Future Expansions
 
 <div style="display: flex; justify-content: center">
