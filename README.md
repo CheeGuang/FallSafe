@@ -88,7 +88,7 @@ At **FallSafe**, protecting user privacy and data security is our top priority. 
 
 #### **Customer Data Security**
 
-- **Regulatory Compliance:** Aivern Cloud Database adheres to **GDPR, HIPAA, ISO 27001, SOC2**, ensuring strict data protection and privacy standards.
+- **Regulatory Compliance:** Aiven Cloud Database adheres to **GDPR, HIPAA, ISO 27001, SOC2**, ensuring strict data protection and privacy standards.
 - **Secure Cloud Storage:** Utilizes **AWS S3** for encrypted data storage.
 - **Cloud Infrastructure Security:** Leveraging **Google Cloud** and **Render**, ensuring robust security, reliability, and scalable performance.
 - **AI and Multilingual Security:** **OpenAI** and **Google Translate** are integrated with strict access controls, ensuring data privacy while enabling multilingual accessibility.
