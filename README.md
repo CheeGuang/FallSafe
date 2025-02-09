@@ -46,7 +46,11 @@ port-forward-all.bat
 
 ## Introduction
 
+<div style="display: flex; justify-content: center">
+
 <img src="./frontend/img/ReadME/FallSafe.JPG" alt="FallSafe Image" style="float: right; width: 300px; margin-left: 20px;">
+
+</div>
 
 This project is developed for **Dell InnoDash 2025**, a hackathon where our key stakeholder is **Lions Befrienders**. The problem statement we are addressing is:
 
@@ -56,9 +60,12 @@ Our solution is a **100% Cloud Native** application with **Microservice Architec
 
 ### **Unique Selling Point**
 
-We integrate **IoT and AI** into our solution to enhance user experience:
+<div style="display: flex; justify-content: center">
 
 <img src="./frontend/img/ReadME/User Testing.jpg" alt="FallSafe Image" style="float: right; width: 300px; margin-left: 20px;">
+</div>
+
+We integrate **IoT and AI** into our solution to enhance user experience:
 
 - A **multi-lingual Text-to-Speech model** guides users on how to perform tests.
 - The **FallSafe Device** tracks real-time body movements and sends data to our Cloud application via **AWS IoT Core**.
@@ -75,7 +82,9 @@ On the **admin side**:
 
 ## Future Expansions
 
+<div style="display: flex; justify-content: center">
 <img src="./frontend/img/ReadME/Future Expansion.png" alt="FallSafe Image" style="float: right; width: 300px; margin-left: 20px;">
+</div>
 
 We plan to integrate **FallSafe** into **Lions Befrienders' Our Kampung Application**, enabling users to leverage their **mobile phone's gyroscope as a Body Motion Tracker**. This reduces the need for separate motion tracking devices, lowering costs and improving scalability.
 
@@ -91,7 +100,10 @@ The **Smart Nation Mobile Access for Seniors** initiative offers a **2-year mobi
 
 ## User Testing
 
-<img src="./frontend/img/ReadME/User Testing.png" alt="FallSafe Image" style="float: right; width: 150px; margin-left: 20px;margin-right: 75px;">
+<div style="display: flex; justify-content: center; gap: 20px;">
+    <img src="./frontend/img/ReadME/User Testing 1.jpg" alt="FallSafe Image 1" style="width: 300px;">
+    <img src="./frontend/img/ReadME/User Testing 2.jpg" alt="FallSafe Image 2" style="width: 300px;">
+</div>
 
 In total, we conducted **5 Official User Tests** with individuals aged **55-85 years old**. Through these sessions, we gathered valuable feedback to fine-tune **Fall Risk calculations**, enhance **UI/UX** for elderly users, and help them become more independent in their fall risk assessments. These tests also helped identify edge case bugs and improve the representation of results in the **Dashboard**.
 
