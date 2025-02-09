@@ -80,6 +80,8 @@ On the **admin side**:
 
 - They can **track users who have not completed their tests** and send reminders.
 
+---
+
 ## Future Expansions
 
 <div style="display: flex; justify-content: center">
@@ -98,6 +100,8 @@ Additionally, we can tap into the **Smart Nation Singapore initiative** by lever
 
 The **Smart Nation Mobile Access for Seniors** initiative offers a **2-year mobile plan at $5.10 per month**, enabling seniors to stay connected affordably. This initiative ensures digital inclusion and accessibility, making it easier for seniors to engage with technology-driven solutions like **FallSafe**.
 
+---
+
 ## User Testing
 
 <div style="display: flex; justify-content: center; gap: 20px;">
@@ -113,6 +117,8 @@ Each test included:
 - Unmoderated free-roam time to explore the website and interact with the system independently.
 
 FallSafe saw significant improvements with each iteration, ensuring a more user-friendly and accurate experience for seniors.
+
+---
 
 ## Network Architecture
 
@@ -161,6 +167,8 @@ The **FallSafe** architecture is designed as a **Cloud-Native Microservice-Based
    - This enhances **deployment efficiency, minimizes downtime, and ensures consistency** across environments.
 
 This architecture ensures **high availability, flexibility, and resilience**, enabling **FallSafe** to operate efficiently while maintaining a **seamless user experience**.
+
+---
 
 ## Contributors
 
