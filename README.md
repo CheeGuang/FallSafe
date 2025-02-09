@@ -6,7 +6,7 @@
 
 1. **Visit the Hosted Project**:
    Open your browser and navigate to:
-   [FallSafe Hosted Version](http://52.221.228.170:8000/)
+   [http://fallsafe.hellojeffreylee.com:8000](http://fallsafe.hellojeffreylee.com:8000)
 
 ---
 
@@ -163,6 +163,10 @@ The **FallSafe** architecture is designed as a **Cloud-Native Microservice-Based
 7. **CI/CD with Docker Hub**
    - **Docker Hub** is utilized as part of the **CI/CD process**, ensuring that **EC2 instances can pull the latest container images and deploy updates seamlessly**.
    - This enhances **deployment efficiency, minimizes downtime, and ensures consistency** across environments.
+8. **Route 53 Subdomain for Custom Access**
+   - The application is accessible via http://fallsafe.hellojeffreylee.com:8000/, configured using AWS Route 53.
+   - **Custom DNS routing** ensures users can reach the application seamlessly, enhancing **branding and accessibility**.
+   - The **subdomain points to an EC2 instance** running Kubernetes, allowing for high availability and scalability.
 
 This architecture ensures **high availability, flexibility, and resilience**, enabling **FallSafe** to operate efficiently while maintaining a **seamless user experience**.
 
