@@ -1,4 +1,4 @@
-# <img src="./frontend/img/FallSafe.png" alt="MindSphere Logo">
+# <img src="./frontend/img/FallSafe-WhiteBackground.png" alt="MindSphere Logo">
 
 ## How to Run the Project
 
