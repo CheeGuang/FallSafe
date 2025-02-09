@@ -1,5 +1,5 @@
-const API_FES_URL = "http://localhost:5300/api/v1"; // FES API URL
-const API_OpenAI_URL = "http://localhost:5150/api/v1"; // openAI API URL
+const API_FES_URL = `${window.location.protocol}//${window.location.hostname}:5300/api/v1`; // FES API URL
+const API_OpenAI_URL = `${window.location.protocol}//${window.location.hostname}:5150/api/v1`; // openAI API URL
 
 let questions = [];
 let currentPage = 1;

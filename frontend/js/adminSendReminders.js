@@ -55,12 +55,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
 async function initializeDashboard() {
   try {
-    const [users, fesLastResList, faLastResList, fesLatestRiskList, faLatestRiskList] = await Promise.all([
+    const [
+      users,
+      fesLastResList,
+      faLastResList,
+      fesLatestRiskList,
+      faLatestRiskList,
+    ] = await Promise.all([
       fetchUsersFromAPI(),
       fetchFESLastResponseDate(),
       fetchFallAssessmentLastResponseDate(),
       fetchLatestFESUserRiskFromAPI(),
-      fetchLatestFAUserRiskFromAPI()
+      fetchLatestFAUserRiskFromAPI(),
     ]);
 
     // Store the fetched data
@@ -86,7 +92,7 @@ async function fetchUsersFromAPI() {
   try {
     console.log(token);
     const response = await fetch(
-      "http://localhost:5200/api/v1/admin/getAllElderlyUser",
+      `${window.location.protocol}//${window.location.hostname}:5200/api/v1/admin/getAllElderlyUser`,
       {
         method: "GET",
         headers: {
@@ -114,7 +120,7 @@ async function fetchFESLastResponseDate() {
   try {
     // API endpoint to get the user ID and days since the last response
     const response = await fetch(
-      "http://localhost:5200/api/v1/admin/getAllLastResFES",
+      `${window.location.protocol}//${window.location.hostname}:5200/api/v1/admin/getAllLastResFES`,
       {
         method: "GET",
         headers: {
@@ -147,7 +153,7 @@ async function fetchFallAssessmentLastResponseDate() {
   try {
     // API endpoint to get the user ID and days since the last fall assessment response
     const response = await fetch(
-      "http://localhost:5200/api/v1/admin/getAllLastResFA",
+      `${window.location.protocol}//${window.location.hostname}:5200/api/v1/admin/getAllLastResFA`,
       {
         method: "GET",
         headers: {
@@ -183,53 +189,62 @@ async function fetchFallAssessmentLastResponseDate() {
 // Function to fetch all user risk levels of the latest, FOR Fall Assessment
 async function fetchLatestFAUserRiskFromAPI() {
   try {
-      const response = await fetch('http://localhost:5250/api/v1/selfAssessment/getAllUserRisk', {
-          method: 'GET',
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-          },
-      });
-
-      if (!response.ok) {
-          const errorDetails = await response.text();
-          throw new Error(`Error: ${errorDetails || 'Failed to fetch user risk levels'}`);
+    const response = await fetch(
+      `${window.location.protocol}//${window.location.hostname}:5250/api/v1/selfAssessment/getAllUserRisk`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       }
+    );
 
-      return await response.json();
+    if (!response.ok) {
+      const errorDetails = await response.text();
+      throw new Error(
+        `Error: ${errorDetails || "Failed to fetch user risk levels"}`
+      );
+    }
+
+    return await response.json();
   } catch (error) {
-      console.error('Error fetching user risk levels:', error.message);
-      showCustomAlert("Error fetching user risk levels");
-      throw error;
+    console.error("Error fetching user risk levels:", error.message);
+    showCustomAlert("Error fetching user risk levels");
+    throw error;
   }
 }
 
 // Function to fetch all user risk levels of the latest, FOR User Response
 async function fetchLatestFESUserRiskFromAPI() {
   try {
-    const response = await fetch('http://localhost:5200/api/v1/admin/getAllFESUserRisk', {  
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, // Use the actual token you are sending with the request
-      },
-    });
+    const response = await fetch(
+      `${window.location.protocol}//${window.location.hostname}:5200/api/v1/admin/getAllFESUserRisk`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Use the actual token you are sending with the request
+        },
+      }
+    );
 
     // Check if the response is successful (status code 200)
     if (!response.ok) {
       const errorDetails = await response.text();
-      throw new Error(`Error: ${errorDetails || 'Failed to fetch user risk levels'}`);
+      throw new Error(
+        `Error: ${errorDetails || "Failed to fetch user risk levels"}`
+      );
     }
 
     // Parse and return the JSON response
     return await response.json();
   } catch (error) {
-    console.error('Error fetching user risk levels:', error.message);
-    showCustomAlert("Error fetching user risk levels");  // Implement this function to show alerts
+    console.error("Error fetching user risk levels:", error.message);
+    showCustomAlert("Error fetching user risk levels"); // Implement this function to show alerts
     throw error;
   }
 }
-
 
 function setupEventListeners() {
   const ageGroupSelector = document.getElementById("ageGroupSelector");
@@ -271,60 +286,60 @@ function setupEventListeners() {
     });
 
   // Handle name search and update dropdown dynamically
-    userIdInput.addEventListener('input', function () {
-      const userName = userIdInput.value.trim().toLowerCase();
-      const selectedAgeGroup = ageGroupSelector.value;
+  userIdInput.addEventListener("input", function () {
+    const userName = userIdInput.value.trim().toLowerCase();
+    const selectedAgeGroup = ageGroupSelector.value;
 
-      if (selectedAgeGroup === 'all') {
-          if (userName !== '') {
-              const filteredUsers = dashboardData.users.filter(user => 
-                  user.name.toLowerCase().includes(userName) // Case-insensitive match
-              );
-              updateDropdown(filteredUsers);
-          } else {
-              suggestionDropdown.style.display = 'none'; // Hide dropdown if input is empty
-              updateDashboard('all'); // Reset dashboard when input is empty
-          }
+    if (selectedAgeGroup === "all") {
+      if (userName !== "") {
+        const filteredUsers = dashboardData.users.filter(
+          (user) => user.name.toLowerCase().includes(userName) // Case-insensitive match
+        );
+        updateDropdown(filteredUsers);
       } else {
-          suggestionDropdown.style.display = 'none'; // Hide dropdown when age group filter is active
+        suggestionDropdown.style.display = "none"; // Hide dropdown if input is empty
+        updateDashboard("all"); // Reset dashboard when input is empty
       }
+    } else {
+      suggestionDropdown.style.display = "none"; // Hide dropdown when age group filter is active
+    }
   });
 
   // Handle the "Search" button click to search and update dashboard
-  searchButton.addEventListener('click', function () {
-      const userName = userIdInput.value.trim();
-      const selectedAgeGroup = ageGroupSelector.value;
+  searchButton.addEventListener("click", function () {
+    const userName = userIdInput.value.trim();
+    const selectedAgeGroup = ageGroupSelector.value;
 
-      if (selectedAgeGroup === 'all') {
-          if (userName !== '') {
-              updateDashboard('user', userName);
-          } else {
-              showCustomAlert('Please enter a valid name.');
-          }
+    if (selectedAgeGroup === "all") {
+      if (userName !== "") {
+        updateDashboard("user", userName);
       } else {
-          showCustomAlert('Age range is selected. Search by Name is disabled.');
+        showCustomAlert("Please enter a valid name.");
       }
+    } else {
+      showCustomAlert("Age range is selected. Search by Name is disabled.");
+    }
   });
 
   // Update the dropdown with filtered users
   function updateDropdown(filteredUsers) {
-      suggestionDropdown.innerHTML = ''; // Clear previous suggestions
+    suggestionDropdown.innerHTML = ""; // Clear previous suggestions
 
-      if (filteredUsers.length === 0) {
-          suggestionDropdown.style.display = 'none'; // Hide if no results
-      } else {
-          suggestionDropdown.style.display = 'block'; // Show dropdown
-          filteredUsers.forEach(user => {
-              const listItem = document.createElement('li');
-              listItem.classList.add('dropdown-item');
-              listItem.textContent = user.name;
-              listItem.onclick = function() {
-                  userIdInput.value = user.name; // Populate the input field with selected name
-                  suggestionDropdown.style.display = 'none'; // Hide dropdown after selection
-              };
-              suggestionDropdown.appendChild(listItem);
-          });
-      }
+    if (filteredUsers.length === 0) {
+      suggestionDropdown.style.display = "none"; // Hide if no results
+    } else {
+      suggestionDropdown.style.display = "block"; // Show dropdown
+      filteredUsers.forEach((user) => {
+        const listItem = document.createElement("li");
+        listItem.classList.add("dropdown-item");
+        listItem.textContent = user.name;
+        listItem.onclick = function () {
+          userIdInput.value = user.name; // Populate the input field with selected name
+          suggestionDropdown.style.display = "none"; // Hide dropdown after selection
+        };
+        suggestionDropdown.appendChild(listItem);
+      });
+    }
   }
 }
 
@@ -349,29 +364,32 @@ function updateDashboard(filterType, filterValue) {
     }
   }
 
-    // Filter by User Name (allowing partial match)
-    else if (filterType === 'user') {
-      filteredUsers = dashboardData.users.filter(user => 
-          user.name.toLowerCase().includes(filterValue.toLowerCase()) // Case-insensitive partial match
-      );
+  // Filter by User Name (allowing partial match)
+  else if (filterType === "user") {
+    filteredUsers = dashboardData.users.filter(
+      (user) => user.name.toLowerCase().includes(filterValue.toLowerCase()) // Case-insensitive partial match
+    );
 
-      if (filteredUsers.length > 1) {
-          showCustomAlert(`Multiple users found (${filteredUsers.length} matches). Please refine your search.`);
-      } else if (filteredUsers.length === 0) {
-          showCustomAlert('No user found. Please try a different name.');
-          return; // Stop further processing
-      } else {
-          // Show alert for the selected user
-          const selectedUser = filteredUsers[0];
-          showCustomAlert(`Showing results for: ${selectedUser.name} (User ID: ${selectedUser.user_id})`);
-      }
+    if (filteredUsers.length > 1) {
+      showCustomAlert(
+        `Multiple users found (${filteredUsers.length} matches). Please refine your search.`
+      );
+    } else if (filteredUsers.length === 0) {
+      showCustomAlert("No user found. Please try a different name.");
+      return; // Stop further processing
+    } else {
+      // Show alert for the selected user
+      const selectedUser = filteredUsers[0];
+      showCustomAlert(
+        `Showing results for: ${selectedUser.name} (User ID: ${selectedUser.user_id})`
+      );
+    }
   }
 
   const userIds = filteredUsers.map((user) => user.user_id);
 
   //Combines my fragmented data of the database.
   const mergedData = dashboardData.users.map((user) => {
-
     // Find the corresponding FES and Fall Assessment data for each user
     const fes = dashboardData.fesLastResList.find(
       (fesItem) => fesItem.user_id === user.user_id
@@ -443,7 +461,9 @@ function getOverallRiskLevel(fesRisk, faRisk) {
 // Function to get the highest risk level
 function getMaxRiskLevel(fesRisk, faRisk) {
   const riskLevels = ["low", "moderate", "high"];
-  return riskLevels[Math.max(riskLevels.indexOf(fesRisk), riskLevels.indexOf(faRisk))];
+  return riskLevels[
+    Math.max(riskLevels.indexOf(fesRisk), riskLevels.indexOf(faRisk))
+  ];
 }
 
 function renderTable(data) {
@@ -456,22 +476,22 @@ function renderTable(data) {
 
   paginatedUsers.forEach((user) => {
     const row = tableBody.insertRow();
-    let riskBadge = '';
-        switch(user.overall_both_risk.toLowerCase()) {
-            case 'high':
-                riskBadge = `<span class="badge bg-danger rounded-pill">High</span>`;
-                break;
-            case 'moderate':
-                riskBadge = `<span class="badge bg-warning text-dark rounded-pill">Moderate</span>`;
-                break;
-            case 'low':
-                riskBadge = `<span class="badge bg-success rounded-pill">Low</span>`;
-                break;
-            case 'na':
-              riskBadge = `<span class="badge bg-dark text-white rounded-pill">N/A</span>`;
-              break;
-            default:
-              riskBadge = `<span class="badge bg-secondary rounded-pill">Unknown</span>`;
+    let riskBadge = "";
+    switch (user.overall_both_risk.toLowerCase()) {
+      case "high":
+        riskBadge = `<span class="badge bg-danger rounded-pill">High</span>`;
+        break;
+      case "moderate":
+        riskBadge = `<span class="badge bg-warning text-dark rounded-pill">Moderate</span>`;
+        break;
+      case "low":
+        riskBadge = `<span class="badge bg-success rounded-pill">Low</span>`;
+        break;
+      case "na":
+        riskBadge = `<span class="badge bg-dark text-white rounded-pill">N/A</span>`;
+        break;
+      default:
+        riskBadge = `<span class="badge bg-secondary rounded-pill">Unknown</span>`;
     }
     row.innerHTML = `
             <td>${user.user_id}</td>
@@ -541,46 +561,47 @@ function changePage(page) {
   renderTable(dashboardData.filteredTableData);
 }
 
-
-
 function openEmailModal(button) {
   // Extract data from button
   const email = button.getAttribute("data-email");
   const lastFADay = button.getAttribute("data-lastFADay") || "Not Available";
   const lastFESDay = button.getAttribute("data-lastFESDay") || "Not Available";
-  const userName = button.getAttribute('data-user');
+  const userName = button.getAttribute("data-user");
 
   // Set the modal content
 
-  const modalFESParent = document.querySelector("#fesCheck + .form-check-label .last-date");
-  const modalFAParent = document.querySelector("#faCheck + .form-check-label .last-date");
-  
+  const modalFESParent = document.querySelector(
+    "#fesCheck + .form-check-label .last-date"
+  );
+  const modalFAParent = document.querySelector(
+    "#faCheck + .form-check-label .last-date"
+  );
+
   if (lastFESDay.includes("not taken")) {
     modalFESParent.innerHTML = `Last completed: <span id="modalFES"> Not taken before</span>`;
   } else {
     modalFESParent.innerHTML = `Last completed: <span id="modalFES">${lastFESDay}</span> days ago`;
   }
-  
+
   // Re-fetch modalFES after modification
   //const modalFES = document.getElementById("modalFES");
-  
+
   if (lastFADay.includes("not taken")) {
     modalFAParent.innerHTML = `Last completed: <span id="modalFA"> Not taken before</span>`;
   } else {
     modalFAParent.innerHTML = `Last completed: <span id="modalFA">${lastFADay}</span> days ago`;
   }
-  
+
   // Re-fetch modalFA after modification
   const modalFA = document.getElementById("modalFA");
 
   document.getElementById("modalEmail").textContent = email;
   //document.getElementById("modalFES").textContent = lastFESDay;
   //document.getElementById("modalFA").textContent = lastFADay;
-  document.getElementById('userNameDisplay').textContent = userName;
-
+  document.getElementById("userNameDisplay").textContent = userName;
 
   // Show the Bootstrap modal
-  $('#emailModal').modal('show');
+  $("#emailModal").modal("show");
 }
 
 //To prepare the information to send Over
@@ -596,63 +617,61 @@ function confirmSendEmail(button) {
 
   // Check if the "Falls Efficacy Scale" checkbox is selected
   if (fesCheck.checked) {
-      selectedTests.push({
-          testType: "Falls Efficacy Scale",  // Corrected to Falls Efficacy Scale
-          lastCompletedDays: fesDays
-      });
+    selectedTests.push({
+      testType: "Falls Efficacy Scale", // Corrected to Falls Efficacy Scale
+      lastCompletedDays: fesDays,
+    });
   }
 
   // Check if the "Fall Assessment" checkbox is selected
   if (faCheck.checked) {
-      selectedTests.push({
-          testType: "Fall Assessment",  // Kept as Fall Assessment
-          lastCompletedDays: faDays
-      });
+    selectedTests.push({
+      testType: "Fall Assessment", // Kept as Fall Assessment
+      lastCompletedDays: faDays,
+    });
   }
 
   // If no checkbox is selected, you can either send a message or skip sending
   if (selectedTests.length === 0) {
-      showCustomAlert("Please select at least one assessment to send a reminder.");
-      return; // Exit the function if no tests are selected
+    showCustomAlert(
+      "Please select at least one assessment to send a reminder."
+    );
+    return; // Exit the function if no tests are selected
   }
 
   // Prepare the request body with userName, email, and selectedTests
   const requestBody = {
-      userName: userName,
-      email: email,
-      selectedTests: selectedTests
+    userName: userName,
+    email: email,
+    selectedTests: selectedTests,
   };
   console.log(requestBody);
 
   // Send the data to the backend
-  fetch('http://localhost:5200/api/v1/admin/sendEmailAssesRemind', {
-      method: 'POST',
+  fetch(
+    `${window.location.protocol}//${window.location.hostname}:5200/api/v1/admin/sendEmailAssesRemind`,
+    {
+      method: "POST",
       headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`, // Ensure `token` is defined
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Ensure `token` is defined
       },
-      body: JSON.stringify(requestBody)
-  })
-  .then(response => response.json())
-  .then(data => {
+      body: JSON.stringify(requestBody),
+    }
+  )
+    .then((response) => response.json())
+    .then((data) => {
       console.log("Reminder sent successfully:", data);
       // Close modal or give feedback to user
-      $('#emailModal').modal('hide'); // Close the modal after successful reminder
+      $("#emailModal").modal("hide"); // Close the modal after successful reminder
       showCustomAlert(`Email sent sucessfully to ${email}`);
-
-  })
-  .catch(error => {
+    })
+    .catch((error) => {
       console.error("Error sending reminder:", error);
       // Handle error (optional)
       showCustomAlert("Error sending reminder. Please try again.");
-  });
+    });
 }
-
-
-
-
-
-
 
 //function to Send Email, handled by the Microservice in Admin
 async function sendEmail(button) {
@@ -667,7 +686,7 @@ async function sendEmail(button) {
   }
   try {
     const response = await fetch(
-      "http://localhost:5200/api/v1/admin/sendEmailAssesRemind",
+      `${window.location.protocol}//${window.location.hostname}:5200/api/v1/admin/sendEmailAssesRemind`,
       {
         method: "POST",
         headers: {

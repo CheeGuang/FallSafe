@@ -37,7 +37,7 @@ func init() {
 
 	// Initialize database connection
 	log.Println("Initializing database connection...")
-	db, err = sql.Open("mysql", os.Getenv("DB_CONNECTION"))
+	db, err = sql.Open("mysql", os.Getenv("AUTH_DB_CONNECTION"))
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
@@ -297,7 +297,7 @@ func callUserMicroservice(user struct {
 	Address         string `json:"address"`
 	Age             uint8   `json:"age"`
 }) error {
-	userMicroserviceURL := "http://user-service.fallsafe-namespace.svc.cluster.local:5100/api/v1/user/create"
+	userMicroserviceURL := "http://52.221.228.170:5100/api/v1/user/create"
 	payload := map[string]interface{}{
 		"email":            user.Email,
 		"verification_code": user.VerificationCode,

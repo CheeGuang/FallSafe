@@ -11,8 +11,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     const user_id = decodeToken(token).user_id;
     const [fesResults] = await Promise.all([
       fetchData(
-        `http://127.0.0.1:5100/api/v1/user/getAUserFESResults?user_id=${user_id}`
-      )
+        `${window.location.protocol}//${window.location.hostname}:5100/api/v1/user/getAUserFESResults?user_id=${user_id}`
+      ),
     ]);
 
     if (!fesResults) {
@@ -23,13 +23,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Calculate risk from fesResults.fes_results
     const riskResult = fesCalculateOverallRisk(fesResults.fes_results);
     displayRiskResult(riskResult);
-    
+
     generateCharts(fesResults.fes_results);
     generateGaugeCharts(fesResults.fes_results);
     populateDropdown(fesResults.fes_results);
     updateCharts(fesResults.fes_results, fesResults.fes_results.length - 1);
-    updateMuscleStrengthChart(fesResults.fes_results[fesResults.fes_results.length - 1]);
-
+    updateMuscleStrengthChart(
+      fesResults.fes_results[fesResults.fes_results.length - 1]
+    );
   } catch (error) {
     console.error("Error: ", error);
     alert("An error occurred while fetching data.");
@@ -89,7 +90,9 @@ function displayRiskResult({ percentage, level }) {
 
   progressBar.style.width = `${percentage.toFixed(2)}%`;
   progressBar.className = `progress-bar ${color}`;
-  riskLabel.innerHTML = `<strong>${level.toUpperCase()}</strong> - ${percentage.toFixed(2)}% Risk`;
+  riskLabel.innerHTML = `<strong>${level.toUpperCase()}</strong> - ${percentage.toFixed(
+    2
+  )}% Risk`;
 }
 
 function generateCharts(fesResults) {
@@ -158,7 +161,7 @@ function populateDropdown(fesResults) {
     console.warn("Dropdown element not found");
     return;
   }
-  
+
   dropdown.innerHTML = "";
 
   fesResults.sort(
@@ -405,7 +408,7 @@ function updateMuscleStrengthChart(selectedTest) {
     console.warn("Muscle labels element not found");
     return;
   }
-  
+
   muscleLabels.innerHTML = "";
 
   Object.keys(muscleGroups).forEach((group) => {

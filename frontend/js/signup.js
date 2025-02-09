@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
     sendCodeButton.disabled = true;
 
     // Construct the endpoint dynamically using window.location.origin
-    const endpoint = `http://localhost:5050/api/v1/authentication/send-verification`;
+    const endpoint = `${window.location.protocol}//${window.location.hostname}:5050/api/v1/authentication/send-verification`;
 
     // Send a POST request to the backend API
     fetch(endpoint, {
@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const address = document.getElementById("address").value;
 
     const response = await fetch(
-      "http://localhost:5050/api/v1/authentication/register-user",
+      `${window.location.protocol}//${window.location.hostname}:5050/api/v1/authentication/register-user`,
       {
         method: "POST",
         headers: {
