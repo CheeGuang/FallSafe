@@ -82,6 +82,32 @@ On the **admin side**:
 
 ---
 
+### **Unwavering Commitment to Customer Data Security**
+
+At **FallSafe**, protecting user privacy and data security is our top priority. We implement **industry-leading security standards** to ensure the **confidentiality, integrity, and availability** of sensitive information. Our security measures include:
+
+#### **Customer Data Security**
+
+- **Regulatory Compliance:** Aivern Cloud Database adheres to **GDPR, HIPAA, ISO 27001, SOC2**, ensuring strict data protection and privacy standards.
+- **Secure Cloud Storage:** Utilizes **AWS S3** for encrypted data storage.
+- **Cloud Infrastructure Security:** Leveraging **Google Cloud** and **Render**, ensuring robust security, reliability, and scalable performance.
+- **AI and Multilingual Security:** **OpenAI** and **Google Translate** are integrated with strict access controls, ensuring data privacy while enabling multilingual accessibility.
+
+#### **Container Security**
+
+- **Docker & Kubernetes:** Implementing **containerized security** to ensure **fault isolation, scalability, and automated recovery**, protecting against system vulnerabilities.
+
+#### **End-to-End Encryption**
+
+- **Google Meets:** Secure communication channels with **end-to-end encryption**, safeguarding user interactions.
+
+#### **Data Encryption in Transit**
+
+- **SMTP Protocol:** Encrypted email transmissions ensure **secure delivery of notifications** and communications.
+- **Calendly Integration:** Secure scheduling system ensuring **protected user interactions** with **Google Calendar and Google Meet**.
+
+---
+
 ## Features
 
 ### **Falls Efficacy Scale**
