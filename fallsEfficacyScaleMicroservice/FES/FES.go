@@ -28,9 +28,9 @@ func init() {
 	}
 
 	// Initialize database connection
-	dbConnection := os.Getenv("DB_CONNECTION")
+	dbConnection := os.Getenv("FES_DB_CONNECTION")
 	if dbConnection == "" {
-		log.Fatalf("DB_CONNECTION environment variable is not set")
+		log.Fatalf("FES_DB_CONNECTION environment variable is not set")
 	}
 
 	log.Println("Initializing database connection...")

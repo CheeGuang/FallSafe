@@ -28,9 +28,9 @@ func init() {
 	}
 
 	// Initialize database connection
-	dbConnection := os.Getenv("DB_CONNECTION")
+	dbConnection := os.Getenv("USER_DB_CONNECTION")
 	if dbConnection == "" {
-		log.Fatalf("DB_CONNECTION environment variable is not set")
+		log.Fatalf("USER_DB_CONNECTION environment variable is not set")
 	}
 
 	log.Println("Initializing database connection...")
@@ -202,7 +202,7 @@ func CallFESForActionableInsights(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Construct the API URL to fetch FES results
-	apiURL := fmt.Sprintf("http://localhost:5300/api/v1/fes/getFESResults?user_id=%s", userID)
+	apiURL := fmt.Sprintf("http://fallsefficacy-service.fallsafe-namespace.svc.cluster.local:5300/api/v1/fes/getFESResults?user_id=%s", userID)
 
 	// Extract the Authorization header from the incoming request
 	authHeader := r.Header.Get("Authorization")
@@ -262,7 +262,7 @@ func CallFESForActionableInsights(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call the AI microservice for insights
-	aiAPIURL := "http://127.0.0.1:5150/api/v1/generateResponse"
+	aiAPIURL := "http://openai-service.fallsafe-namespace.svc.cluster.local:5150/api/v1/generateResponse"
 	aiReq, err := http.NewRequest("POST", aiAPIURL, bytes.NewBuffer(aiRequestBody))
 	if err != nil {
 		log.Printf("Error creating AI request: %v", err)
@@ -332,7 +332,7 @@ func CallSelfAssessmentForInsights(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Construct the API URL to fetch Self-Assessment results
-	apiURL := fmt.Sprintf("http://localhost:5250/api/v1/selfAssessment/getUserResults?user_id=%s", userID)
+	apiURL := fmt.Sprintf("http://selfassessment-service.fallsafe-namespace.svc.cluster.local:5250/api/v1/selfAssessment/getUserResults?user_id=%s", userID)
 
 	// Extract the Authorization header from the incoming request
 	authHeader := r.Header.Get("Authorization")
@@ -413,7 +413,7 @@ func CallSelfAssessmentForInsights(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call the AI microservice for insights
-	aiAPIURL := "http://127.0.0.1:5150/api/v1/generateResponse"
+	aiAPIURL := "http://openai-service.fallsafe-namespace.svc.cluster.local:5150/api/v1/generateResponse"
 	aiReq, err := http.NewRequest("POST", aiAPIURL, bytes.NewBuffer(aiRequestBody))
 	if err != nil {
 		log.Printf("Error creating AI request: %v", err)

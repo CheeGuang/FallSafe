@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: selfassessment-microservice
+  namespace: fallsafe-namespace
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: selfassessment-microservice
+  template:
+    metadata:
+      labels:
+        app: selfassessment-microservice
+    spec:
+      imagePullSecrets:
+        - name: dockerhubsecret
+      containers:
+        - name: selfassessment-microservice
+          image: cheeguang/selfassessment-microservice:latest
+          ports:
+            - containerPort: 5250 # WebSocket port
+          env:
+            - name: DB_CONNECTION
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: SELF_DB_CONNECTION
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: JWT_SECRET
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: SMTP_USER
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: SMTP_PASSWORD
+            - name: AWS_IOT_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: AWS_IOT_ENDPOINT
+            - name: AWS_IOT_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: AWS_IOT_CLIENT_ID
+            - name: AWS_IOT_CERT_FILE
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: AWS_IOT_CERT_FILE
+            - name: AWS_IOT_KEY_FILE
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: AWS_IOT_KEY_FILE
+            - name: AWS_IOT_CA_FILE
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: AWS_IOT_CA_FILE
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: selfassessment-service
+  namespace: fallsafe-namespace
+spec:
+  selector:
+    app: selfassessment-microservice
+  ports:
+    - name: http
+      protocol: TCP
+      port: 5250
+      targetPort: 5250
+  type: NodePort

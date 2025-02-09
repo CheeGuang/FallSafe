@@ -28,7 +28,7 @@ func init() {
 
 	// Initialize database connection
 	log.Println("Initializing database connection...")
-	db, err = sql.Open("mysql", os.Getenv("DB_CONNECTION"))
+	db, err = sql.Open("mysql", os.Getenv("AUTH_DB_CONNECTION"))
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
@@ -209,7 +209,7 @@ func generateJWT(userID int) (string, time.Time, error) {
 	expiryTime := time.Now().Add(24 * time.Hour)
 
 	// Fetch user details from the API
-	url := fmt.Sprintf("http://127.0.0.1:5100/api/v1/user/getUser?userID=%d", userID)
+	url := fmt.Sprintf("http://user-service.fallsafe-namespace.svc.cluster.local:5100/api/v1/user/getUser?userID=%d", userID)
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Printf("Error calling GetUserByID API: %v", err)
@@ -263,7 +263,7 @@ func generateAdminJWT(adminID int) (string, time.Time, error) {
 	expiryTime := time.Now().Add(24 * time.Hour)
 
 	// Fetch user details from the API
-	url := fmt.Sprintf("http://127.0.0.1:5200/api/v1/admin/getAdmin?adminID=%d", adminID)
+	url := fmt.Sprintf("http://admin-service.fallsafe-namespace.svc.cluster.local:5200/api/v1/admin/getAdmin?adminID=%d", adminID)
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Printf("Error calling GetAdminByID API: %v", err)

@@ -297,7 +297,7 @@ func callUserMicroservice(user struct {
 	Address         string `json:"address"`
 	Age             uint8   `json:"age"`
 }) error {
-	userMicroserviceURL := "http://127.0.0.1:5100/api/v1/user/create"
+	userMicroserviceURL := "http://user-service.fallsafe-namespace.svc.cluster.local:5100/api/v1/user/create"
 	payload := map[string]interface{}{
 		"email":            user.Email,
 		"verification_code": user.VerificationCode,

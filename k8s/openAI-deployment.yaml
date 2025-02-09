@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openai-microservice
+  namespace: fallsafe-namespace
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: openai-microservice
+  template:
+    metadata:
+      labels:
+        app: openai-microservice
+    spec:
+      imagePullSecrets:
+        - name: dockerhubsecret
+      containers:
+        - name: openai-microservice
+          image: cheeguang/openai-microservice:latest
+          ports:
+            - containerPort: 5150
+          env:
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: OPENAI_API_KEY
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openai-service
+spec:
+  selector:
+    app: openai-microservice
+  ports:
+    - protocol: TCP
+      port: 5150
+      targetPort: 5150
+  type: NodePort

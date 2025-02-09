@@ -33,7 +33,7 @@ func init() {
 
 	// Initialize database connection
 	log.Println("Initializing database connection...")
-	db, err = sql.Open("mysql", os.Getenv("DB_CONNECTION"))
+	db, err = sql.Open("mysql", os.Getenv("SELF_DB_CONNECTION"))
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
@@ -896,57 +896,123 @@ func GetAllFATestWithAvgTime(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Struct to hold user_id and overall_risk_level
+// UserRisk holds the user ID and their overall risk level.
 type UserRisk struct {
-	UserID         int    `json:"user_id"`
+	UserID           int    `json:"user_id"`
 	OverallRiskLevel string `json:"overall_risk_level"`
 }
 
+// Tolerances holds the time and abrupt tolerances for a test.
+type Tolerances struct {
+	timeTolerance   float64
+	abruptTolerance float64
+}
+
+// calculateScore computes the final score based on time taken, abrupt percentage, and test name.
+func calculateScoreAdmin(timeTaken, abruptPercentage float64, testName string) int {
+	// Define test-specific tolerances.
+	tolerancesMap := map[string]Tolerances{
+		"Timed Up and Go Test":         {20, 30},
+		"Five Times Sit to Stand Test": {25, 40},
+		"Dynamic Gait Index (DGI)":      {25, 20},
+		"4 Stage Balance Test":          {40, 15},
+	}
+
+	// Use default values if the test name is not found.
+	t, ok := tolerancesMap[testName]
+	if !ok {
+		t = Tolerances{12, 50}
+	}
+
+	var timeScore float64
+
+	// Scoring logic based on test type.
+	switch testName {
+	case "Timed Up and Go Test", "Five Times Sit to Stand Test", "Dynamic Gait Index (DGI)":
+		// For these tests, a lower time is better.
+		if timeTaken <= t.timeTolerance {
+			timeScore = 100
+		} else {
+			timeScore = 100 - ((timeTaken-t.timeTolerance)/t.timeTolerance)*100
+			if timeScore < 0 {
+				timeScore = 0
+			}
+		}
+
+	case "4 Stage Balance Test":
+		// For the 4 Stage Balance Test, a higher time is better.
+		if timeTaken <= 0 {
+			timeScore = 0
+		} else {
+			timeScore = (timeTaken / t.timeTolerance) * 100
+			if timeScore > 100 {
+				timeScore = 100
+			}
+			timeScore = math.Round(timeScore)
+		}
+
+	default:
+		log.Printf("Unknown test type: %s", testName)
+		timeScore = 50 // Default score for unknown tests.
+	}
+
+	// Calculate abrupt movement score.
+	var abruptScore float64
+	if abruptPercentage <= t.abruptTolerance {
+		abruptScore = 100
+	} else {
+		abruptScore = 100 - ((abruptPercentage-t.abruptTolerance)/t.abruptTolerance)*100
+		if abruptScore < 0 {
+			abruptScore = 0
+		}
+	}
+
+	// Weighted average: 70% time, 30% abrupt.
+	finalScoreFloat := timeScore*0.7 + abruptScore*0.3
+	finalScore := int(math.Round(finalScoreFloat))
+
+	log.Printf("Test: %s | TimeTaken: %.2f | AbruptPercentage: %.2f | TimeScore: %.2f | AbruptScore: %.2f | FinalScore: %d",
+		testName, timeTaken, abruptPercentage, timeScore, abruptScore, finalScore)
+
+	return finalScore
+}
+
+// determineRiskLevel returns a risk level based on the final score.
+// In this mapping, a lower final score indicates a higher risk.
+func determineRiskLevelAdmin(totalScore int) string {
+	log.Printf("Final Score: %d", totalScore)
+	if totalScore < 30 {
+		return "high"
+	}
+	if totalScore < 60 {
+		return "moderate"
+	}
+	return "low"
+}
+
+// GetUserOverallLatestRisk retrieves the latest test result per user,
+// calculates the test score using the new scoring logic, and determines the risk level.
 func GetUserOverallLatestRisk(w http.ResponseWriter, r *http.Request) {
-	// Slice to hold the results
 	var userRisks []UserRisk
 
-	// Query to get the latest session for each user and determine their overall risk level. Ignored any TestSession that is NULL
+	// This query retrieves, for each user, their latest test result (by test_date)
+	// and joins with the Test table to obtain the test name.
 	query := `
-		WITH RankedSessions AS (
-			SELECT 
-				user_id, 
-				session_id, 
-				session_date, 
-				total_score,
-				ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY session_id DESC) AS session_rank
-			FROM TestSession
-			WHERE user_id IS NOT NULL 
-				AND session_date IS NOT NULL 
-				AND total_score IS NOT NULL
-		),
-		LatestSession AS (
-			SELECT user_id, session_id
-			FROM RankedSessions
-			WHERE session_rank = 1
-		),
-		RiskCount AS (
-			SELECT 
-				ls.user_id,
-				SUM(CASE WHEN utr.risk_level = 'low' THEN 1 ELSE 0 END) AS low_count,
-				SUM(CASE WHEN utr.risk_level = 'moderate' THEN 1 ELSE 0 END) AS moderate_count,
-				SUM(CASE WHEN utr.risk_level = 'high' THEN 1 ELSE 0 END) AS high_count
-			FROM LatestSession ls
-			JOIN UserTestResult utr ON ls.session_id = utr.session_id
-			GROUP BY ls.user_id
+		WITH LatestTest AS (
+			SELECT
+				utr.user_id, 
+				utr.time_taken, 
+				utr.abrupt_percentage, 
+				t.test_name,
+				ROW_NUMBER() OVER (PARTITION BY utr.user_id ORDER BY utr.test_date DESC) AS rn
+			FROM UserTestResult utr
+			JOIN Test t ON utr.test_id = t.test_id
 		)
-		SELECT 
-			user_id,
-			CASE 
-				WHEN high_count >= 2 THEN 'high'
-				WHEN moderate_count >= 2 THEN 'moderate'
-				ELSE 'low'
-			END AS overall_risk_level
-		FROM RiskCount;
-
+		SELECT user_id, time_taken, abrupt_percentage, test_name
+		FROM LatestTest
+		WHERE rn = 1;
 	`
 
-	// Execute query
 	rows, err := db.Query(query)
 	if err != nil {
 		log.Printf("Error executing query: %v", err)
@@ -955,28 +1021,38 @@ func GetUserOverallLatestRisk(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	// Scan results into the slice
 	for rows.Next() {
-		var risk UserRisk
-		if err := rows.Scan(&risk.UserID, &risk.OverallRiskLevel); err != nil {
+		var userID int
+		var timeTaken float64
+		var abruptPercentage float64
+		var testName string
+
+		if err := rows.Scan(&userID, &timeTaken, &abruptPercentage, &testName); err != nil {
 			log.Printf("Error scanning row: %v", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
-		userRisks = append(userRisks, risk)
+
+		// Calculate the final score for this test.
+		finalScore := calculateScoreAdmin(timeTaken, abruptPercentage, testName)
+		// Determine the risk level from the final score.
+		riskLevel := determineRiskLevelAdmin(finalScore)
+
+		userRisks = append(userRisks, UserRisk{
+			UserID:           userID,
+			OverallRiskLevel: riskLevel,
+		})
 	}
 
-	// Check for errors after scanning rows
 	if err := rows.Err(); err != nil {
 		log.Printf("Error iterating over rows: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	// Respond with JSON output
+	// Return the result as JSON.
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(userRisks)
-	if err != nil {
+	if err := json.NewEncoder(w).Encode(userRisks); err != nil {
 		log.Printf("Error encoding response: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return

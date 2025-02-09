@@ -1,0 +1,105 @@
+---
+# 1️⃣ Admin Microservice Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-service
+  namespace: fallsafe-namespace
+spec:
+  selector:
+    app: admin-microservice
+  ports:
+    - protocol: TCP
+      port: 5200
+      targetPort: 5200
+  type: NodePort
+
+---
+# 2️⃣ Authentication Microservice Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  selector:
+    app: authentication-microservice
+  ports:
+    - protocol: TCP
+      port: 5050
+      targetPort: 5050
+  type: NodePort
+
+---
+# 3️⃣ Falls Efficacy Microservice Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: fallsefficacy-service
+spec:
+  selector:
+    app: falls-efficacy-microservice
+  ports:
+    - protocol: TCP
+      port: 5300
+      targetPort: 5300
+  type: NodePort
+
+---
+# 4️⃣ OpenAI Microservice Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: openai-service
+spec:
+  selector:
+    app: openai-microservice
+  ports:
+    - protocol: TCP
+      port: 5150
+      targetPort: 5150
+  type: NodePort
+
+---
+# 5️⃣ Self-Assessment Microservice Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: selfassessment-service
+spec:
+  selector:
+    app: self-microservice # Ensure consistency with `deployment.yaml`
+  ports:
+    - protocol: TCP
+      port: 5250
+      targetPort: 5250
+  type: NodePort
+
+---
+# 6️⃣ User Microservice Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+spec:
+  selector:
+    app: user-microservice
+  ports:
+    - protocol: TCP
+      port: 5100
+      targetPort: 5100
+  type: NodePort
+
+---
+# 7️⃣ Frontend Service (Publicly Exposed)
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer # Change to `ClusterIP` if using Ingress

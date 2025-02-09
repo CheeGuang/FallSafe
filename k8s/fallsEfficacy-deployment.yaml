@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fallsefficacy-microservice
+  namespace: fallsafe-namespace
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fallsefficacy-microservice
+  template:
+    metadata:
+      labels:
+        app: fallsefficacy-microservice
+    spec:
+      imagePullSecrets:
+        - name: dockerhubsecret
+      containers:
+        - name: fallsefficacy-microservice
+          image: cheeguang/fallsefficacy-microservice:latest
+          ports:
+            - containerPort: 5300
+          env:
+            - name: DB_CONNECTION
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: FES_DB_CONNECTION
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: JWT_SECRET
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: SMTP_USER
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: SMTP_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fallsefficacy-service
+spec:
+  selector:
+    app: fallsefficacy-microservice
+  ports:
+    - protocol: TCP
+      port: 5300
+      targetPort: 5300
+  type: NodePort

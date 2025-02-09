@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-microservice
+  namespace: fallsafe-namespace
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: admin-microservice
+  template:
+    metadata:
+      labels:
+        app: admin-microservice
+    spec:
+      imagePullSecrets:
+        - name: dockerhubsecret
+      containers:
+        - name: admin-microservice
+          image: cheeguang/admin-microservice:latest
+          ports:
+            - containerPort: 5200
+          env:
+            - name: DB_CONNECTION
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: ADMIN_DB_CONNECTION
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: JWT_SECRET
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: SMTP_USER
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: SMTP_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-service
+spec:
+  selector:
+    app: admin-microservice
+  ports:
+    - protocol: TCP
+      port: 5200
+      targetPort: 5200
+  type: NodePort
