@@ -152,6 +152,22 @@ At **FallSafe**, protecting user privacy and data security is our top priority. 
 
 ---
 
+## User Testing
+
+<img src="./frontend/img/ReadME/FallSafe User Testing 1.JPG" alt="FallSafe Image 1" style="width: 300px;">
+<img src="./frontend/img/ReadME/FallSafe User Testing 2.JPG" alt="FallSafe Image 2" style="width: 300px;">
+
+In total, we conducted **5 Official User Tests** with individuals aged **55-85 years old**. Through these sessions, we gathered valuable feedback to fine-tune **Fall Risk calculations**, enhance **UI/UX** for elderly users, and help them become more independent in their fall risk assessments. These tests also helped identify edge case bugs and improve the representation of results in the **Dashboard**.
+
+Each test included:
+
+- Evaluation of the **Falls Efficacy Scale**, **Self-Assessment**, and **Dashboard** for fall risk analytics.
+- Unmoderated free-roam time to explore the website and interact with the system independently.
+
+FallSafe saw significant improvements with each iteration, ensuring a more user-friendly and accurate experience for seniors.
+
+---
+
 ## Future Expansions
 
 <div style="display: flex; justify-content: center">
@@ -169,22 +185,6 @@ Additionally, we can tap into the **Smart Nation Singapore initiative** by lever
 ### **What is Smart Nation's Mobile Access for Seniors?**
 
 The **Smart Nation Mobile Access for Seniors** initiative offers a **2-year mobile plan at $5.10 per month**, enabling seniors to stay connected affordably. This initiative ensures digital inclusion and accessibility, making it easier for seniors to engage with technology-driven solutions like **FallSafe**.
-
----
-
-## User Testing
-
-<img src="./frontend/img/ReadME/FallSafe User Testing 1.JPG" alt="FallSafe Image 1" style="width: 300px;">
-<img src="./frontend/img/ReadME/FallSafe User Testing 2.JPG" alt="FallSafe Image 2" style="width: 300px;">
-
-In total, we conducted **5 Official User Tests** with individuals aged **55-85 years old**. Through these sessions, we gathered valuable feedback to fine-tune **Fall Risk calculations**, enhance **UI/UX** for elderly users, and help them become more independent in their fall risk assessments. These tests also helped identify edge case bugs and improve the representation of results in the **Dashboard**.
-
-Each test included:
-
-- Evaluation of the **Falls Efficacy Scale**, **Self-Assessment**, and **Dashboard** for fall risk analytics.
-- Unmoderated free-roam time to explore the website and interact with the system independently.
-
-FallSafe saw significant improvements with each iteration, ensuring a more user-friendly and accurate experience for seniors.
 
 ---
 
