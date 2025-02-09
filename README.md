@@ -230,12 +230,11 @@ The **FallSafe** architecture is designed as a **Cloud-Native Microservice-Based
    - The system is deployed on **AWS EC2 instances running Kubernetes**, ensuring **automated scaling and high availability**.
    - Load balancing and resource allocation dynamically adjust based on user demand, **optimizing costs** and improving **performance stability**.
 
-3. **AWS Security & Monitoring**
+3. **Route 53 Subdomain for Custom Access**
 
-   - The architecture leverages **AWS WAF, Shield, GuardDuty, and IAM** for **robust security enforcement**.
-   - **AWS CloudWatch and AWS CloudTrail** provide real-time **monitoring, logging, and auditing**, enabling rapid **issue detection and resolution**.
-   - **CloudWatch Alarms** are configured with **SNS notifications**, alerting administrators to critical system events, ensuring proactive issue management and minimizing downtime.
-   - Data is stored on **Aiven's Cloud MySQL Database**, which offers a **99.99% SLA** and complies with **ISAE 3000, ISO 27000, GDPR, CCPA, HIPAA, and PCI DSS** security standards.
+   - The application is accessible via http://fallsafe.hellojeffreylee.com:8000/, configured using AWS Route 53.
+   - **Custom DNS routing** ensures users can reach the application seamlessly, enhancing **branding and accessibility**.
+   - The **subdomain points to an EC2 instance** running Kubernetes, allowing for high availability and scalability.
 
 4. **IoT Integration**
 
@@ -255,14 +254,45 @@ The **FallSafe** architecture is designed as a **Cloud-Native Microservice-Based
    - Secure authentication and **Gmail SMTP** ensure smooth user interactions and communication.
 
 7. **CI/CD with Docker Hub**
+
    - **Docker Hub** is utilized as part of the **CI/CD process**, ensuring that **EC2 instances can pull the latest container images and deploy updates seamlessly**.
    - This enhances **deployment efficiency, minimizes downtime, and ensures consistency** across environments.
-8. **Route 53 Subdomain for Custom Access**
-   - The application is accessible via http://fallsafe.hellojeffreylee.com:8000/, configured using AWS Route 53.
-   - **Custom DNS routing** ensures users can reach the application seamlessly, enhancing **branding and accessibility**.
-   - The **subdomain points to an EC2 instance** running Kubernetes, allowing for high availability and scalability.
+
+8. **AWS Security & Monitoring**
+
+   - The architecture leverages **AWS WAF, Shield, GuardDuty, and IAM** for **robust security enforcement**.
+   - **AWS CloudWatch and AWS CloudTrail** provide real-time **monitoring, logging, and auditing**, enabling rapid **issue detection and resolution**.
+   - **CloudWatch Alarms** are configured with **SNS notifications**, alerting administrators to critical system events, ensuring proactive issue management and minimizing downtime.
+   - Data is stored on **Aiven's Cloud MySQL Database**, which offers a **99.99% SLA** and complies with **ISAE 3000, ISO 27000, GDPR, CCPA, HIPAA, and PCI DSS** security standards.
 
 This architecture ensures **high availability, flexibility, and resilience**, enabling **FallSafe** to operate efficiently while maintaining a **seamless user experience**.
+
+### Container Orchestration
+
+The **FallSafe** system utilizes **Kubernetes** for efficient **container orchestration**, ensuring smooth deployment, management, and scaling of microservices.
+
+#### **Key Benefits of Kubernetes in FallSafe:**
+
+- **Automated Scaling** – Kubernetes dynamically adjusts resources based on demand, optimizing system performance.
+- **High Availability** – Ensures fault tolerance by redistributing workloads in case of failures.
+- **Service Isolation** – Each microservice runs in an independent container, reducing dependencies and improving modularity.
+- **Rolling Updates & CI/CD Integration** – Updates are deployed **seamlessly** with minimal downtime.
+- **Self-Healing Mechanisms** – Kubernetes automatically restarts failed containers and replaces unhealthy nodes.
+
+### Cloud Scalability on Cloud Services
+
+The **FallSafe** architecture is designed with **cloud scalability in mind**, leveraging **AWS cloud services** to handle fluctuating demand efficiently.
+
+#### **How Cloud Scalability Enhances FallSafe:**
+
+- **Elastic Compute Scaling** – **AWS EC2 On-Demand instances** scale based on workload demands, ensuring cost efficiency and optimal performance without over-provisioning.
+
+- **Serverless Scalability** – **AWS Lambda** handles event-driven processes like email notifications, adapting seamlessly to traffic spikes.
+- **Database Scaling** – The system uses **Aiven Cloud MySQL**, which supports **automatic replication and read scaling**, ensuring **high availability and fast query performance**.
+- **Scalable Storage** – **AWS S3** provides infinite storage scalability, allowing secure and cost-effective data handling for user-generated content and system logs.
+- **IoT Data Processing** – **AWS IoT Core** scales effortlessly to handle increasing motion tracking data from multiple **FallSafe Devices**, ensuring **real-time analytics**.
+
+By implementing **container orchestration with Kubernetes** and **scalable cloud services**, FallSafe ensures **resilience, efficiency, and future-ready performance** for all users.
 
 ---
 
