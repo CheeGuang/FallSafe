@@ -90,7 +90,7 @@ On the **admin side**:
 
 We plan to integrate **FallSafe** into **Lions Befrienders' Our Kampung Application**, enabling users to leverage their **mobile phone's gyroscope as a Body Motion Tracker**. This reduces the need for separate motion tracking devices, lowering costs and improving scalability.
 
-Additionally, we can tap into the **Smart Nation Singapore initiative** by leveraging the **Mobile Access for Seniors** program, which provides a **2-year mobile plan at $5.10 per month**. This will enable seamless digital inclusion, ensuring seniors have access to **FallSafe** without financial barriers.
+Additionally, we can tap into the **Smart Nation Singapore initiative** by leveraging the **Mobile Access for Seniors** program, which provides a **subsidiesd mobile phones** starting from **$20** and a **2-year mobile plan at $5.10 per month**. This will enable seamless digital inclusion, ensuring seniors have access to **FallSafe** without financial barriers.
 
 ### **What is Our Kampung?**
 
