@@ -122,7 +122,7 @@ FallSafe saw significant improvements with each iteration, ensuring a more user-
 
 The **FallSafe** architecture is designed as a **Cloud-Native Microservice-Based System** to maximize **ROI** and **operational efficiency** while ensuring resilience and adaptability. This approach allows the system to **react to failures, recover quickly, and minimize business impact**.
 
-### <img src="./frontend/img/ReadME/Network Diagram.pnggi" alt="FallSafe Image">
+### <img src="./frontend/img/ReadME/Network Diagram.png" alt="FallSafe Image">
 
 ### **Key Cloud-Native Concepts Utilized:**
 
