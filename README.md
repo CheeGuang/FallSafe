@@ -58,6 +58,30 @@ This project is developed for **Dell InnoDash 2025**, a hackathon where our key 
 
 Our solution is a **100% Cloud Native** application with **Microservice Architecture**, allowing seniors to take the **Falls Efficacy Scale test** and perform **physical self-assessments** from the comfort of their homes.
 
+## Target Audience
+
+<div style="display: flex; justify-content: center">
+
+<img src="./frontend/img/ReadME/Target Audience.png" alt="FallSafe Image" style="float: right; width: 300px; margin-left: 20px;">
+
+</div>
+
+**FallSafe** is designed to support **elderly individuals** who want to assess their fall risk easily and accurately from the **comfort of their home**. Our primary user persona, **Mrs Tan**, represents the key demographics and challenges our solution aims to address.
+
+### **Goals**
+
+- **Check fall risk at home** – No need for clinic visits.
+- **Understand her body** – Gain insights into mobility and balance.
+- **Visit the doctor conveniently** – Seek medical help if the risk is high.
+
+### **Challenges**
+
+- **Quick & accurate self-assessment** – Needs a **reliable** but **easy-to-use** tool.
+- **Understanding results** – Prefers **simple, jargon-free explanations**.
+- **Easy doctor access** – Requires a **seamless way to book consultations** if needed.
+
+By addressing these needs, **FallSafe empowers elderly individuals** to proactively manage their fall risk, promoting **safety, independence, and well-being**.
+
 ### **Unique Selling Point**
 
 <div style="display: flex; justify-content: center">
