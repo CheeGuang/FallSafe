@@ -104,8 +104,8 @@ The **Smart Nation Mobile Access for Seniors** initiative offers a **2-year mobi
 
 ## User Testing
 
-<img src="./frontend/img/ReadME/User Testing 1.jpg" alt="FallSafe Image 1" style="width: 300px;">
-<img src="./frontend/img/ReadME/User Testing 2.jpg" alt="FallSafe Image 2" style="width: 300px;">
+<img src="./frontend/img/ReadME/FallSafe User Testing 1.JPG" alt="FallSafe Image 1" style="width: 300px;">
+<img src="./frontend/img/ReadME/FallSafe User Testing 2.JPG" alt="FallSafe Image 2" style="width: 300px;">
 
 In total, we conducted **5 Official User Tests** with individuals aged **55-85 years old**. Through these sessions, we gathered valuable feedback to fine-tune **Fall Risk calculations**, enhance **UI/UX** for elderly users, and help them become more independent in their fall risk assessments. These tests also helped identify edge case bugs and improve the representation of results in the **Dashboard**.
 
