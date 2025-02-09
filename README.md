@@ -242,6 +242,56 @@ This architecture ensures **high availability, flexibility, and resilience**, en
 
 ---
 
+## FallSafe Device Documentation
+
+### <img src="./frontend/img/ReadME/FallSafe Device.jpg" alt="FallSafe Device">
+
+### Overview
+
+The **FallSafe Device** is an IoT-enabled motion tracking system designed for **Fall Risk Assessments**. It consists of an **ESP32-S3 microcontroller**, a **GY-91 MPU9250 sensor module**, and a **custom battery pack** soldered to a **Micro USB connector**. This device collects **real-time body movement data** and transmits it to the cloud for analysis.
+
+### Components
+
+#### 1. **ESP32-S3**
+
+- WiFi and Bluetooth-enabled microcontroller with high processing power.
+- Facilitates **real-time data streaming** to the cloud via **AWS IoT Core**.
+- Supports **MQTT protocol** for **efficient message queuing**.
+
+#### 2. **GY-91 MPU9250 (Inertia Measurement Unit Sensor)**
+
+- Tracks **accelerometer, gyroscope, magnetometer** data.
+- Provides **precise motion tracking** for **Fall Risk Assessments**.
+
+#### 3. **Custom Battery Pack**
+
+- Made from **three AA Energizer batteries** in series.
+- Soldered to a **Micro USB connector** for easy ESP32-S3 power supply.
+- Enables portability and independent operation.
+
+### AWS IoT Core Integration
+
+The **FallSafe Device** integrates with **AWS IoT Core** using **MQTT**, allowing for **secure, real-time data transmission**. The collected motion data is processed and analyzed in the **FallSafe Cloud Application**, enabling **body motion tracking and fall risk evaluation**.
+
+#### **How It Works:**
+
+1. **Sensor Data Collection**
+
+   - The **GY-91 MPU9250** records movement and positional data.
+   - Data is processed by the **ESP32-S3**.
+
+2. **MQTT Message Queue**
+
+   - The ESP32-S3 publishes motion data to an **MQTT topic** in **AWS IoT Core**.
+   - The cloud application subscribes to the **motion tracking queue**.
+
+3. **Data Processing & Dashboard Visualization**
+   - Data is analyzed in real-time.
+   - Users receive feedback via the **FallSafe Dashboard**.
+   - **AI-generated insights** guide users on improving stability and mobility.
+
+---
+
 ## Contributors
 
 - Lee Guang Le, Jeffrey (Product Owner, Developer)
