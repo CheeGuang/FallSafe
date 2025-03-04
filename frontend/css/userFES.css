@@ -1,10 +1,195 @@
-.indicator {
-  padding: 5px;
-  border-radius: 3px;
-  margin-top: 5px;
-  font-size: 20px;
+/* Base styles from the inline styles */
+body {
+  background-color: white;
+  font-family: 'Poppins', sans-serif;
+}
+
+.start-screen {
+  background-color: white;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.start-screen h1 {
+  color: #1a56db;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.start-content {
+  text-align: left;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+}
+
+.lead {
+  font-weight: 400;
+  color: #4b5563;
+  margin-bottom: 2rem;
+}
+
+.info-box, 
+.recommendation-box {
+  background-color: #f0f5ff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #1a56db;
+}
+
+.info-box {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.info-box h3 {
+  color: #1a56db;
+  font-weight: 600;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
   text-align: center;
-  color: white;
+}
+
+/* Better timer display on all screen sizes */
+.timer {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  margin-top: 0.75rem;
+  font-size: 1.25rem;
+  color: #4a5568;
+}
+
+.timer div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 70px;
+}
+
+.timer span {
+  font-weight: 700;
+  font-size: 2rem;
+  color: #1a56db;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+#last-assessment-info {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+#months-days-ago {
+  color: #718096;
+  font-style: italic;
+  margin-left: 0.5rem;
+}
+
+.countdown {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  background-color: #f7fafc;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.countdown p {
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.recommendation-box {
+  background-color: #e7f3ff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #0d6efd;
+  margin-bottom: 1.5rem;
+}
+
+.recommendation-box p {
+  font-weight: 500;
+}
+
+.recommendation-box ul {
+  margin-top: 0.75rem;
+  margin-bottom: 0;
+}
+
+.recommendation-box li {
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+
+.recommendation ul {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+.btn {
+  padding: 0.75rem 2rem;
+  border-radius: 50px;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background-color: #1a56db;
+  border-color: #1a56db;
+  box-shadow: 0 4px 12px rgba(26, 86, 219, 0.2);
+}
+
+.btn-primary:hover {
+  background-color: #1540a1;
+  border-color: #1540a1;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(26, 86, 219, 0.3);
+}
+
+#start-button {
+  width: 100%;
+  margin-top: 2rem;
+  padding: 1rem;
+  font-size: 1.2rem;
+}
+
+#questions-screen {
+  padding: 2.5rem;
+}
+
+#questions-screen h2 {
+  color: #1a56db;
+  font-weight: 600;
+  margin-bottom: 2rem;
+}
+
+/* Question styles */
+.question {
+  padding: 10px 0;
+  margin-bottom: 80px !important;
+  font-size: 1.2rem;
+}
+
+.question p {
+  margin-bottom: 15px;
+}
+
+.question-title {
+  font-weight: bold;
+}
+
+/* Options and Selection styles */
+.options {
+  display: flex;
+  justify-content: space-evenly;
 }
 
 .option {
@@ -13,59 +198,14 @@
   align-items: center;
   justify-content: center;
   flex-direction: column;
-}
-.option > label,
-input {
-  cursor: pointer !important;
-}
-.question {
-  padding: 10px 0; /* Increased vertical space for each question */
-  margin-bottom: 40px;
-  font-size: 1.2rem;
-  margin-bottom: 80px !important;
-}
-
-.question p {
-  margin-bottom: 15px;
-}
-
-input[type="radio"] {
-  display: none;
-}
-
-.options {
-  display: flex;
-  justify-content: space-evenly;
-}
-
-.options .option {
-  padding: 10px;
-  font-size: 1.1rem;
-}
-
-.language-selector {
-  position: relative;
-  padding-bottom: 50px; /* Ensure enough space for the dropdown */
-  padding-top: 70px;
-}
-
-label {
-  font-size: 1.7rem !important; /* Larger text for labels */
-  font-weight: normal !important; /* Make labels bold */
-}
-
-.question-title {
-  font-weight: bold;
-}
-
-input[type="radio"] {
-  display: none;
-}
-
-.option {
   padding: 10px;
   border-radius: 5px;
   transition: background-color 0.3s ease;
+}
+
+.option > label,
+.option input {
+  cursor: pointer !important;
 }
 
 .option label {
@@ -78,68 +218,146 @@ input[type="radio"] {
   text-align: center;
   border-radius: 5px;
   transition: background-color 0.3s ease;
+  font-size: 1.7rem !important;
+  font-weight: normal !important;
+}
+
+input[type="radio"] {
+  display: none;
 }
 
 /* When selected, change the background to blue */
 .option.selected {
-  background-color: #5c5afc;
+  background-color: #1540a1;
   color: white;
 }
 
-.start-screen {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
+/* Progress indicator */
+.progress-indicators {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
 }
 
-.start-content {
-  text-align: left;
-  padding: 2rem;
-  background-color: #f8f9fa;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.progress-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  margin: 0 5px;
+  transition: all 0.3s ease;
 }
 
-.info-box {
-  background-color: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
+.progress-dot.active {
+  background-color: #1a56db;
+  transform: scale(1.2);
 }
 
-.countdown {
-  margin-top: 1rem;
+.progress-dot.completed {
+  background-color: #10b981;
 }
 
-.timer {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #0d6efd;
+.indicator {
+  padding: 5px;
+  border-radius: 3px;
+  margin-top: 5px;
+  font-size: 20px;
+  text-align: center;
+  color: white;
 }
 
-.timer span {
-  margin: 0 0.5rem;
+.language-selector {
+  position: relative;
+  padding-bottom: 50px;
+  padding-top: 70px;
 }
 
-.recommendation-box {
-  background-color: #e7f3ff;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border-left: 4px solid #0d6efd;
+/* Media Queries */
+@media (max-width: 768px) {
+  .start-content {
+    padding: 1.5rem;
+  }
+  
+  .info-box, .recommendation-box {
+    padding: 1.25rem;
+  }
+  
+  .timer {
+    gap: 0.75rem;
+  }
+  
+  .timer div {
+    min-width: 60px;
+  }
+  
+  .timer span {
+    font-size: 1.75rem;
+  }
+  
+  .countdown {
+    padding: 0.75rem;
+  }
+  
+  #last-assessment-info {
+    flex-direction: column;
+  }
+  
+  #months-days-ago {
+    margin-left: 0;
+    margin-top: 0.25rem;
+  }
 }
 
-.recommendation ul {
-  margin-top: 1rem;
-  margin-bottom: 0;
+@media (max-width: 576px) {
+  .timer {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .timer div {
+    min-width: auto;
+  }
+  
+  .info-box h3 {
+    font-size: 1.25rem;
+  }
+  
+  #start-button {
+    padding: 0.75rem;
+    font-size: 1.1rem;
+  }
+  
+  .start-screen h1 {
+    font-size: 1.75rem;
+  }
+  
+  .lead {
+    font-size: 1rem;
+  }
 }
 
-.recommendation li {
-  margin-bottom: 0.5rem;
+/* Add a smooth transition to all elements */
+* {
+  transition: all 0.3s ease;
 }
 
-#start-button {
-  width: 100%;
-  margin-top: 2rem;
-  padding: 1rem;
-  font-size: 1.2rem;
+/* Make buttons more responsive */
+.btn {
+  white-space: normal;
+}
+
+/* Make the recommendation box more responsive */
+.recommendation-box ul {
+  padding-left: 1.5rem;
+}
+
+@media (max-width: 480px) {
+  .recommendation-box ul {
+    padding-left: 1.25rem;
+  }
+  
+  .recommendation-box li {
+    font-size: 0.95rem;
+  }
 }

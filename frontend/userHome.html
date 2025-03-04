@@ -27,23 +27,22 @@
       crossorigin="anonymous"
     ></script>
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- Page Name -->
-    <title>FallSafe</title>
+    <title>FallSafe - User Dashboard</title>
 
     <!-- Linking CSS -->
     <link rel="stylesheet" href="./css/normalize.css" />
     <link rel="stylesheet" href="./css/style.css" />
-
-    <!-- ######################################## INSERT PAGE'S CSS HERE \/ ########################################################### -->
     <link rel="stylesheet" href="./css/userHome.css" />
-    <!-- ######################################## END OF PAGE'S CSS ########################################################### -->
 
     <!-- Linking JS -->
     <script src="./js/script.js" defer></script>
-
-    <!-- ######################################## INSERT PAGE'S JS HERE \/ ########################################################### -->
     <script src="./js/userHome.js" defer></script>
-    <!-- ######################################## END OF PAGE'S JS ########################################################### -->
 
     <!-- Add a favicon to the tab bar -->
     <link rel="icon" type="image/x-icon" href="./img/FallSafe-Small.png" />
@@ -55,59 +54,69 @@
       <div id="navbar-container"></div>
     </header>
 
-    <!-- Transparent Row with Small Height at the Top -->
-    <div
-      class="row"
-      style="width: 10vw; height: 50px; background-color: transparent"
-    ></div>
-
     <!-- Main Content Container -->
-    <div class="container text-center">
+    <div class="container py-5">
       <div class="row justify-content-center">
-        <div class="col-12 mt-5">
+        <div class="col-12 fade-in" style="margin-top: 4.5rem;">
           <!-- Load customAlert.html dynamically -->
           <div id="customAlertContainer"></div>
 
-          <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
+          <!-- Welcome Section -->
+          <section class="welcome-section">
+            <div class="container">
+              <div class="row align-items-center">
+                <div class="col-md-8">
+                  <div class="user-profile">
+                    <div>
+                      <h1 class="welcome-message">
+                        Welcome, <span id="userName">User</span>!
+                      </h1>
+                      <p class="text-muted">What would you like to do today?</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
 
-          <!-- Welcome Message -->
-          <h1 class="welcome-message">
-            Welcome, <span id="userName">user Name</span>!
-          </h1>
-          <p class="mb-3">What would you like to do today?</p>
-
-          <!-- Action Buttons -->
-          <div class="action-buttons">
-            <button
-              class="btn btn-primary"
-              id="fallsEfficacyScaleButton"
-              onclick="window.location.href='./userFES.html'"
-            >
-              <i class="fas fa-chart-line"></i> Falls Efficacy Scale
-            </button>
-            <button
-              class="btn btn-primary"
-              id="selfFallRiskAssessmentButton"
-              onclick="window.location.href='./userSelfAssessment.html'"
-            >
-              <i class="fas fa-file-alt"></i> Self Assessment
-            </button>
-            <button
-              class="btn btn-primary"
-              id="consultDoctorButton"
-              onclick="window.location.href='./userConsultDoctor.html'"
-            >
-              <i class="fas fa-user-md"></i> Consult Doctor
-            </button>
-            <button
-              class="btn btn-primary"
-              id="viewResultsButton"
-              onclick="window.location.href='./userResults.html'"
-            >
-              <i class="fas fa-chart-bar"></i> View Results
-            </button>
+          <!-- Action Cards Section -->
+          <div class="row action-cards">
+            <div class="col-md-6 col-lg-3" onclick="window.location.href='./userFES.html'">
+              <div class="action-card">
+                <div class="action-icon">
+                  <i class="fas fa-chart-line"></i>
+                </div>
+                <h3 class="action-title">Falls Efficacy Scale</h3>
+              </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3" onclick="window.location.href='./userSelfAssessment.html'">
+              <div class="action-card">
+                <div class="action-icon">
+                  <i class="fas fa-file-alt"></i>
+                </div>
+                <h3 class="action-title">Physical Self Assessment</h3>
+              </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3" onclick="window.location.href='./userConsultDoctor.html'">
+              <div class="action-card">
+                <div class="action-icon">
+                  <i class="fas fa-user-md"></i>
+                </div>
+                <h3 class="action-title">Consult Doctor</h3>
+              </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3" onclick="window.location.href='./userResults.html'">
+              <div class="action-card">
+                <div class="action-icon">
+                  <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3 class="action-title">View Results</h3>
+              </div>
+            </div>
           </div>
-          <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
         </div>
       </div>
     </div>
@@ -118,6 +127,6 @@
         id="footer-container"
         class="container py-4 py-md-5 px-4 px-md-3 text-body-secondary"
       ></div>
-    </footer>
+    </footer>    
   </body>
 </html>

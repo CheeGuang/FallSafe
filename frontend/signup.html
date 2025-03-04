@@ -27,6 +27,11 @@
       crossorigin="anonymous"
     ></script>
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- Page Name -->
     <title>FallSafe</title>
 
@@ -34,19 +39,17 @@
     <link rel="stylesheet" href="./css/normalize.css" />
     <link rel="stylesheet" href="./css/style.css" />
 
-    <!-- ######################################## INSERT PAGE'S CSS HERE \/ ########################################################### -->
-    <!-- <link rel="stylesheet" href="./css/signup.css" /> -->
+    <!--################################### INSERT PAGE'S CSS HERE \/ ########################################################### -->
+    <link rel="stylesheet" href="./css/signUp.css" />
     <!-- ######################################## END OF PAGE'S CSS ########################################################### -->
 
     <!-- Linking JS -->
     <script src="./js/script.js" defer></script>
-
-    <!-- ######################################## INSERT PAGE'S JS HERE \/ ########################################################### -->
     <script src="./js/signup.js" defer></script>
-    <!-- ######################################## END OF PAGE'S JS ########################################################### -->
 
     <!-- Add a favicon to the tab bar -->
     <link rel="icon" type="image/x-icon" href="./img/FallSafe-Small.png" />
+
   </head>
   <body>
     <!-- Header -->
@@ -64,7 +67,7 @@
     <!-- Main Content Container -->
     <div class="container text-center">
       <div class="row justify-content-center">
-        <div class="col-12 mt-5">
+        <div class="col-12 fade-in" style="margin-top: 4.5rem;">
   
           <!-- Load customAlert.html dynamically -->
           <div id="customAlertContainer"></div>
@@ -74,146 +77,193 @@
             Join us today and drive towards a sustainable future!
           </p>
 
+          <!-- Step Progress Bar -->
+          <div class="steps-progress" style="max-width: 500px; margin: 0 auto 20px auto">
+            <div class="step-indicator active" id="step-indicator-1">1</div>
+            <div class="step-connector" id="connector-1-2"></div>
+            <div class="step-indicator" id="step-indicator-2">2</div>
+            <div class="step-connector" id="connector-2-3"></div>
+            <div class="step-indicator" id="step-indicator-3">3</div>
+          </div>
+
           <!-- Sign Up Form Card -->
           <div
             class="card p-4 shadow-sm text-start"
             style="max-width: 500px; margin: 0 auto"
           >
             <form>
-              <!-- First Name -->
-              <div class="mb-3">
-                <label for="firstName" class="form-label">First Name</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="firstName"
-                  placeholder="Enter your first name"
-                  required
-                />
-              </div>
-
-              <!-- Last Name -->
-              <div class="mb-3">
-                <label for="lastName" class="form-label">Last Name</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="lastName"
-                  placeholder="Enter your last name"
-                  required
-                />
-              </div>
-
-              <!-- Age -->
-              <div class="mb-3">
-                <label for="age" class="form-label">Age</label>
-                <input
-                  type="number"
-                  class="form-control"
-                  id="age"
-                  placeholder="Enter your age"
-                  required
-                />
-              </div>
-
-              <!-- Phone Number -->
-              <div class="mb-3">
-                <label for="phoneNumber" class="form-label"
-                  >Phone Number</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="phoneNumber"
-                  placeholder="Enter your phone number"
-                  required
-                />
-              </div>
-
-              <!-- Address -->
-              <div class="mb-3">
-                <label for="address" class="form-label">Address</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="address"
-                  placeholder="Enter your address"
-                  required
-                ></input>
-              </div>
-
-              <!-- Email Input with Send Code Button -->
-              <div class="mb-3">
-                <label for="email" class="form-label">Email Address</label>
-                <div class="input-group">
+              <!-- Step 1: Basic Info -->
+              <div class="step-container active" id="step1">
+                <h4 class="mb-5 mt-4">Step 1: Basic Information</h4>
+                
+                <!-- First Name -->
+                <div class="mb-3">
+                  <label for="firstName" class="form-label">First Name</label>
                   <input
-                    type="email"
+                    type="text"
                     class="form-control"
-                    id="email"
-                    placeholder="Enter your email"
+                    id="firstName"
+                    placeholder="Enter your first name"
                     required
                   />
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary"
-                    id="sendCode"
-                  >
-                    Send Code
+                  <div class="form-error" id="firstName-error">Please enter your first name</div>
+                </div>
+
+                <!-- Last Name -->
+                <div class="mb-3">
+                  <label for="lastName" class="form-label">Last Name</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="lastName"
+                    placeholder="Enter your last name"
+                    required
+                  />
+                  <div class="form-error" id="lastName-error">Please enter your last name</div>
+                </div>
+
+                <!-- Age -->
+                <div class="mb-3">
+                  <label for="age" class="form-label">Age</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="age"
+                    placeholder="Enter your age"
+                    required
+                  />
+                  <div class="form-error" id="age-error">Please enter a valid age (18 or older)</div>
+                </div>
+
+                <!-- Next Button -->
+                <button type="button" class="btn btn-primary w-100" id="step1Next">
+                  Next
+                </button>
+              </div>
+
+              <!-- Step 2: Contact Information -->
+              <div class="step-container" id="step2">
+                <h4 class="mb-5 mt-4">Step 2: Contact Information</h4>
+                
+                <!-- Phone Number -->
+                <div class="mb-3">
+                  <label for="phoneNumber" class="form-label">Phone Number</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="phoneNumber"
+                    placeholder="Enter your phone number"
+                    required
+                  />
+                  <div class="form-error" id="phoneNumber-error">Please enter a valid phone number</div>
+                </div>
+
+                <!-- Address -->
+                <div class="mb-3">
+                  <label for="address" class="form-label">Address</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="address"
+                    placeholder="Enter your address"
+                    required
+                  />
+                  <div class="form-error" id="address-error">Please enter your address</div>
+                </div>
+
+                <!-- Email Input with Send Code Button -->
+                <div class="mb-3">
+                  <label for="email" class="form-label">Email Address</label>
+                  <div class="input-group">
+                    <input
+                      type="email"
+                      class="form-control"
+                      id="email"
+                      placeholder="Enter your email"
+                      required
+                    />
+                    <button
+                      type="button"
+                      class="btn btn-outline-primary"
+                      id="sendCode"
+                    >
+                      Send Code
+                    </button>
+                  </div>
+                  <div class="form-error" id="email-error">Please enter a valid email address</div>
+                </div>
+
+                <!-- Verification Code Input with Confirm Button -->
+                <div class="mb-3">
+                  <label for="verificationCode" class="form-label">Verification Code</label>
+                  <div class="input-group">
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="verificationCode"
+                      placeholder="Enter verification code"
+                      required
+                    />
+                  </div>
+                  <div class="form-error" id="verificationCode-error">Please enter the verification code</div>
+                </div>
+
+                <!-- Back & Next Buttons -->
+                <div class="d-flex justify-content-between">
+                  <button type="button" class="btn btn-secondary" id="step2Back" style="width: 48%">
+                    Back
+                  </button>
+                  <button type="button" class="btn btn-primary" id="step2Next" style="width: 48%">
+                    Next
                   </button>
                 </div>
               </div>
 
-              <!-- Verification Code Input with Confirm Button -->
-              <div class="mb-3">
-                <label for="verificationCode" class="form-label"
-                  >Verification Code</label
-                >
-                <div class="input-group">
+              <!-- Step 3: Security -->
+              <div class="step-container" id="step3">
+                <h4 class="mb-5 mt-4">Step 3: Set Password</h4>
+                
+                <!-- Password -->
+                <div class="mb-3">
+                  <label for="password" class="form-label">Password</label>
                   <input
-                    type="text"
+                    type="password"
                     class="form-control"
-                    id="verificationCode"
-                    placeholder="Enter verification code"
+                    id="password"
+                    placeholder="Enter your password"
                     required
                   />
+                  <div class="form-error" id="password-error">Password must be at least 8 characters with letters and numbers</div>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="mb-3">
+                  <label for="confirmPassword" class="form-label">Confirm Password</label>
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="confirmPassword"
+                    placeholder="Confirm your password"
+                    required
+                  />
+                  <div class="form-error" id="confirmPassword-error">Passwords do not match</div>
+                </div>
+
+                <!-- Back & Submit Buttons -->
+                <div class="d-flex justify-content-between">
+                  <button type="button" class="btn btn-secondary" id="step3Back" style="width: 48%">
+                    Back
+                  </button>
+                  <button type="submit" class="btn btn-success" style="width: 48%">
+                    Signup
+                  </button>
                 </div>
               </div>
-
-              <!-- Password -->
-              <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
-                <input
-                  type="password"
-                  class="form-control"
-                  id="password"
-                  placeholder="Enter your password"
-                  required
-                />
-              </div>
-
-              <!-- Confirm Password -->
-              <div class="mb-3">
-                <label for="confirmPassword" class="form-label"
-                  >Confirm Password</label
-                >
-                <input
-                  type="password"
-                  class="form-control"
-                  id="confirmPassword"
-                  placeholder="Confirm your password"
-                  required
-                />
-              </div>
-
-              <!-- Submit Button -->
-              <button type="submit" class="btn btn-primary w-100">
-                Sign Up
-              </button>
             </form>
           </div>
 
           <!-- Link to Login Page -->
-          <p class="mt-3">
+          <p class="mt-5">
             Already have an account? <a href="./login.html">Log in</a>.
           </p>
         </div>
