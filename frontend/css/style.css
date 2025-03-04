@@ -3,207 +3,261 @@
   --dark-blue-hover: rgb(0, 41, 123);
   --white: #ffffff;
   --shadow-colour: rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
 }
 
 body {
-  font-family: Arial, sans-serif !important;
-  font-size: 18px !important; /* Increase base font size */
-  line-height: 1.6 !important; /* Add better line height for readability */
+  font-family: 'Poppins', Arial, sans-serif !important;
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+  overflow-x: hidden;
 }
 
 .navbar {
-  background-color: var(--white) !important; /* White background for navbar */
-  box-shadow: 0 4px 6px var(--shadow-colour) !important; /* Subtle shadow at the bottom */
+  background-color: var(--white) !important;
+  box-shadow: 0 2px 10px var(--shadow-colour) !important;
+  padding: 15px 0 !important;
+  transition: var(--transition);
+}
+
+.navbar-brand img {
+  transition: var(--transition);
 }
 
 .nav-link {
   margin-right: 20px;
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  transition: var(--transition);
 }
 
-/* Primary buttons with dark blue colour scheme and bold text */
+.nav-link:hover {
+  color: var(--dark-blue) !important;
+}
+
+/* Hero section styles */
+.hero-section {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding-top: 70px;
+}
+
+.carousel-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+.carousel-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 51, 153, 0.7);
+  z-index: 1;
+}
+
+.carousel-item {
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: var(--white);
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.hero-content h1 {
+  color: var(--white) !important;
+  font-size: 3.5rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 20px;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 1s forwards 0.3s;
+}
+
+.hero-content p {
+  color: var(--white) !important;
+  font-size: 1.3rem !important;
+  margin-bottom: 30px;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 1s forwards 0.6s;
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Primary buttons */
 .btn-primary {
-  display: flex !important; /* Enable flexbox */
-  align-items: center !important; /* Center content vertically */
-  justify-content: center !important; /* Center content horizontally */
-  background-color: var(--dark-blue) !important; /* Dark blue background */
-  color: var(--white) !important; /* White text */
-  font-weight: bold !important; /* Bold text */
-  border: none !important; /* Remove borders */
-  padding: 25px 55px !important; /* Add bigger padding */
-  font-size: 1.3rem !important; /* Increase font size */
-  border-radius: 8px !important; /* More rounded corners */
-  cursor: pointer !important; /* Pointer cursor on hover */
-}
-
-.fas,
-.fab {
-  font-size: 2rem !important;
-  margin-right: 30px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background-color: var(--white) !important;
+  color: var(--dark-blue) !important;
+  font-weight: 600 !important;
+  border: none !important;
+  padding: 15px 35px !important;
+  font-size: 1.1rem !important;
+  border-radius: 50px !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+  transition: var(--transition) !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .btn-primary:hover {
-  background-color: var(
-    --dark-blue-hover
-  ) !important; /* Slightly darker dark blue on hover */
+  background-color: var(--dark-blue-hover) !important;
+  color: var(--white) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15) !important;
 }
 
-/* Outline version of primary button with dark blue scheme */
 .btn-primary-outline {
-  display: flex !important; /* Enable flexbox */
-  align-items: center !important; /* Center content vertically */
-  justify-content: center !important; /* Center content horizontally */
-  background-color: transparent !important; /* Transparent background */
-  color: var(--dark-blue) !important; /* Dark blue text */
-  font-weight: bold !important; /* Bold text */
-  border: 2px solid var(--dark-blue) !important; /* Thicker border */
-  padding: 12px 24px !important; /* Add bigger padding */
-  font-size: 1.2rem !important; /* Increase font size */
-  border-radius: 8px !important; /* More rounded corners */
-  cursor: pointer !important; /* Pointer cursor on hover */
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background-color: transparent !important;
+  color: var(--dark-blue) !important;
+  font-weight: 600 !important;
+  border: 2px solid var(--dark-blue) !important;
+  padding: 12px 30px !important;
+  font-size: 1.1rem !important;
+  border-radius: 50px !important;
+  transition: var(--transition) !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .btn-primary-outline:hover {
-  background-color: var(
-    --dark-blue
-  ) !important; /* Dark blue background on hover */
-  color: var(--white) !important; /* White text on hover */
-  border-color: var(
-    --dark-blue-hover
-  ) !important; /* Slightly darker dark blue border on hover */
+  background-color: var(--dark-blue) !important;
+  color: var(--white) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15) !important;
   text-decoration: none !important;
 }
 
-/* Text primary with dark blue scheme */
-.text-primary {
-  color: var(--dark-blue) !important; /* Dark blue text */
-  font-weight: bold !important; /* Bold text */
-  font-size: 1.2rem !important; /* Increase font size */
+.fas, .fab {
+  font-size: 1.3rem !important;
+  margin-right: 12px !important;
 }
 
-.text-primary:hover {
-  color: var(
-    --dark-blue-hover
-  ) !important; /* Slightly darker dark blue on hover */
+/* Section styling */
+.section {
+  padding: 80px 0;
 }
 
-/* Headings (h1, h2, h3) with dark blue colour scheme and bold text */
-h1,
-h2,
-h3 {
-  color: var(--dark-blue) !important; /* Dark blue text colour */
-  font-weight: bold !important; /* Bold text */
+.section-title {
+  color: var(--dark-blue) !important;
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+/* Content styling */
+h1, h2, h3 {
+  color: var(--dark-blue) !important;
+  font-weight: 700 !important;
 }
 
 h1 {
-  font-size: 2.5rem !important; /* Bigger size for h1 */
+  font-size: 2.5rem !important;
 }
 
 h2 {
-  font-size: 2rem !important; /* Bigger size for h2 */
+  font-size: 2rem !important;
 }
 
 h3 {
-  font-size: 1.8rem !important; /* Bigger size for h3 */
+  font-size: 1.5rem !important;
 }
 
-/* Paragraphs with increased font size */
 p {
-  font-size: 1.5rem !important; /* Larger paragraph text */
-  line-height: 1.8 !important; /* More spacing between lines */
+  font-size: 1.1rem !important;
+  line-height: 1.7 !important;
+  color: #555 !important;
 }
 
-/* Links (a) with dark blue colour scheme and bold text */
-a {
-  color: var(--dark-blue) !important; /* Dark blue text */
-  font-weight: bold !important; /* Bold text */
-  font-size: 1.7rem !important; /* Increase font size */
-  text-decoration: none !important; /* Remove underline */
+.content-card {
+  background-color: var(--white);
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  padding: 40px;
+  margin-bottom: 30px;
+  transition: var(--transition);
 }
 
-a:hover {
-  color: var(
-    --dark-blue-hover
-  ) !important; /* Slightly darker dark blue on hover */
-  text-decoration: none !important; /* Remove underline */
+.content-card {
+  background-color: var(--white);
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  padding: 40px;
+  margin-bottom: 30px;
+  transition: var(--transition);
 }
 
-/* Lists with increased font size */
-ul,
-ol {
-  font-size: 1.7rem !important; /* Larger text for list items */
-  line-height: 1.8 !important; /* Add spacing for readability */
+.content-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
 }
 
-/* Form inputs with larger font sizes */
-input,
-textarea,
-select {
-  font-size: 1.7rem !important; /* Increase input font size */
-  padding: 10px !important; /* Add padding for better usability */
+/* Footer styling */
+footer {
+  background-color: #f8f9fa;
+  padding: 40px 0;
+  margin-top: 60px;
 }
 
-label {
-  font-size: 1.7rem !important; /* Larger text for labels */
-  font-weight: bold !important; /* Make labels bold */
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-content h1 {
+    font-size: 2.5rem !important;
+  }
+  
+  .hero-content p {
+    font-size: 1.1rem !important;
+  }
+  
+  .section {
+    padding: 60px 0;
+  }
+  
+  .section-title {
+    font-size: 2rem !important;
+  }
+  
+  .content-card {
+    padding: 30px;
+  }
 }
 
-/* Beautify Google Translate Dropdown */
-body > .skiptranslate :first-child {
-  display: none;
-}
-#google_translate_element .goog-te-gadget-simple {
-  background: #f8f9fa; /* Light Gray Background */
-  color: #333; /* Dark Text */
-  border: 1px solid #ddd; /* Subtle Border */
-  padding: 10px 15px;
-  border-radius: 8px; /* Softer Rounded Corners */
-  font-size: 16px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  transition: all 0.3s ease-in-out;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-#google_translate_element .goog-te-gadget-simple:hover {
-  background: #e9ecef; /* Slightly Darker Gray on Hover */
-  border-color: #ccc;
-}
-
-#google_translate_element .goog-te-gadget-simple img {
-  display: none; /* Hide default Google Translate icon */
-}
-
-#google_translate_element .VIpgJd-ZVi9od-xl07Ob-lTBxed {
-  color: #333 !important;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-}
-
-#google_translate_element .VIpgJd-ZVi9od-xl07Ob-lTBxed span:first-child {
-  margin-right: 10px; /* Adjust the value as needed */
-}
-
-#google_translate_element .VIpgJd-ZVi9od-xl07Ob-lTBxed span {
-  font-size: 16px;
-  margin-right: 5px;
-}
-
-#google_translate_element
-  .VIpgJd-ZVi9od-xl07Ob-lTBxed
-  span[aria-hidden="true"] {
-  font-size: 14px;
-  margin-left: 5px;
-  color: #666; /* Soft Gray Dropdown Icon */
-}
-
-#google_translate_element > .skiptranslate,
-#google_translate_element .VIpgJd-ZVi9od-ORHb-OEVmcd {
-  display: block !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
+@media (max-width: 576px) {
+  .hero-content h1 {
+    font-size: 2rem !important;
+  }
+  
+  .btn-primary, .btn-primary-outline {
+    padding: 12px 25px !important;
+    font-size: 1rem !important;
+  }
 }
