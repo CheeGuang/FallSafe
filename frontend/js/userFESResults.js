@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const user_id = decodeToken(token).user_id;
     const [fesResults] = await Promise.all([
       fetchData(
-        `http://47.129.56.155:5100/api/v1/user/getAUserFESResults?user_id=${user_id}`
+        `http://18.143.103.158:5100/api/v1/user/getAUserFESResults?user_id=${user_id}`
       ),
     ]);
 

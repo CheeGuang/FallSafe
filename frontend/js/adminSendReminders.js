@@ -92,7 +92,7 @@ async function fetchUsersFromAPI() {
   try {
     console.log(token);
     const response = await fetch(
-      "http://47.129.56.155:5200/api/v1/admin/getAllElderlyUser",
+      "http://18.143.103.158:5200/api/v1/admin/getAllElderlyUser",
       {
         method: "GET",
         headers: {
@@ -120,7 +120,7 @@ async function fetchFESLastResponseDate() {
   try {
     // API endpoint to get the user ID and days since the last response
     const response = await fetch(
-      "http://47.129.56.155:5200/api/v1/admin/getAllLastResFES",
+      "http://18.143.103.158:5200/api/v1/admin/getAllLastResFES",
       {
         method: "GET",
         headers: {
@@ -153,7 +153,7 @@ async function fetchFallAssessmentLastResponseDate() {
   try {
     // API endpoint to get the user ID and days since the last fall assessment response
     const response = await fetch(
-      "http://47.129.56.155:5200/api/v1/admin/getAllLastResFA",
+      "http://18.143.103.158:5200/api/v1/admin/getAllLastResFA",
       {
         method: "GET",
         headers: {
@@ -190,7 +190,7 @@ async function fetchFallAssessmentLastResponseDate() {
 async function fetchLatestFAUserRiskFromAPI() {
   try {
     const response = await fetch(
-      "http://47.129.56.155:5250/api/v1/selfAssessment/getAllUserRisk",
+      "http://18.143.103.158:5250/api/v1/selfAssessment/getAllUserRisk",
       {
         method: "GET",
         headers: {
@@ -219,7 +219,7 @@ async function fetchLatestFAUserRiskFromAPI() {
 async function fetchLatestFESUserRiskFromAPI() {
   try {
     const response = await fetch(
-      "http://47.129.56.155:5200/api/v1/admin/getAllFESUserRisk",
+      "http://18.143.103.158:5200/api/v1/admin/getAllFESUserRisk",
       {
         method: "GET",
         headers: {
@@ -648,7 +648,7 @@ function confirmSendEmail(button) {
   console.log(requestBody);
 
   // Send the data to the backend
-  fetch("http://47.129.56.155:5200/api/v1/admin/sendEmailAssesRemind", {
+  fetch("http://18.143.103.158:5200/api/v1/admin/sendEmailAssesRemind", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -683,7 +683,7 @@ async function sendEmail(button) {
   }
   try {
     const response = await fetch(
-      "http://47.129.56.155:5200/api/v1/admin/sendEmailAssesRemind",
+      "http://18.143.103.158:5200/api/v1/admin/sendEmailAssesRemind",
       {
         method: "POST",
         headers: {
