@@ -209,7 +209,7 @@ func generateJWT(userID int) (string, time.Time, error) {
 	expiryTime := time.Now().Add(24 * time.Hour)
 
 	// Fetch user details from the API
-	url := fmt.Sprintf("http://47.129.56.155:5100/api/v1/user/getUser?userID=%d", userID)
+	url := fmt.Sprintf("http://18.143.103.158:5100/api/v1/user/getUser?userID=%d", userID)
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Printf("Error calling GetUserByID API: %v", err)
@@ -263,7 +263,7 @@ func generateAdminJWT(adminID int) (string, time.Time, error) {
 	expiryTime := time.Now().Add(24 * time.Hour)
 
 	// Fetch user details from the API
-	url := fmt.Sprintf("http://47.129.56.155:5200/api/v1/admin/getAdmin?adminID=%d", adminID)
+	url := fmt.Sprintf("http://18.143.103.158:5200/api/v1/admin/getAdmin?adminID=%d", adminID)
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Printf("Error calling GetAdminByID API: %v", err)

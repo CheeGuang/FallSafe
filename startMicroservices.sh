@@ -9,7 +9,7 @@ run_service() {
   cd - > /dev/null || exit
 }
 
-# Run each microservice (adjusted paths)
+# Run each Go microservice
 run_service adminMicroservice
 run_service authenticationMicroservice
 run_service fallsEfficacyScaleMicroservice
@@ -17,5 +17,11 @@ run_service openAIMicroservice
 run_service selfAssessmentMicroservice
 run_service userMicroservice
 
-echo "All microservices are running. Use 'ps aux | grep go' to view or Ctrl+C to stop the session."
+# Start frontend on port 80 (must be run as root)
+echo "Starting frontend on port 80..."
+cd frontend || exit
+http-server -p 80 -a 0.0.0.0 &
+cd - > /dev/null || exit
+
+echo "All microservices and frontend are running at http://<your-ec2-public-ip>/"
 wait
