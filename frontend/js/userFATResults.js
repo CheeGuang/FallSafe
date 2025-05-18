@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   try {
     const user_id = decodeToken(token).user_id;
     const testResults = await fetchData(
-      `http://127.0.0.1:5100/api/v1/user/getAUserTestResults?user_id=${user_id}`
+      `http://47.129.56.155:5100/api/v1/user/getAUserTestResults?user_id=${user_id}`
     );
 
     if (!testResults) {

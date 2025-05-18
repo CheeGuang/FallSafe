@@ -202,7 +202,7 @@ func CallFESForActionableInsights(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Construct the API URL to fetch FES results
-	apiURL := fmt.Sprintf("http://localhost:5300/api/v1/fes/getFESResults?user_id=%s", userID)
+	apiURL := fmt.Sprintf("http://47.129.56.155:5300/api/v1/fes/getFESResults?user_id=%s", userID)
 
 	// Extract the Authorization header from the incoming request
 	authHeader := r.Header.Get("Authorization")
@@ -262,7 +262,7 @@ func CallFESForActionableInsights(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call the AI microservice for insights
-	aiAPIURL := "http://127.0.0.1:5150/api/v1/generateResponse"
+	aiAPIURL := "http://47.129.56.155:5150/api/v1/generateResponse"
 	aiReq, err := http.NewRequest("POST", aiAPIURL, bytes.NewBuffer(aiRequestBody))
 	if err != nil {
 		log.Printf("Error creating AI request: %v", err)
@@ -332,7 +332,7 @@ func CallSelfAssessmentForInsights(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Construct the API URL to fetch Self-Assessment results
-	apiURL := fmt.Sprintf("http://localhost:5250/api/v1/selfAssessment/getUserResults?user_id=%s", userID)
+	apiURL := fmt.Sprintf("http://47.129.56.155:5250/api/v1/selfAssessment/getUserResults?user_id=%s", userID)
 
 	// Extract the Authorization header from the incoming request
 	authHeader := r.Header.Get("Authorization")
@@ -413,7 +413,7 @@ func CallSelfAssessmentForInsights(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call the AI microservice for insights
-	aiAPIURL := "http://127.0.0.1:5150/api/v1/generateResponse"
+	aiAPIURL := "http://47.129.56.155:5150/api/v1/generateResponse"
 	aiReq, err := http.NewRequest("POST", aiAPIURL, bytes.NewBuffer(aiRequestBody))
 	if err != nil {
 		log.Printf("Error creating AI request: %v", err)

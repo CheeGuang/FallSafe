@@ -101,7 +101,7 @@ func main() {
 
 	// Add CORS support
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://127.0.0.1:5100"}),         // Update for allowed origins
+		handlers.AllowedOrigins([]string{"http://47.129.56.155:5100"}),         // Update for allowed origins
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "OPTIONS"}), // Update for allowed HTTP methods
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}), // Include Authorization header
 	)(router)

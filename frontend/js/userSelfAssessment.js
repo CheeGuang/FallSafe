@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         console.log("Testing connection to /api/v1/selfAssessment/test...");
         const testResponse = await fetch(
-          "http://127.0.0.1:5250/api/v1/selfAssessment/test",
+          "http://47.129.56.155:5250/api/v1/selfAssessment/test",
           {
             method: "GET",
             headers: {
@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
           console.log("Initializing WebSocket connection...");
           ws = new WebSocket(
-            `ws://127.0.0.1:5250/api/v1/selfAssessment/ws?token=${token}`
+            `ws://47.129.56.155:5250/api/v1/selfAssessment/ws?token=${token}`
           );
 
           ws.onopen = () => {
@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         const response = await fetch(
-          `http://127.0.0.1:5250/api/v1/selfAssessment/startTest?userID=${userID}`,
+          `http://47.129.56.155:5250/api/v1/selfAssessment/startTest?userID=${userID}`,
           {
             method: "POST",
             headers: {
@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       const response = await fetch(
-        "http://127.0.0.1:5250/api/v1/selfAssessment/getAllTests",
+        "http://47.129.56.155:5250/api/v1/selfAssessment/getAllTests",
         {
           method: "GET",
           headers: {
@@ -348,7 +348,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
           // Send result to saveTestResult endpoint
           const response = await fetch(
-            "http://127.0.0.1:5250/api/v1/selfAssessment/saveTestResult",
+            "http://47.129.56.155:5250/api/v1/selfAssessment/saveTestResult",
             {
               method: "POST",
               headers: {
@@ -403,7 +403,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
           // Send result to saveTestResult endpoint
           const response = await fetch(
-            "http://127.0.0.1:5250/api/v1/selfAssessment/saveTestResult",
+            "http://47.129.56.155:5250/api/v1/selfAssessment/saveTestResult",
             {
               method: "POST",
               headers: {
@@ -843,7 +843,7 @@ async function fetchUserAssessmentResults() {
 
     // Fetch user results
     const response = await fetch(
-      `http://127.0.0.1:5250/api/v1/selfAssessment/getUserResults?user_id=${userId}`,
+      `http://47.129.56.155:5250/api/v1/selfAssessment/getUserResults?user_id=${userId}`,
       {
         method: "GET",
         headers: {
