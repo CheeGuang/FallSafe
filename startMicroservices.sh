@@ -1,15 +1,16 @@
 #!/bin/bash
 
-# Function to run a Go microservice
+# Function to run a Go microservice with nohup
 run_service() {
   dir=$1
-  echo "Running $dir..."
+  name=$(basename "$dir")
+  echo "Starting $name..."
   cd "$dir" || exit
-  go run main.go &
+  nohup go run main.go > "../${name}.log" 2>&1 &
   cd - > /dev/null || exit
 }
 
-# Run each Go microservice
+# Run all microservices
 run_service adminMicroservice
 run_service authenticationMicroservice
 run_service fallsEfficacyScaleMicroservice
@@ -17,11 +18,10 @@ run_service openAIMicroservice
 run_service selfAssessmentMicroservice
 run_service userMicroservice
 
-# Start frontend on port 80 (must be run as root)
+# Start frontend using http-server on port 80
 echo "Starting frontend on port 80..."
 cd frontend || exit
-http-server -p 80 -a 0.0.0.0 &
+nohup http-server -p 80 -a 0.0.0.0 > ../frontend.log 2>&1 &
 cd - > /dev/null || exit
 
-echo "All microservices and frontend are running at http://<your-ec2-public-ip>/"
-wait
+echo "All services are running in the background."
