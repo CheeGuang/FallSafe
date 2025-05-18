@@ -315,12 +315,12 @@ async function submitResponses() {
 
     // Check if user is eligible for a voucher
     if (eligibleForVoucher) {
-      showCustomAlert(
-        "🎉 Congratulations! A $10 NTUC Voucher will be emailed to you."
-      );
-
       // Call the voucher email API
       await sendVoucherEmail(userEmail, 1); // Sending 1 NTUC $10 voucher
+      showCustomAlert(
+        "🎉 Congratulations! A $10 NTUC Voucher will be emailed to you.",
+        "userFESResults.html"
+      );
     } else {
       showCustomAlert(result.message, "userFESResults.html");
     }
