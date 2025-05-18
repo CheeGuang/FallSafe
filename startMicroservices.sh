@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Function to run a Go microservice (no logs, not backgrounded)
+# Function to run a Go microservice
 run_service() {
   dir=$1
   echo "Running $dir..."
@@ -9,13 +9,13 @@ run_service() {
   cd - > /dev/null || exit
 }
 
-# Run each microservice
-run_service adminMicroservice/admin
-run_service authenticationMicroservice/authentication
-run_service fallsEfficacyScaleMicroservice/FES
-run_service openAIMicroservice/openAI
-run_service selfAssessmentMicroservice/selfAssessment
-run_service userMicroservice/profile
+# Run each microservice (adjusted paths)
+run_service adminMicroservice
+run_service authenticationMicroservice
+run_service fallsEfficacyScaleMicroservice
+run_service openAIMicroservice
+run_service selfAssessmentMicroservice
+run_service userMicroservice
 
 echo "All microservices are running. Use 'ps aux | grep go' to view or Ctrl+C to stop the session."
 wait
