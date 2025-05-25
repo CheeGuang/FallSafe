@@ -52,7 +52,7 @@ port-forward-all.bat
 
 </div>
 
-This project is developed for **Dell InnoDash 2025**, a hackathon where our key stakeholder is **Lions Befrienders**. The problem statement we are addressing is:
+This project is developed where our key stakeholder is **Lions Befrienders**. The problem statement we are addressing is:
 
 **How might we use Technology to offer an easy and user-friendly way for seniors to perform preliminary self-assessment in the comfort of their own homes, with vulnerable cases being highlighted for further clinical assessment by doctors?**
 
