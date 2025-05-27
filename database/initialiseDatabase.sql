@@ -548,7 +548,7 @@ INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2
     'Taking more than 20 seconds to complete indicates an increased risk of falls.',
     'https://fallsafe.s3.ap-southeast-1.amazonaws.com/Self+Assessment+Video/Dynamic+Gait+Test+Video+Demo.mp4',
     'Walk 6 steps forward at a normal pace.',
-    'Turn your head to the right and walk 6 steps slowly in the same direction.',
+    'Turn your head to the right and walk 6 steps in the same direction.',
     'Turn around, face forward, and walk quickly back to your starting point.',
     'Stop the test after returning to your starting position'
 );
@@ -558,12 +558,12 @@ INSERT INTO Test (test_name, description, risk_metric, video_url, step_1, step_2
 (
     '4 Stage Balance Test',
     'Tests static balance by holding various standing positions.',
-    'Inability to balance for 10 seconds in any position indicates a higher risk of falls.',
+    'Inability to balance for 5 seconds in any position indicates a higher risk of falls.',
     'https://fallsafe.s3.ap-southeast-1.amazonaws.com/Self+Assessment+Video/4+Stage+Balance+Test+Video+Demo.mp4',
-    'Stand with feet together and hold for 10 seconds.',
-    'Right foot takes half a step forward, hold for 10 seconds.',
-    'Right foot directly in front of left foot, hold for 10 seconds.',
-    'Stand on one foot (your choice) for 10 seconds.',
+    'Stand with feet together and hold for 5 seconds.',
+    'Right foot takes half a step forward, hold for 5 seconds.',
+    'Right foot directly in front of left foot, hold for 5 seconds.',
+    'Stand on one foot (your choice) for 5 seconds.',
     'Stop if balance is lost or all steps are completed.'
 );
 

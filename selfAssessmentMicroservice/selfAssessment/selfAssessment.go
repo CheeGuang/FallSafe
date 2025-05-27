@@ -574,7 +574,7 @@ func calculateScore(timeTaken, abruptPercentage float64, testName string) int {
 		"Timed Up and Go Test":         {TimeTolerance: 12, AbruptTolerance: 20},
 		"Five Times Sit to Stand Test": {TimeTolerance: 14, AbruptTolerance: 20},
 		"Dynamic Gait Index (DGI)":     {TimeTolerance: 20, AbruptTolerance: 20},
-		"4 Stage Balance Test":         {TimeTolerance: 40, AbruptTolerance: 15},
+		"4 Stage Balance Test":         {TimeTolerance: 20, AbruptTolerance: 15},
 	}
 
 	// Default tolerance values
