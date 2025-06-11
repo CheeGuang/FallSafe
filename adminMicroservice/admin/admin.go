@@ -98,7 +98,7 @@ type UserNameAge struct {
 }
 
 func CallUserMicroservice(w http.ResponseWriter, r *http.Request) {
-	apiURL := "http://18.143.103.158:5100/api/v1/user/getAllUser"
+	apiURL := "http://18.143.164.81:5100/api/v1/user/getAllUser"
 
 	//Extract the Authorization header from the incoming request
 	authHeader := r.Header.Get("Authorization")
@@ -163,7 +163,7 @@ type UserResponse struct {
 }
 
 func CallFESForUserResponse(w http.ResponseWriter, r *http.Request) {
-	apiURL := "http://18.143.103.158:5300/api/v1/fes/getAllResponses"
+	apiURL := "http://18.143.164.81:5300/api/v1/fes/getAllResponses"
 
 	// Extract the Authorization header from the incoming request
 	authHeader := r.Header.Get("Authorization")
@@ -227,7 +227,7 @@ type UserResponseDetails struct {
 }
 
 func CallFESForUserResponseDetails(w http.ResponseWriter, r *http.Request) {
-	apiURL := "http://18.143.103.158:5300/api/v1/fes/getAllIndividualRes" // URL to call `getAllFESIndividualRes` endpoint
+	apiURL := "http://18.143.164.81:5300/api/v1/fes/getAllIndividualRes" // URL to call `getAllFESIndividualRes` endpoint
 
 	// Extract the Authorization header from the incoming request
 	authHeader := r.Header.Get("Authorization")
@@ -293,7 +293,7 @@ type TestSessionUser struct {
 
 // Function to call selfAssessMicro, get all user with their dates and score
 func CallFAForAllUserTotalScore(w http.ResponseWriter, r *http.Request) {
-	apiURL := "http://18.143.103.158:5250/api/v1/selfAssessment/getAllTotalScore"
+	apiURL := "http://18.143.164.81:5250/api/v1/selfAssessment/getAllTotalScore"
 
 	// Extract the Authorization header from the incoming request
 	authHeader := r.Header.Get("Authorization")
@@ -360,7 +360,7 @@ type FATestWithAvgTime struct {
 
 // Function to fetch the test name, as well as the userID and time taken FROM SELF ASSESS Microservice
 func CallFAForAllUserTime(w http.ResponseWriter, r *http.Request) {
-	apiURL := "http://18.143.103.158:5250/api/v1/selfAssessment/getAllAvgTime"
+	apiURL := "http://18.143.164.81:5250/api/v1/selfAssessment/getAllAvgTime"
 
 	// Extract the Authorization header from the incoming request
 	authHeader := r.Header.Get("Authorization")
@@ -424,7 +424,7 @@ type UserRisk struct {
 
 // Function to call selfAssessmentMicroservice and get all user risks
 func CallFAForAllUserRisk(w http.ResponseWriter, r *http.Request) {
-	apiURL := "http://18.143.103.158:5250/api/v1/selfAssessment/getAllUserRisk"
+	apiURL := "http://18.143.164.81:5250/api/v1/selfAssessment/getAllUserRisk"
 
 	// Extract the Authorization header from the incoming request
 	authHeader := r.Header.Get("Authorization")
@@ -487,7 +487,7 @@ type UserLastResDetails struct {
 }
 
 func CallFESLastResDayForAllUsers(w http.ResponseWriter, r *http.Request) {
-	apiURL := "http://18.143.103.158:5300/api/v1/fes/getAllFESLastResDay"
+	apiURL := "http://18.143.164.81:5300/api/v1/fes/getAllFESLastResDay"
 
 	// Extract the Authorization header from the incoming request
 	authHeader := r.Header.Get("Authorization")
@@ -551,7 +551,7 @@ type FallAssesLastRes struct {
 
 // CallFallAssesLastResDayForAllUsers is the client code to fetch from the microservice
 func CallFALastResDayForAllUsers(w http.ResponseWriter, r *http.Request) {
-	apiURL := "http://18.143.103.158:5250/api/v1/selfAssessment/getAllLastResDay"
+	apiURL := "http://18.143.164.81:5250/api/v1/selfAssessment/getAllLastResDay"
 
 	// Extract the Authorization header from the incoming request
 	authHeader := r.Header.Get("Authorization")
@@ -762,7 +762,7 @@ type UserRiskLevel struct {
 
 // Function to fetch user risk levels from the UserResponse API
 func CallFESUserRiskLevel(w http.ResponseWriter, r *http.Request) {
-	apiURL := "http://18.143.103.158:5300/api/v1/fes/getAllFESLatestRisk" // Replace with actual API URL
+	apiURL := "http://18.143.164.81:5300/api/v1/fes/getAllFESLatestRisk" // Replace with actual API URL
 
 	// Extract the Authorization header from the incoming request
 	authHeader := r.Header.Get("Authorization")
