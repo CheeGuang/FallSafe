@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // API endpoint for user login
     const endpoint =
-      "http://18.143.103.158:5050/api/v1/authentication/admin/login";
+      "http://18.143.164.81:5050/api/v1/authentication/admin/login";
 
     try {
       // Send a POST request to the login endpoint

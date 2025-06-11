@@ -1,5 +1,5 @@
-const API_FES_URL = "http://18.143.103.158:5300/api/v1"; // FES API URL
-const API_OpenAI_URL = "http://18.143.103.158:5150/api/v1"; // openAI API URL
+const API_FES_URL = "http://18.143.164.81:5300/api/v1"; // FES API URL
+const API_OpenAI_URL = "http://18.143.164.81:5150/api/v1"; // openAI API URL
 
 let questions = [];
 let currentPage = 1;

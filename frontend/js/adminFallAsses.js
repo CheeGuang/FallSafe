@@ -113,7 +113,7 @@ async function fetchUsersFromAPI() {
   try {
     console.log(token);
     const response = await fetch(
-      "http://18.143.103.158:5200/api/v1/admin/getAllElderlyUser",
+      "http://18.143.164.81:5200/api/v1/admin/getAllElderlyUser",
       {
         method: "GET",
         headers: {
@@ -141,7 +141,7 @@ async function fetchFATotalScoreFromAPI() {
   try {
     console.log(token);
     const response = await fetch(
-      "http://18.143.103.158:5200/api/v1/admin/getAllFATotalScore",
+      "http://18.143.164.81:5200/api/v1/admin/getAllFATotalScore",
       {
         method: "GET",
         headers: {
@@ -170,7 +170,7 @@ async function fetchFATotalScoreFromAPI() {
 async function fetchFAAvgTimeFromAPI() {
   try {
     const response = await fetch(
-      "http://18.143.103.158:5200/api/v1/admin/getAllFATime",
+      "http://18.143.164.81:5200/api/v1/admin/getAllFATime",
       {
         method: "GET",
         headers: {
@@ -199,7 +199,7 @@ async function fetchFAAvgTimeFromAPI() {
 async function fetchAllUserRiskFromAPI() {
   try {
     const response = await fetch(
-      "http://18.143.103.158:5200//api/v1/admin/getAllFAUserRisk",
+      "http://18.143.164.81:5200//api/v1/admin/getAllFAUserRisk",
       {
         method: "GET",
         headers: {
