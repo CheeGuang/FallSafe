@@ -85,17 +85,18 @@ function initializeGoogleTranslate() {
 // Function to attach the sign-out event listener **after** the navbar is loaded
 function attachSignOutListener() {
   console.log("Attaching sign-out event listener...");
+
   const signOutButton = document.getElementById("signOutButton");
 
-  if (signOutButton) {
-    signOutButton.addEventListener("click", function () {
-      console.log("Sign out clicked. Removing token...");
-      localStorage.removeItem("token");
-
-      // Redirect to index.html
-      window.location.href = "index.html";
-    });
-  } else {
-    console.error("Error: Sign-out button not found!");
+  // Guest navbar: no sign-out button (expected)
+  if (!signOutButton) {
+    console.log("Guest navbar detected. No sign-out button to attach.");
+    return;
   }
+
+  signOutButton.addEventListener("click", () => {
+    console.log("Sign out clicked. Removing token...");
+    localStorage.removeItem("token");
+    window.location.href = "index.html";
+  });
 }
