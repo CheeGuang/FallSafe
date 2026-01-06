@@ -2,21 +2,37 @@
 
 echo "Stopping FallSafe microservices..."
 
-# Stop Go microservices started via `go run main.go`
-for service in \
-  adminMicroservice \
-  authenticationMicroservice \
-  fallsEfficacyScaleMicroservice \
-  openAIMicroservice \
-  selfAssessmentMicroservice \
-  userMicroservice
-do
-  echo "Stopping $service..."
-  pkill -f "go run main.go.*$service" 2>/dev/null
+# Stop Go microservices by port
+declare -A PORTS=(
+  [adminMicroservice]=5200
+  [authenticationMicroservice]=5050
+  [fallsEfficacyScaleMicroservice]=5300
+  [openAIMicroservice]=5150
+  [selfAssessmentMicroservice]=5250
+  [userMicroservice]=5100
+)
+
+for service in "${!PORTS[@]}"; do
+  port=${PORTS[$service]}
+  echo "Stopping $service on port $port..."
+
+  pid=$(lsof -ti tcp:$port)
+  if [ -n "$pid" ]; then
+    kill -9 $pid
+    echo "✔ $service stopped (PID $pid)"
+  else
+    echo "ℹ $service not running"
+  fi
 done
 
 # Stop frontend (http-server on port 80)
-echo "Stopping frontend (http-server)..."
-pkill -f "http-server -p 80" 2>/dev/null
+echo "Stopping frontend (http-server on port 80)..."
+pid=$(lsof -ti tcp:80)
+if [ -n "$pid" ]; then
+  kill -9 $pid
+  echo "✔ frontend stopped (PID $pid)"
+else
+  echo "ℹ frontend not running"
+fi
 
 echo "All FallSafe services have been stopped."
