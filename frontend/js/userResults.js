@@ -12,10 +12,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     const user_id = decodeToken(token).user_id;
     const [fesResults, testResults] = await Promise.all([
       fetchData(
-        `${window.location.protocol}//${window.location.hostname}:5100/api/v1/user/getAUserFESResults?user_id=${user_id}`
+        `http://18.143.103.158:5100/api/v1/user/getAUserFESResults?user_id=${user_id}`
       ),
       fetchData(
-        `${window.location.protocol}//${window.location.hostname}:5100/api/v1/user/getAUserTestResults?user_id=${user_id}`
+        `http://18.143.103.158:5100/api/v1/user/getAUserTestResults?user_id=${user_id}`
       ),
     ]);
 
