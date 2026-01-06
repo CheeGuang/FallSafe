@@ -22,7 +22,7 @@ async function fetchUsersFromAPI() {
   try {
     console.log(token);
     const response = await fetch(
-      "http://54.169.218.198:5200/api/v1/admin/getAllElderlyUser",
+      "http://18.143.151.82:5200/api/v1/admin/getAllElderlyUser",
       {
         method: "GET",
         headers: {
@@ -49,7 +49,7 @@ async function fetchUsersFromAPI() {
 async function fetchUserResponseFromAPI() {
   try {
     const response = await fetch(
-      "http://54.169.218.198:5200/api/v1/admin/getAllElderlyFESResponse",
+      "http://18.143.151.82:5200/api/v1/admin/getAllElderlyFESResponse",
       {
         method: "GET",
         headers: {
@@ -78,7 +78,7 @@ async function fetchUserResponseFromAPI() {
 async function fetchUserResponseDetailsFromAPI() {
   try {
     const response = await fetch(
-      "http://54.169.218.198:5200/api/v1/admin/getAllElderlyFESResDetails",
+      "http://18.143.151.82:5200/api/v1/admin/getAllElderlyFESResDetails",
       {
         method: "GET",
         headers: {
