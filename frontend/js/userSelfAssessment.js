@@ -968,6 +968,10 @@ async function handleSendVoucherEmail() {
 
     await sendVoucherEmail(userEmail, 2); // Sending 2 vouchers
   }
+  showCustomAlert(
+    "🎉 Congratulations! You have completed your Self Assessment.",
+    "userFATResults.html"
+  );
 }
 
 async function sendVoucherEmail(email, voucherCount) {
