@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       return;
     }
 
-    $(".nav-link").click(function (e) {
+    $("#accountTabs .nav-link").click(function (e) {
       e.preventDefault();
       $(".nav-link").removeClass("active");
       $(this).addClass("active");
