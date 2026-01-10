@@ -1,0 +1,63 @@
+.step-container {
+    display: none;
+  }
+  .step-container.active {
+    display: block;
+  }
+  .steps-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+  }
+  .step-indicator {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+  }
+  .step-indicator.active {
+    background-color: #0d6efd;
+    color: white;
+  }
+  .step-indicator.completed {
+    background-color: #198754;
+    color: white;
+  }
+  .step-connector {
+    flex-grow: 1;
+    height: 3px;
+    background-color: #e9ecef;
+    margin: auto 10px;
+  }
+  .step-connector.active {
+    background-color: #198754;
+  }
+  .form-error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: none;
+  }
+
+  .btn-success {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background-color: #28a745 !important; /* Updated background color */
+    color: white !important; /* Ensures text color is white */
+    font-weight: 600 !important;
+    border: none !important;
+    padding: 15px 35px !important;
+    font-size: 1.1rem !important;
+    border-radius: 50px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    transition: var(--transition) !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+

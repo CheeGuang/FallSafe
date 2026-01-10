@@ -27,23 +27,22 @@
       crossorigin="anonymous"
     ></script>
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- Page Name -->
-    <title>FallSafe</title>
+    <title>FallSafe - Falls Efficacy Scale</title>
 
     <!-- Linking CSS -->
     <link rel="stylesheet" href="./css/normalize.css" />
     <link rel="stylesheet" href="./css/style.css" />
-
-    <!-- ######################################## INSERT PAGE'S CSS HERE \/ ########################################################### -->
     <link rel="stylesheet" href="./css/userFES.css" />
-    <!-- ######################################## END OF PAGE'S CSS ########################################################### -->
 
     <!-- Linking JS -->
     <script src="./js/script.js" defer></script>
-
-    <!-- ######################################## INSERT PAGE'S JS HERE \/ ########################################################### -->
     <script src="./js/userFES.js" defer></script>
-    <!-- ######################################## END OF PAGE'S JS ########################################################### -->
 
     <!-- Add a favicon to the tab bar -->
     <link rel="icon" type="image/x-icon" href="./img/FallSafe-Small.png" />
@@ -55,102 +54,104 @@
       <div id="navbar-container"></div>
     </header>
 
-    <!-- Transparent Row with Small Height at the Top -->
-    <div
-      class="row"
-      style="width: 10vw; height: 50px; background-color: transparent"
-    ></div>
-
     <!-- Main Content Container -->
-    <div class="container text-center">
+    <div class="container py-5">
       <div class="row justify-content-center">
-        <div class="col-12 mt-5">
+        <div class="col-12" style="margin-top: 4.5rem;">
           <!-- Load customAlert.html dynamically -->
           <div id="customAlertContainer"></div>
 
-          <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
-          <!-- Page Content -->
-          <div id="start-screen" class="start-screen">
-            <h1>Falls Efficacy Scale</h1>
-            <div class="start-content">
-              <p id="subtitle" class="lead text-muted">
-                Please rate your confidence in completing each of the 16 tasks
-                listed below. These tasks assess your confidence in avoiding
-                falls in various situations.
-              </p>
-
-              <div class="info-box mb-4">
-                <h3>Last Assessment Details</h3>
-                <div id="last-assessment-info" class="d-flex align-items-center">
-                  <p>Taken on: <span id="last-taken-date">Loading...</span> 
-                  <p id="months-days-ago" style="margin-left: 10px;"></p>
-                </div>
-                <div id="countdown-timer" class="countdown">
-                  <p>Recommended time until next assessment:</p>
-                  <div class="timer">
-                    <span id="months">0</span>months
-                    <span id="days">0</span>days <span id="hours">
-                  </div>
-                </div>
-                <div id="voucher-status" class="mt-3" style="display: none">
-                  <div class="alert alert-success">
-                    <p>                     🎉 You are eligible for a voucher! <br />You can get 1 x
-                      $10 NTUC Vouchers upon completion.</p>
-                    <img
-                      src="./img/voucher.jpg"
-                      alt="Voucher"
-                      class="img-fluid"
-                      style="max-width: 200px"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div class="recommendation-box mb-4">
-                <p class="recommendation">
-                  💡 It is recommended to take this assessment
-                  <strong>Once Every 6 Months</strong> to:
+            <!-- Start Screen -->
+            <div id="start-screen" class="start-screen fade-in">
+              <h1 class="text-center">Falls Efficacy Scale</h1>
+              <div class="start-content">
+                <p id="subtitle" class="lead text-center">
+                  Please rate your confidence in avoiding falls for each task in the questionnaire
                 </p>
-                <ul class="text-start">
-                  <li>Track your progress over time</li>
-                  <li>Earn rewards</li>
-                  <li>Identify areas that need attention</li>
-                </ul>
+
+                <div class="info-box mb-4">
+                  <h3>Last Assessment Details</h3>
+                  <div id="last-assessment-info" class="d-flex justify-content-center align-items-center flex-wrap">
+                    <p class="mb-0">Taken on: <span id="last-taken-date">Loading...</span></p>
+                    <p id="months-days-ago" class="mb-0 ms-2"></p>
+                  </div>
+                  <div id="countdown-timer" class="countdown">
+                    <p class="text-center mb-1">Recommended time until next assessment:</p>
+                    <div class="timer">
+                      <div><span id="months">0</span> months</div>
+                      <div><span id="days">0</span> days</div>
+                      <div><span id="hours">0</span> hours</div>
+                    </div>
+                  </div>
+                  <div id="voucher-status" class="mt-3 text-center" style="display: none">
+                    <div class="alert alert-success">
+                      <p class="mb-2">🎉 You are eligible for a voucher!</p>
+                      <p class="mb-2">You can get 1 x $10 NTUC Vouchers upon completion.</p>
+                      <img
+                        src="./img/voucher.jpg"
+                        alt="Voucher"
+                        class="img-fluid"
+                        style="max-width: 180px"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="recommendation-box mb-4">
+                  <p class="recommendation mb-2">
+                    💡 It is recommended to take this assessment
+                    <strong>Once Every 6 Months</strong> to:
+                  </p>
+                  <ul class="text-start">
+                    <li>Track your progress over time</li>
+                    <li>Identify areas that need attention</li>
+                    <li>Earn rewards</li>
+                  
+                  </ul>
+                </div>
+
+                <div class="text-center">
+                  <button id="start-button" class="btn btn-primary btn-lg">
+                    <i class="fas fa-play me-2"></i> Start 
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Questions Screen -->
+            <div id="questions-screen" class="fade-in" style="display: none">
+              <h2 id="fes-header" class="text-center">
+                How confident are you in the following:
+              </h2>
+              
+              <div id="questions-container">
+                <!-- Questions will be inserted here -->
+              </div>
+              
+              <div class="d-flex justify-content-between mt-4">
+                <button id="back-button" class="btn btn-primary" disabled>
+                  <i class="fas fa-arrow-left me-2"></i> Back
+                </button>
+                <button id="next-button" class="btn btn-primary">
+                  Next <i class="fas fa-arrow-right ms-2"></i>
+                </button>
+              </div>
+              
+              <div class="d-flex justify-content-center mt-3">
+                <button id="submit-button" class="btn btn-primary" disabled>
+                  <i class="fas fa-check me-2"></i> Submit
+                </button>
               </div>
 
-              <button id="start-button" class="btn btn-primary btn-lg">
-                Continue
-              </button>
+              <div
+                id="loading-spinner"
+                class="spinner-border text-primary mt-4"
+                role="status"
+                style="display: none; margin: 0 auto;"
+              >
+                <span class="visually-hidden">Loading...</span>
+              </div>
             </div>
-          </div>
-
-          <div id="questions-screen" style="display: none">
-            <h2 id="fes-header" style="padding-top: 1em; padding-bottom: 1em">
-              How Confident are you in the following:
-            </h2>
-            <div id="questions-container"></div>
-            <div class="d-flex justify-content-between mt-4">
-              <button id="back-button" class="btn btn-secondary" disabled>
-                Back
-              </button>
-              <button id="next-button" class="btn btn-secondary">Next</button>
-            </div>
-            <div class="d-flex justify-content-center mt-3">
-              <button id="submit-button" class="btn btn-primary" disabled>
-                Submit
-              </button>
-            </div>
-
-            <div
-              id="loading-spinner"
-              class="spinner-border text-primary"
-              role="status"
-              style="display: none"
-            >
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-          <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
         </div>
       </div>
     </div>

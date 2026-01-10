@@ -26,24 +26,23 @@
       src="https://kit.fontawesome.com/4f6d96e165.js"
       crossorigin="anonymous"
     ></script>
-
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <!-- Page Name -->
-    <title>FallSafe</title>
+    <title>FallSafe - Empowering Seniors with Fall Risk Prevention</title>
 
     <!-- Linking CSS -->
     <link rel="stylesheet" href="./css/normalize.css" />
     <link rel="stylesheet" href="./css/style.css" />
 
-    <!-- ######################################## INSERT PAGE'S CSS HERE \/ ########################################################### -->
-    <!-- <link rel="stylesheet" href="./css/" /> -->
-    <!-- ######################################## END OF PAGE'S CSS ########################################################### -->
-
     <!-- Linking JS -->
+    <script src="./js/index.js" defer></script>
     <script src="./js/script.js" defer></script>
 
-    <!-- ######################################## INSERT PAGE'S JS HERE \/ ########################################################### -->
-    <script src="./js/index.js" defer></script>
-    <!-- ######################################## END OF PAGE'S JS ########################################################### -->
 
     <!-- Add a favicon to the tab bar -->
     <link rel="icon" type="image/x-icon" href="./img/FallSafe-Small.png" />
@@ -55,40 +54,48 @@
       <div id="navbar-container"></div>
     </header>
 
-    <!-- Transparent Row with Small Height at the Top -->
-    <div
-      class="row"
-      style="width: 10vw; height: 50px; background-color: transparent"
-    ></div>
-
-    <!-- Main Content Container -->
-    <div class="container text-center">
-      <div class="row justify-content-center">
-        <div class="col-12 mt-5">
-          <!-- Load customAlert.html dynamically -->
-          <div id="customAlertContainer"></div>
-
-          <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
-          <!-- Main Section -->
+    <!-- Hero Section with Carousel Background -->
+    <section class="hero-section">
+      <div class="carousel-container">
+        <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+          <div class="carousel-inner">
+            <div class="carousel-item active" style="background-image: url('./img/ReadME/FallSafe\ User\ Testing\ 1.JPG')"></div>
+            <div class="carousel-item" style="background-image: url('./img/ReadME/FallSafe\ User\ Testing\ 2.JPG')"></div>
+            <div class="carousel-item" style="background-image: url('./img/ReadME/User\ Testing.jpg')"></div>
+          </div>
+        </div>
+        <div class="carousel-overlay"></div>
+      </div>
+      
+      <div class="container">
+        <div class="hero-content">
           <h1>Welcome to FallSafe</h1>
-          <p class="lead text-muted">
-            Empowering seniors to assess and manage fall risk with cutting-edge
-            technology.
-          </p>
-          <p id="servedBy" class="text-muted mt-3"></p>
+          <p>Empowering seniors to assess and manage fall risk with cutting-edge technology.</p>
+          <a href="./login.html" class="btn btn-primary mt-4">
+            <i class="fas fa-heartbeat"></i> Get Started
+          </a>
+        </div>
+      </div>
+    </section>
 
-          <main class="container my-5">
-            <h2>Our Solution</h2>
-            <div class="row">
-              <div class="col-md-4">
+    <!-- Main Content -->
+    <main>
+      <section class="section">
+        <div class="container">
+          <h2 class="section-title">Our Solution</h2>
+          <div class="row align-items-center">
+            <div class="col-lg-5 mb-4 mb-lg-0">
+              <div class="content-card">
                 <img
                   src="./img/art.jpg"
                   alt="FallSafe Illustration"
-                  class="img-fluid"
+                  class="img-fluid rounded"
                 />
               </div>
-              <div class="col-md-8 d-flex flex-column justify-content-center">
-                <p class="text-secondary">
+            </div>
+            <div class="col-lg-7">
+              <div class="content-card">
+                <p>
                   <strong>FallSafe</strong> provides seniors with an
                   <strong>easy-to-use platform</strong> for preliminary
                   <strong>fall risk assessments</strong> from the comfort of
@@ -97,16 +104,17 @@
                   healthcare providers to act <strong>proactively</strong>,
                   reducing risks and improving <strong>quality of life</strong>.
                 </p>
-                <a href="./login.html" class="btn btn-primary-outline mt-3">
-                  <i class="fas fa-heartbeat"></i> Get Started
-                </a>
+                <div class="text-center text-lg-start mt-4">
+                  <a href="./about.html" class="btn btn-primary-outline">
+                    <i class="fas fa-info-circle"></i> Learn More
+                  </a>
+                </div>
               </div>
             </div>
-          </main>
-          <!-- ######################################## END OF PAGE'S CONTENT ########################################################### -->
+          </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
 
     <!-- Footer -->
     <footer class="bd-footer">

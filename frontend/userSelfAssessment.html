@@ -39,6 +39,11 @@
       crossorigin="anonymous"
     ></script>
 
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- Page Name -->
     <title>FallSafe</title>
 
@@ -76,13 +81,13 @@
     <!-- Main Content Container -->
     <div class="container text-center">
       <div class="row justify-content-center">
-        <div class="col-12 mt-5">
+        <div class="col-12 fade-in" style="margin-top: 4.5rem;">
           <!-- Load customAlert.html dynamically -->
           <div id="customAlertContainer"></div>
 
           <!-- ######################################## INSERT PAGE'S CONTENT HERE \/ ########################################################### -->
 
-          <h1 id="title">Self Assessment</h1>
+          <h1 id="title">Physical Self Assessment</h1>
           <p id="subtitle2"></p>
           <!-- Start Screen Layout -->
           <div
@@ -104,13 +109,16 @@
                   <p>Taken on: <span id="last-taken-date">Loading...</span></p>
                   <p id="months-days-ago" style="margin-left: 10px"></p>
                 </div>
+                
                 <div id="countdown-timer" class="countdown">
                   <p>Recommended time until next assessment:</p>
                   <div class="timer">
-                    <span id="months">0</span> months
-                    <span id="days">0</span> days
+                    <div><span id="months">0</span> months</div>
+                    <div><span id="days">0</span> days</div>
+                    <div><span id="hours">0</span> hours</div>
                   </div>
                 </div>
+
                 <div id="voucher-status" class="mt-3" style="display: none">
                   <div class="alert alert-success">
                     <p>
@@ -160,9 +168,10 @@
                 </ul>
               </div>
 
-              <button id="startTestButton" class="btn btn-primary">
-                Continue
+              <button id="start-button" class="btn btn-primary btn-lg">
+                <i class="fas fa-play me-2"></i> Start 
               </button>
+              
               <div id="connectionStatus" class="mt-3"></div>
             </div>
           </div>
